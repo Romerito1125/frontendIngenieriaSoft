@@ -20,7 +20,5 @@ Se están usando íconos de:
 
 ---
 
-📌 **Hecho con 💙 por el equipo de Ingeniería de Software 2.**  
+📌 **Calláte Muñoz hijueputa**  
 ```
-
-Pega este contenido en tu **`README.md`** y se verá genial en **GitHub**. 🚀🔥
