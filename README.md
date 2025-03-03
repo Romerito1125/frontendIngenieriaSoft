@@ -1,44 +1,13 @@
-Aquí tienes el README listo para copiar y pegar tal cual en tu archivo **`README.md`**:  
-
 ```md
 # 🚀 Frontend Ingeniería de Software 2  
 
 Este es un proyecto **Next.js** creado con [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).  
-
-## 📌 Comenzando  
-
-Para iniciar el servidor de desarrollo, ejecuta:  
-
-```bash
-npm run dev  # o yarn dev, pnpm dev, bun dev
-```  
-
-Luego, abre [http://localhost:3000](http://localhost:3000) en tu navegador para ver el resultado.  
-
-### ✨ Edición en tiempo real  
-Puedes modificar la página editando el archivo:  
-📌 **`app/page.tsx`** – Los cambios se reflejan automáticamente.  
-
----
-
-## 🎨 Tipografía  
-Este proyecto usa [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) para optimizar y cargar la fuente **[Geist](https://vercel.com/font)**.  
-
----
 
 ## 📚 Más información sobre Next.js  
 
 - 📖 [Documentación oficial](https://nextjs.org/docs) – Aprende sobre las características y API de Next.js.  
 - 🏆 [Tutorial interactivo](https://nextjs.org/learn) – Aprende Next.js de forma práctica.  
 - 💻 [Repositorio en GitHub](https://github.com/vercel/next.js) – Contribuye o reporta problemas.  
-
----
-
-## 🚀 Despliegue en Vercel  
-
-La forma más sencilla de desplegar esta app es en **[Vercel](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme)**, la plataforma creada por los mismos desarrolladores de Next.js.  
-
-🔗 Consulta la [documentación de despliegue](https://nextjs.org/docs/app/building-your-application/deploying) para más detalles.  
 
 ---
 
