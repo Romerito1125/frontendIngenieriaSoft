@@ -4,7 +4,7 @@ import { Bars4Icon, EllipsisVerticalIcon } from "@heroicons/react/24/solid";
 
 export default function Home() {
   const sections = [
-    { name: "Rutas", path: "/rutas", icon: "/icons/rutas.png" },
+    { name: "Rutas", path: "/rutero-prueba", icon: "/icons/rutas.png" },
     {
       name: "Buses por Estación",
       path: "/buses-por-estacion",
