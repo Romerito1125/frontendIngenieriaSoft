@@ -1,8 +1,6 @@
 ```md
 # 🚀 Frontend Ingeniería de Software 2  
 
-Este es un proyecto **Next.js** creado con [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).  
-
 ## 📚 Más información sobre Next.js  
 
 - 📖 [Documentación oficial](https://nextjs.org/docs) – Aprende sobre las características y API de Next.js.  
@@ -20,5 +18,5 @@ Se están usando íconos de:
 
 ---
 
-📌 **Calláte Muñoz hijueputa**  
+## 📌 Calláte Muñoz hijueputa
 ```
