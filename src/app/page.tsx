@@ -21,7 +21,7 @@ export default function Home() {
         <h1 className="text-xl md:text-2xl font-bold mb-6 text-center text-blue-800">
           Hola, ¿Qué quieres consultar?
         </h1>
-        <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-2 gap-6 w-full max-w-3xl place-items-center">
+        <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-2 gap-6 w-full max-w-xl place-items-center">
           {sections.map((section, index) => (
             <Link
               href={section.path}
