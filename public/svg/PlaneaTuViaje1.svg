@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg id="Capa_1" data-name="Capa 1" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 500 500">
+  <defs>
+    <style>
+      .cls-1 {
+        stroke-width: 15.75px;
+      }
+
+      .cls-1, .cls-2, .cls-3, .cls-4, .cls-5, .cls-6, .cls-7 {
+        fill: none;
+        stroke: #0019d4;
+        stroke-linecap: round;
+        stroke-linejoin: round;
+      }
+
+      .cls-2 {
+        stroke-width: 14px;
+      }
+
+      .cls-3 {
+        stroke-width: 18px;
+      }
+
+      .cls-4 {
+        stroke-width: 14px;
+      }
+
+      .cls-5 {
+        stroke-width: 10px;
+      }
+
+      .cls-6 {
+        stroke-width: 11px;
+      }
+
+      .cls-7 {
+        stroke-width: 16px;
+      }
+    </style>
+  </defs>
+  <polyline class="cls-3" points="153 33 153 95.15 331 95.15"/>
+  <polyline class="cls-3" points="406 95.15 474 95.15 474 218.72 328 218.72"/>
+  <path class="cls-3" d="M243.17,333h125.83"/>
+  <path class="cls-3" d="M250.64,218.72c-32.64.28-64.64.28-97.64.28,0,10,0,21,0,31.44"/>
+  <circle class="cls-2" cx="367" cy="95" r="34"/>
+  <circle class="cls-4" cx="288" cy="219" r="35"/>
+  <circle class="cls-1" cx="407" cy="333" r="36"/>
+  <g>
+    <g>
+      <circle class="cls-7" cx="124" cy="369" r="98"/>
+      <g>
+        <line class="cls-5" x1="124.76" y1="446.93" x2="124.51" y2="421.67"/>
+        <line class="cls-5" x1="85.7" y1="436.87" x2="98.11" y2="414.87"/>
+        <line class="cls-5" x1="56.9" y1="408.62" x2="78.64" y2="395.78"/>
+        <line class="cls-5" x1="46.07" y1="369.76" x2="71.33" y2="369.51"/>
+        <line class="cls-5" x1="56.13" y1="330.7" x2="78.13" y2="343.11"/>
+        <line class="cls-5" x1="84.38" y1="301.9" x2="97.22" y2="323.64"/>
+        <line class="cls-5" x1="123.24" y1="291.07" x2="123.48" y2="316.33"/>
+        <line class="cls-5" x1="162.3" y1="301.13" x2="149.89" y2="323.13"/>
+        <line class="cls-5" x1="191.1" y1="329.38" x2="169.36" y2="342.22"/>
+        <line class="cls-5" x1="201.92" y1="368.24" x2="176.67" y2="368.48"/>
+        <line class="cls-5" x1="191.87" y1="407.3" x2="169.87" y2="394.89"/>
+        <line class="cls-5" x1="163.62" y1="436.1" x2="150.78" y2="414.36"/>
+      </g>
+    </g>
+    <polyline class="cls-6" points="124 331.32 124 369 147 369"/>
+  </g>
+</svg>
