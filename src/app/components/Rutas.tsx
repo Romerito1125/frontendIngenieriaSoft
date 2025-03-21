@@ -1,8 +1,12 @@
+"use client";
+
 import { MagnifyingGlassIcon } from "@heroicons/react/24/solid";
+import { useState } from "react";
 
 type Ruta = {
     numero: string;
     nombre: string;
+    horario?: string;
 };
 
 type RutasProps = {
@@ -10,26 +14,44 @@ type RutasProps = {
 };
 
 export default function Rutas({ infoRutas }: RutasProps) {
+    const [search, setSearch] = useState("");
+
+    const filteredRutas = infoRutas.filter((ruta) =>
+        ruta.numero.toLowerCase().includes(search.toLowerCase()) ||
+        ruta.nombre.toLowerCase().includes(search.toLowerCase())
+    );
+
     return (
-        <div className="w-full">
-            {infoRutas.map((ruta) => (
-                <div 
-                    key={ruta.numero} 
-                    className="p-2 border-b border-gray-300 flex items-center justify-between"
-                >
-                    <span className="text-2xl font-bold w-1/4">{ruta.numero}</span>
-                    
-                    <span className="text-lg w-2/4 text-center">{ruta.nombre}</span>
-                    
-                    <button 
-                        className="w-1/4 flex justify-end"
-                        aria-label="Buscar ruta"
+        <div className="w-full max-w-2xl mx-auto">
+            {/* Barra de búsqueda */}
+            <div className="flex items-center gap-2 mb-4 p-2 border rounded-md">
+                <MagnifyingGlassIcon className="h-6 w-6 text-gray-500" />
+                <input
+                    type="text"
+                    placeholder="Buscar ruta..."
+                    value={search}
+                    onChange={(e) => setSearch(e.target.value)}
+                    className="w-full outline-none"
+                />
+            </div>
+            
+            {/* Lista de rutas */}
+            <div className="space-y-2">
+                {filteredRutas.map((ruta) => (
+                    <div 
+                        key={ruta.numero} 
+                        className="flex items-center p-3 border rounded-md shadow-md"
                     >
-                        <MagnifyingGlassIcon className="h-8 w-8 text-black hover:bg-gray-200 rounded-full p-1" />
-                    </button>
-                </div>
-            ))}
+                        <span className="text-white font-bold px-3 py-1 rounded bg-yellow-500">{ruta.numero}</span>
+                        <div className="ml-4">
+                            <span className="block text-lg font-semibold">{ruta.nombre}</span>
+                            {ruta.horario && (
+                                <span className="block text-sm text-gray-600">{ruta.horario}</span>
+                            )}
+                        </div>
+                    </div>
+                ))}
+            </div>
         </div>
     );
 }
-
