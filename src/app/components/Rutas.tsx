@@ -6,7 +6,7 @@ type Ruta = {
     numero: string;
     nombre: string;
     horario?: string;
-    tipo: "troncal" | "pretroncal" | "expreso" | "alimentador";
+    tipo: string;
 };
 
 type RutasProps = {
