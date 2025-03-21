@@ -17,15 +17,13 @@ export default function Rutas({ infoRutas }: RutasProps) {
                     key={ruta.numero} 
                     className="p-2 border-b border-gray-300 flex items-center justify-between"
                 >
-                    <span className="text-2xl font-bold">{ruta.numero}</span>
+                    <span className="text-2xl font-bold w-1/4">{ruta.numero}</span>
                     
-                    <div className="flex items-center gap-2">
-                        <span className="text-lg">{ruta.nombre}</span>
-                        
-                        <button className="p-1 rounded-full hover:bg-gray-200">
-                            <MagnifyingGlassIcon className="h-8 w-8 text-black" />
-                        </button>
-                    </div>
+                    <span className="text-lg w-2/4 text-center">{ruta.nombre}</span>
+
+                    <button className="p-1 rounded-full hover:bg-gray-200 w-1/4 flex justify-end">
+                        <MagnifyingGlassIcon className="h-8 w-8 text-black" />
+                    </button>
                 </div>
             ))}
         </div>

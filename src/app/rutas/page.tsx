@@ -13,7 +13,6 @@ const infoRutas = [
   { numero: "A09", nombre: "Terminal Menga - Vipasa" },
   { numero: "A10", nombre: "Terminal Andrés Sanín - El Trébol" }
 ];
-
 export default function rutasPage() {
     return (
       <div className="p-4">
