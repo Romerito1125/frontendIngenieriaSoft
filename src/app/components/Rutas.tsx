@@ -20,8 +20,12 @@ export default function Rutas({ infoRutas }: RutasProps) {
                     <span className="text-2xl font-bold w-1/4">{ruta.numero}</span>
                     
                     <span className="text-lg w-2/4 text-center">{ruta.nombre}</span>
-
-                    <button className="p-1 rounded-full hover:bg-gray-200 w-1/4 flex justify-end">
+                    
+                    <button 
+                        className="p-1 rounded-full hover:bg-gray-200 w-1/4 flex justify-end items-center gap-2"
+                        aria-label="Buscar ruta"
+                    >
+                        <span className="text-sm">Buscar</span>
                         <MagnifyingGlassIcon className="h-8 w-8 text-black" />
                     </button>
                 </div>
@@ -29,3 +33,4 @@ export default function Rutas({ infoRutas }: RutasProps) {
         </div>
     );
 }
+
