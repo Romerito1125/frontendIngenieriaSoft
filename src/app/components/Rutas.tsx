@@ -28,9 +28,9 @@ export default function Rutas({ infoRutas }: RutasProps) {
             case "pretroncal":
                 return "bg-blue-600"; // Azul
             case "expreso":
-                return "bg-green-600"; // Verde
-            case "alimentador":
                 return "bg-yellow-500"; // Amarillo
+            case "alimentador":
+                return "bg-green-600"; // Verde
             default:
                 return "bg-gray-500"; // Gris por defecto
         }
