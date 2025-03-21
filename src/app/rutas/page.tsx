@@ -1,8 +1,5 @@
 import Rutas from "../components/Rutas";
-type Ruta = {
-  numero: string;
-  nombre: string;
-};
+
 
 const infoRutas = [
   { numero: "A01", nombre: "Terminal Menga - Flora Industrial" },
