@@ -1,5 +1,4 @@
 "use client";
-
 import { MagnifyingGlassIcon } from "@heroicons/react/24/solid";
 import { useState } from "react";
 
@@ -7,6 +6,7 @@ type Ruta = {
     numero: string;
     nombre: string;
     horario?: string;
+    tipo: "troncal" | "pretroncal" | "expreso" | "alimentador";
 };
 
 type RutasProps = {
@@ -20,6 +20,21 @@ export default function Rutas({ infoRutas }: RutasProps) {
         ruta.numero.toLowerCase().includes(search.toLowerCase()) ||
         ruta.nombre.toLowerCase().includes(search.toLowerCase())
     );
+
+    const getColorByType = (tipo: string) => {
+        switch (tipo) {
+            case "troncal":
+                return "bg-red-600"; // Rojo
+            case "pretroncal":
+                return "bg-blue-600"; // Azul
+            case "expreso":
+                return "bg-green-600"; // Verde
+            case "alimentador":
+                return "bg-yellow-500"; // Amarillo
+            default:
+                return "bg-gray-500"; // Gris por defecto
+        }
+    };
 
     return (
         <div className="w-full max-w-2xl mx-auto">
@@ -42,7 +57,12 @@ export default function Rutas({ infoRutas }: RutasProps) {
                         key={ruta.numero} 
                         className="flex items-center p-3 border rounded-md shadow-md"
                     >
-                        <span className="text-white font-bold px-3 py-1 rounded bg-yellow-500">{ruta.numero}</span>
+                        {/* Recuadro de número con color según tipo */}
+                        <span className={`text-white font-bold px-3 py-1 rounded ${getColorByType(ruta.tipo)}`}>
+                            {ruta.numero}
+                        </span>
+                        
+                        {/* Nombre y horario */}
                         <div className="ml-4">
                             <span className="block text-lg font-semibold">{ruta.nombre}</span>
                             {ruta.horario && (
