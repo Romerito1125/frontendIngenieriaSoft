@@ -37,16 +37,16 @@ export default function Rutas({ infoRutas }: RutasProps) {
     };
 
     return (
-        <div className="w-full max-w-2xl mx-auto">
+        <div className="w-full max-w-2xl mx-auto bg-white p-4 rounded-md shadow-md">
             {/* Barra de búsqueda */}
-            <div className="flex items-center gap-2 mb-4 p-2 border rounded-md">
+            <div className="flex items-center gap-2 mb-4 p-2 border rounded-md bg-gray-100">
                 <MagnifyingGlassIcon className="h-6 w-6 text-gray-500" />
                 <input
                     type="text"
                     placeholder="Buscar ruta..."
                     value={search}
                     onChange={(e) => setSearch(e.target.value)}
-                    className="w-full outline-none"
+                    className="w-full outline-none bg-transparent"
                 />
             </div>
             
@@ -55,7 +55,7 @@ export default function Rutas({ infoRutas }: RutasProps) {
                 {filteredRutas.map((ruta) => (
                     <div 
                         key={ruta.numero} 
-                        className="flex items-center p-3 border rounded-md shadow-md"
+                        className="flex items-center p-3 border rounded-md shadow-md bg-white"
                     >
                         {/* Recuadro de número con color según tipo */}
                         <span className={`text-white font-bold px-3 py-1 rounded ${getColorByType(ruta.tipo)}`}>
