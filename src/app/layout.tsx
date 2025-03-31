@@ -16,7 +16,8 @@ const geistMono = Geist_Mono({
 
 export const metadata: Metadata = {
   title: "tuyo",
-  description: "tuyo app ingesoft2",
+  
+  description: "Aplicación del tuyo - Proyecto Ingeniería de Software 2",
 };
 
 export default function RootLayout({
