@@ -3,7 +3,7 @@ import Image from "next/image";
 
 export default function Home() {
   const sections = [
-    { name: "Rutas", path: "/rutero-prueba", icon: "/svg/Rutas1.svg" },
+    { name: "Rutas", path: "/rutas", icon: "/svg/Rutas1.svg" },
     { name: "Buses por Estación", path: "/buses-por-estacion", icon: "/svg/BusesPorEstacion1.svg" },
     { name: "Saldo y Recargas", path: "/saldo-y-recargas", icon: "/svg/Saldo1.svg" },
     { name: "Planea tu Viaje", path: "/planea-tu-viaje", icon: "/svg/PlaneaTuViaje1.svg" },

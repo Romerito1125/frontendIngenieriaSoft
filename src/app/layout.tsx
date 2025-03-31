@@ -16,6 +16,7 @@ const geistMono = Geist_Mono({
 
 export const metadata: Metadata = {
   title: "tuyo",
+  
   description: "Aplicación del tuyo - Proyecto Ingeniería de Software 2",
 };
 
