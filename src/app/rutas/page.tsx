@@ -10,8 +10,8 @@ const infoRutas = [
 
 export default function rutasPage() {
     return (
-      <div className="p-4">
-        <h1 className="text-2xl font-bold text-center mb-4">Conoce las rutas del MIO</h1>
+      <div className="p-4 bg-white">
+        <h1 className="text-2xl font-bold text-center mb-4 text-black">Conoce las rutas del MIO</h1>
         <Rutas infoRutas={infoRutas} />
       </div>
     );
