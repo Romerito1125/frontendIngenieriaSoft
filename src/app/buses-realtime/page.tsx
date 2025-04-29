@@ -1,11 +1,11 @@
 "use client";
 
 import { GoogleMap, LoadScript, Marker } from "@react-google-maps/api";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 
 const containerStyle = {
   width: "100%",
-  height: "800px", // angosto pero largo
+  height: "800px",
 };
 
 const center = {
@@ -17,16 +17,30 @@ const estaciones = [
   { nombre: "Universidades", lat: 3.3411, lng: -76.5309 },
   { nombre: "Unidad Deportiva", lat: 3.4294, lng: -76.5446 },
   { nombre: "Estadio", lat: 3.4371, lng: -76.5292 },
+  { nombre: "La Ermita", lat: 3.4534367, lng: -76.5316067 },
+  { nombre: "Plaza de Cayzedo", lat: 3.452425, lng: -76.531374 },
+  { nombre: "Centro", lat: 3.4486624, lng: -76.5301074 },
+  { nombre: "Fray Damián", lat: 3.443605, lng: -76.528799 },
+  { nombre: "San Bosco", lat: 3.442262, lng: -76.5331011 },
+  { nombre: "San Pascual", lat: 3.442640, lng: -76.527372 },
+  { nombre: "Sucre", lat: 3.443845, lng: -76.526378 },
+  { nombre: "Petecuy", lat: 3.449041, lng: -76.527942 },
+  { nombre: "San Pedro", lat: 3.4543975, lng: -76.5299721 },
+  { nombre: "Menga", lat: 3.489289, lng: -76.508435 },
+  { nombre: "Alamos", lat: 3.484499, lng: -76.513305 },
+  { nombre: "Vipasa", lat: 3.478601, lng: -76.517001  },
+  { nombre: "Prados del Norte", lat: 3.4744873, lng: -76.519584 },
+  { nombre: "Las Américas", lat: 3.463576, lng: -76.525274 },
+  { nombre: "Versalles", lat: 3.4611281, lng: -76.52684 },
+  { nombre: "Torre de Cali", lat: 3.456793, lng: -76.530279 },
 ];
 
 export default function MapaMIO() {
-  const [iconSize, setIconSize] = useState<google.maps.Size>();
+  const [iconSize, setIconSize] = useState<google.maps.Size | null>(null);
 
-  useEffect(() => {
-    if (typeof window !== "undefined" && window.google) {
-      setIconSize(new window.google.maps.Size(30, 30));
-    }
-  }, []);
+  const handleMapLoad = () => {
+    setIconSize(new window.google.maps.Size(50, 50));
+  };
 
   return (
     <div className="w-full px-4 md:px-8 py-4">
@@ -36,6 +50,7 @@ export default function MapaMIO() {
           mapContainerStyle={containerStyle}
           center={center}
           zoom={13}
+          onLoad={handleMapLoad}
           options={{
             mapTypeControl: false,
             streetViewControl: false,
@@ -45,13 +60,13 @@ export default function MapaMIO() {
           }}
         >
           {iconSize &&
-            estaciones.map((estacion, index) => (
+            estaciones.map((estacion) => (
               <Marker
-                key={index}
+                key={estacion.nombre}
                 position={{ lat: estacion.lat, lng: estacion.lng }}
                 title={estacion.nombre}
                 icon={{
-                  url: "/bus-icon.png",
+                  url: "/icono-parada.png",
                   scaledSize: iconSize,
                 }}
               />
