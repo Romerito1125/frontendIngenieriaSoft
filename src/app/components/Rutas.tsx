@@ -47,6 +47,7 @@ export default function Rutas({ infoRutas }: RutasProps) {
                     value={search}
                     onChange={(e) => setSearch(e.target.value)}
                     className="w-full outline-none text-black"
+
                 />
             </div>
             
@@ -55,8 +56,8 @@ export default function Rutas({ infoRutas }: RutasProps) {
                 {filteredRutas.map((ruta) => (
                     <div 
                         key={ruta.numero} 
-                        className="flex items-center p-3 border rounded-md shadow-md text-black"
-                    >
+                       className="flex items-center p-3 border rounded-md shadow-md text-black"
+                    />
                         {/* Recuadro de número con color según tipo */}
                         <span className={`text-white font-bold px-3 py-1 rounded ${getColorByType(ruta.tipo)}`}>
                             {ruta.numero}
