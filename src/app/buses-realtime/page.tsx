@@ -43,7 +43,7 @@ export default function MapaMIO() {
   };
 
   return (
-    <div className="w-full px-4 md:px-8 py-4">
+    <div className="h-screen w-full px-4 md:px-8 py-4">
       <h2 className="text-xl font-bold text-center text-black mb-4">Mapa rutas tiempo real MIO</h2>
       <LoadScript googleMapsApiKey={process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY!}>
         <GoogleMap
