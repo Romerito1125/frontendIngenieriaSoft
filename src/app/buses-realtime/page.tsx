@@ -6,6 +6,7 @@ import { useState } from "react";
 const containerStyle = {
   width: "100%",
   height: "800px",
+  border: "3px solid #008bcc",
 };
 
 const center = {
@@ -14,18 +15,10 @@ const center = {
 };
 
 const estaciones = [
-  { nombre: "Universidades", lat: 3.3411, lng: -76.5309 },
   { nombre: "Unidad Deportiva", lat: 3.4294, lng: -76.5446 },
   { nombre: "Estadio", lat: 3.4371, lng: -76.5292 },
-  { nombre: "La Ermita", lat: 3.4534367, lng: -76.5316067 },
-  { nombre: "Plaza de Cayzedo", lat: 3.452425, lng: -76.531374 },
-  { nombre: "Centro", lat: 3.4486624, lng: -76.5301074 },
-  { nombre: "Fray Damián", lat: 3.443605, lng: -76.528799 },
-  { nombre: "San Bosco", lat: 3.442262, lng: -76.5331011 },
-  { nombre: "San Pascual", lat: 3.442640, lng: -76.527372 },
-  { nombre: "Sucre", lat: 3.443845, lng: -76.526378 },
-  { nombre: "Petecuy", lat: 3.449041, lng: -76.527942 },
-  { nombre: "San Pedro", lat: 3.4543975, lng: -76.5299721 },
+
+  
   { nombre: "Menga", lat: 3.489289, lng: -76.508435 },
   { nombre: "Alamos", lat: 3.484499, lng: -76.513305 },
   { nombre: "Vipasa", lat: 3.478601, lng: -76.517001  },
@@ -33,6 +26,19 @@ const estaciones = [
   { nombre: "Las Américas", lat: 3.463576, lng: -76.525274 },
   { nombre: "Versalles", lat: 3.4611281, lng: -76.52684 },
   { nombre: "Torre de Cali", lat: 3.456793, lng: -76.530279 },
+  { nombre: "La Ermita", lat: 3.4534367, lng: -76.5316067 },
+  { nombre: "Plaza de Cayzedo", lat: 3.452425, lng: -76.531374 },
+  { nombre: "Centro", lat: 3.4486624, lng: -76.5301074 },
+  { nombre: "Fray Damián", lat: 3.443605, lng: -76.528799 },
+  { nombre: "Sucre", lat: 3.443845, lng: -76.526378 },
+  { nombre: "Petecuy", lat: 3.449041, lng: -76.527942 },
+  { nombre: "San Bosco", lat: 3.442262, lng: -76.5331011 },
+  { nombre: "San Pascual", lat: 3.442640, lng: -76.527372 },
+  { nombre: "San Pedro", lat: 3.4543975, lng: -76.5299721 },
+  { nombre: "Melendez", lat : 3.377102, lng: -76.542792},
+  {nombre: "Buitrera", lat:3.372691, lng:-76.540197},
+  {nombre: "Univalle", lat: 3.370922, lng: -76.536840},
+  {nombre: "Universidades", lat: 3.367070, lng: -76.529170}
   
 ];
 
