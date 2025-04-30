@@ -33,6 +33,7 @@ const estaciones = [
   { nombre: "Las Américas", lat: 3.463576, lng: -76.525274 },
   { nombre: "Versalles", lat: 3.4611281, lng: -76.52684 },
   { nombre: "Torre de Cali", lat: 3.456793, lng: -76.530279 },
+  
 ];
 
 export default function MapaMIO() {
@@ -57,6 +58,19 @@ export default function MapaMIO() {
             fullscreenControl: false,
             zoomControl: false,
             disableDefaultUI: true,
+            
+            styles: [
+              {
+                featureType: 'poi',
+                elementType: 'all',
+                stylers: [
+                  {
+                    visibility: 'off'
+                  }
+                ]
+              }
+            ]
+
           }}
         >
           {iconSize &&
