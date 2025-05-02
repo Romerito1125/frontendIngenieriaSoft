@@ -24,15 +24,15 @@ export default function Rutas({ infoRutas }: RutasProps) {
     const getColorByType = (tipo: string) => {
         switch (tipo) {
             case "troncal":
-                return "bg-red-600"; // Rojo
+                return "bg-red-600";
             case "pretroncal":
-                return "bg-blue-600"; // Azul
+                return "bg-blue-600";
             case "expreso":
-                return "bg-yellow-500"; // Amarillo
+                return "bg-yellow-500"; 
             case "alimentador":
-                return "bg-green-600"; // Verde
+                return "bg-green-600";
             default:
-                return "bg-gray-500"; // Gris por defecto
+                return "bg-gray-500"; 
         }
     };
 
