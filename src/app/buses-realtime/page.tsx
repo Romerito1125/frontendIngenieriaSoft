@@ -22,9 +22,10 @@ const center = {
 export default function MapaMIO() {
   const [iconSize, setIconSize] = useState<google.maps.Size | null>(null);
   const [selectedEstacion, setSelectedEstacion] = useState<any>(null);
+  const [selectedBus, setSelectedBus] = useState<any>(null);
   const [estaciones, setEstaciones] = useState<any[]>([]);
   const [buses, setBuses] = useState<any[]>([]);
-  const [idruta, setIdRuta] = useState(""); // ← input controlado
+  const [idruta, setIdRuta] = useState("");
 
   const handleMapLoad = () => {
     setIconSize(new window.google.maps.Size(50, 50));
@@ -32,11 +33,8 @@ export default function MapaMIO() {
 
   const iniciarSimulacion = async () => {
     try {
-      await axios.post("https://tiemporeal.onrender.com/sim/inicio", {
-        idruta,
-      });
+      await axios.post("http://localhost:3001/sim/inicio", { idruta });
       obtenerEstaciones();
-      obtenerBuses();
     } catch (err) {
       console.error("Error al iniciar simulación:", err);
     }
@@ -45,7 +43,7 @@ export default function MapaMIO() {
   const obtenerEstaciones = async () => {
     try {
       const { data } = await axios.get(
-        `https://tiemporeal.onrender.com/sim/recorrido/${idruta}`
+        `http://localhost:3001/sim/recorrido/${idruta}`
       );
       setEstaciones(data);
     } catch (err) {
@@ -56,7 +54,7 @@ export default function MapaMIO() {
   const obtenerBuses = async () => {
     try {
       const { data } = await axios.get(
-        `https://tiemporeal.onrender.com/sim/buses/${idruta}`
+        `http://localhost:3001/sim/buses/${idruta}`
       );
       setBuses(data);
     } catch (err) {
@@ -67,7 +65,7 @@ export default function MapaMIO() {
   useEffect(() => {
     const interval = setInterval(() => {
       if (idruta) obtenerBuses();
-    }, 15000);
+    }, 1000);
     return () => clearInterval(interval);
   }, [idruta]);
 
@@ -84,7 +82,6 @@ export default function MapaMIO() {
         Mapa rutas tiempo real MIO
       </h2>
 
-      {/* Barra superior tipo buscador */}
       <form
         onSubmit={handleSubmit}
         className="flex items-center justify-center bg-blue-700 p-2 rounded-md gap-2 mb-4"
@@ -141,14 +138,16 @@ export default function MapaMIO() {
                 key={bus.idbus}
                 position={{ lat: bus.lat, lng: bus.lon }}
                 title={`Bus ${bus.idbus}`}
+                animation={google.maps.Animation.DROP}
                 icon={{
                   url: "/icono-bus.png",
                   scaledSize: iconSize,
                 }}
+                onClick={() => setSelectedBus(bus)}
               />
             ))}
 
-          {/* InfoWindow */}
+          {/* InfoWindow para estación */}
           {selectedEstacion && (
             <InfoWindow
               position={{
@@ -167,6 +166,29 @@ export default function MapaMIO() {
                     {selectedEstacion.nombre}
                   </h3>
                   <p className="text-center text-xs">Estación activa</p>
+                </div>
+              </div>
+            </InfoWindow>
+          )}
+
+          {/* InfoWindow para bus */}
+          {selectedBus && (
+            <InfoWindow
+              position={{ lat: selectedBus.lat, lng: selectedBus.lon }}
+              onCloseClick={() => setSelectedBus(null)}
+              options={{
+                pixelOffset: new window.google.maps.Size(0, -35),
+                disableAutoPan: true,
+              }}
+            >
+              <div className="overflow-hidden rounded-lg">
+                <div className="bg-white rounded-md p-2 w-40 shadow-md">
+                  <h3 className="text-blue-800 font-bold text-sm text-center mb-1">
+                    🚌 Bus {selectedBus.idbus}
+                  </h3>
+                  <p className="text-xs text-center text-gray-700">
+                    En simulación
+                  </p>
                 </div>
               </div>
             </InfoWindow>
