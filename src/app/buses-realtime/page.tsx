@@ -24,6 +24,7 @@ export default function MapaMIO() {
   const [selectedEstacion, setSelectedEstacion] = useState<any>(null);
   const [estaciones, setEstaciones] = useState<any[]>([]);
   const [buses, setBuses] = useState<any[]>([]);
+  const [idruta, setIdRuta] = useState(""); // ← input controlado
 
   const handleMapLoad = () => {
     setIconSize(new window.google.maps.Size(50, 50));
@@ -31,9 +32,11 @@ export default function MapaMIO() {
 
   const iniciarSimulacion = async () => {
     try {
-      await axios.post("http://localhost:3001/sim/inicio", {
-        idruta: "E21"
+      await axios.post("https://tiemporeal.onrender.com/sim/inicio", {
+        idruta,
       });
+      obtenerEstaciones();
+      obtenerBuses();
     } catch (err) {
       console.error("Error al iniciar simulación:", err);
     }
@@ -41,7 +44,9 @@ export default function MapaMIO() {
 
   const obtenerEstaciones = async () => {
     try {
-      const { data } = await axios.get("http://localhost:3001/sim/recorrido/E21");
+      const { data } = await axios.get(
+        `https://tiemporeal.onrender.com/sim/recorrido/${idruta}`
+      );
       setEstaciones(data);
     } catch (err) {
       console.error("Error al obtener estaciones:", err);
@@ -50,7 +55,9 @@ export default function MapaMIO() {
 
   const obtenerBuses = async () => {
     try {
-      const { data } = await axios.get("http://localhost:3001/sim/buses/E21");
+      const { data } = await axios.get(
+        `https://tiemporeal.onrender.com/sim/buses/${idruta}`
+      );
       setBuses(data);
     } catch (err) {
       console.error("Error al obtener buses:", err);
@@ -58,22 +65,46 @@ export default function MapaMIO() {
   };
 
   useEffect(() => {
-    iniciarSimulacion();
-    obtenerEstaciones();
-    obtenerBuses();
-
     const interval = setInterval(() => {
-      obtenerBuses();
-    }, 15000); // actualiza cada 15s
-
+      if (idruta) obtenerBuses();
+    }, 15000);
     return () => clearInterval(interval);
-  }, []);
+  }, [idruta]);
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (idruta.trim()) {
+      iniciarSimulacion();
+    }
+  };
 
   return (
     <div className="w-full px-4 md:px-8 py-4">
-      <h2 className="text-xl font-bold text-center text-black mb-4">
+      <h2 className="text-xl font-bold text-center text-black mb-2">
         Mapa rutas tiempo real MIO
       </h2>
+
+      {/* Barra superior tipo buscador */}
+      <form
+        onSubmit={handleSubmit}
+        className="flex items-center justify-center bg-blue-700 p-2 rounded-md gap-2 mb-4"
+      >
+        <img src="/icono-bus.png" alt="Bus" className="w-8 h-8" />
+        <input
+          type="text"
+          placeholder="Ruta o bus"
+          value={idruta}
+          onChange={(e) => setIdRuta(e.target.value)}
+          className="p-1 rounded-sm w-48 text-black"
+        />
+        <button
+          type="submit"
+          className="bg-yellow-400 text-black font-bold px-3 py-1 rounded hover:bg-yellow-300"
+        >
+          Enviar
+        </button>
+      </form>
+
       <LoadScript googleMapsApiKey={process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY!}>
         <GoogleMap
           mapContainerStyle={containerStyle}
@@ -117,7 +148,7 @@ export default function MapaMIO() {
               />
             ))}
 
-          {/* InfoWindow para estación seleccionada */}
+          {/* InfoWindow */}
           {selectedEstacion && (
             <InfoWindow
               position={{
