@@ -46,30 +46,35 @@ export default function MapaMIO() {
 
   const iniciarSimulacion = async () => {
     try {
-      await axios.post("http://localhost:3001/sim/inicio", { idruta });
+      await axios.post("https://tiemporeal.onrender.com/sim/inicio", { idruta });
       obtenerEstaciones();
     } catch (err) {
       console.error("Error al iniciar simulación:", err);
     }
   };
-
+  
   const obtenerEstaciones = async () => {
     try {
-      const { data } = await axios.get(`http://localhost:3001/sim/recorrido/${idruta}`);
+      const { data } = await axios.get(
+        `https://tiemporeal.onrender.com/sim/recorrido/${idruta}`
+      );
       setEstaciones(data);
     } catch (err) {
       console.error("Error al obtener estaciones:", err);
     }
   };
-
+  
   const obtenerBuses = useCallback(async () => {
     try {
-      const { data } = await axios.get(`http://localhost:3001/sim/buses/${idruta}`);
+      const { data } = await axios.get(
+        `https://tiemporeal.onrender.com/sim/buses/${idruta}`
+      );
       setBuses(data);
     } catch (err) {
       console.error("Error al obtener buses:", err);
     }
   }, [idruta]);
+  
 
   useEffect(() => {
     const interval = setInterval(() => {
