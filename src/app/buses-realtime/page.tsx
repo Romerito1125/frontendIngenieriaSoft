@@ -6,8 +6,21 @@ import {
   Marker,
   InfoWindow,
 } from "@react-google-maps/api";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import axios from "axios";
+
+interface Estacion {
+  idestacion: number;
+  nombre: string;
+  lat: number;
+  lon: number;
+}
+
+interface Bus {
+  idbus: number;
+  lat: number;
+  lon: number;
+}
 
 const containerStyle = {
   width: "100%",
@@ -21,10 +34,10 @@ const center = {
 
 export default function MapaMIO() {
   const [iconSize, setIconSize] = useState<google.maps.Size | null>(null);
-  const [selectedEstacion, setSelectedEstacion] = useState<any>(null);
-  const [selectedBus, setSelectedBus] = useState<any>(null);
-  const [estaciones, setEstaciones] = useState<any[]>([]);
-  const [buses, setBuses] = useState<any[]>([]);
+  const [selectedEstacion, setSelectedEstacion] = useState<Estacion | null>(null);
+  const [selectedBus, setSelectedBus] = useState<Bus | null>(null);
+  const [estaciones, setEstaciones] = useState<Estacion[]>([]);
+  const [buses, setBuses] = useState<Bus[]>([]);
   const [idruta, setIdRuta] = useState("");
 
   const handleMapLoad = () => {
@@ -42,32 +55,28 @@ export default function MapaMIO() {
 
   const obtenerEstaciones = async () => {
     try {
-      const { data } = await axios.get(
-        `http://localhost:3001/sim/recorrido/${idruta}`
-      );
+      const { data } = await axios.get(`http://localhost:3001/sim/recorrido/${idruta}`);
       setEstaciones(data);
     } catch (err) {
       console.error("Error al obtener estaciones:", err);
     }
   };
 
-  const obtenerBuses = async () => {
+  const obtenerBuses = useCallback(async () => {
     try {
-      const { data } = await axios.get(
-        `http://localhost:3001/sim/buses/${idruta}`
-      );
+      const { data } = await axios.get(`http://localhost:3001/sim/buses/${idruta}`);
       setBuses(data);
     } catch (err) {
       console.error("Error al obtener buses:", err);
     }
-  };
+  }, [idruta]);
 
   useEffect(() => {
     const interval = setInterval(() => {
       if (idruta) obtenerBuses();
     }, 1000);
     return () => clearInterval(interval);
-  }, [idruta]);
+  }, [idruta, obtenerBuses]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
