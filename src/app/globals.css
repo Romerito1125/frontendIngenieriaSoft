@@ -6,15 +6,8 @@
 }
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #ffffff;
-    --foreground: #ededed;
-  }
+  --background: #ffffff; /* Fondo blanco */
+  --foreground: #171717; /* Texto negro */
 }
 
 body {
@@ -22,4 +15,3 @@ body {
   background: var(--background);
   font-family: Arial, Helvetica, sans-serif;
 }
-

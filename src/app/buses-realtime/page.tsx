@@ -1,12 +1,30 @@
 "use client";
 
-import { GoogleMap, LoadScript, Marker } from "@react-google-maps/api";
-import { useState } from "react";
+import {
+  GoogleMap,
+  LoadScript,
+  Marker,
+  InfoWindow,
+} from "@react-google-maps/api";
+import { useEffect, useState, useCallback } from "react";
+import axios from "axios";
+
+interface Estacion {
+  idestacion: number;
+  nombre: string;
+  lat: number;
+  lon: number;
+}
+
+interface Bus {
+  idbus: number;
+  lat: number;
+  lon: number;
+}
 
 const containerStyle = {
   width: "100%",
   height: "800px",
-  border: "3px solid #008bcc",
 };
 
 const center = {
@@ -14,44 +32,90 @@ const center = {
   lng: -76.531985,
 };
 
-const estaciones = [
-  { nombre: "Unidad Deportiva", lat: 3.4294, lng: -76.5446 },
-  { nombre: "Estadio", lat: 3.4371, lng: -76.5292 },
-
-  
-  { nombre: "Menga", lat: 3.489289, lng: -76.508435 },
-  { nombre: "Alamos", lat: 3.484499, lng: -76.513305 },
-  { nombre: "Vipasa", lat: 3.478601, lng: -76.517001  },
-  { nombre: "Prados del Norte", lat: 3.4744873, lng: -76.519584 },
-  { nombre: "Las Américas", lat: 3.463576, lng: -76.525274 },
-  { nombre: "Versalles", lat: 3.4611281, lng: -76.52684 },
-  { nombre: "Torre de Cali", lat: 3.456793, lng: -76.530279 },
-  { nombre: "La Ermita", lat: 3.4534367, lng: -76.5316067 },
-  { nombre: "Plaza de Cayzedo", lat: 3.452425, lng: -76.531374 },
-  { nombre: "Centro", lat: 3.4486624, lng: -76.5301074 },
-  { nombre: "Fray Damián", lat: 3.443605, lng: -76.528799 },
-  { nombre: "Sucre", lat: 3.443845, lng: -76.526378 },
-  { nombre: "Petecuy", lat: 3.449041, lng: -76.527942 },
-  { nombre: "San Bosco", lat: 3.442262, lng: -76.5331011 },
-  { nombre: "San Pascual", lat: 3.442640, lng: -76.527372 },
-  { nombre: "San Pedro", lat: 3.4543975, lng: -76.5299721 },
-  { nombre: "Melendez", lat : 3.377102, lng: -76.542792},
-  {nombre: "Buitrera", lat:3.372691, lng:-76.540197},
-  {nombre: "Univalle", lat: 3.370922, lng: -76.536840},
-  {nombre: "Universidades", lat: 3.367070, lng: -76.529170}
-  
-];
-
 export default function MapaMIO() {
   const [iconSize, setIconSize] = useState<google.maps.Size | null>(null);
+  const [selectedEstacion, setSelectedEstacion] = useState<Estacion | null>(null);
+  const [selectedBus, setSelectedBus] = useState<Bus | null>(null);
+  const [estaciones, setEstaciones] = useState<Estacion[]>([]);
+  const [buses, setBuses] = useState<Bus[]>([]);
+  const [idruta, setIdRuta] = useState("");
 
   const handleMapLoad = () => {
     setIconSize(new window.google.maps.Size(50, 50));
   };
 
+  const iniciarSimulacion = async () => {
+    try {
+      await axios.post("https://tiemporeal.onrender.com/sim/inicio", { idruta });
+      obtenerEstaciones();
+    } catch (err) {
+      console.error("Error al iniciar simulación:", err);
+    }
+  };
+  
+  const obtenerEstaciones = async () => {
+    try {
+      const { data } = await axios.get(
+        `https://tiemporeal.onrender.com/sim/recorrido/${idruta}`
+      );
+      setEstaciones(data);
+    } catch (err) {
+      console.error("Error al obtener estaciones:", err);
+    }
+  };
+  
+  const obtenerBuses = useCallback(async () => {
+    try {
+      const { data } = await axios.get(
+        `https://tiemporeal.onrender.com/sim/buses/${idruta}`
+      );
+      setBuses(data);
+    } catch (err) {
+      console.error("Error al obtener buses:", err);
+    }
+  }, [idruta]);
+  
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      if (idruta) obtenerBuses();
+    }, 1000);
+    return () => clearInterval(interval);
+  }, [idruta, obtenerBuses]);
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (idruta.trim()) {
+      iniciarSimulacion();
+    }
+  };
+
   return (
-    <div className="h-screen w-full px-4 md:px-8 py-4">
-      <h2 className="text-xl font-bold text-center text-black mb-4">Mapa rutas tiempo real MIO</h2>
+    <div className="w-full px-4 md:px-8 py-4">
+      <h2 className="text-xl font-bold text-center text-black mb-2">
+        Mapa rutas tiempo real MIO
+      </h2>
+
+      <form
+        onSubmit={handleSubmit}
+        className="flex items-center justify-center bg-blue-700 p-2 rounded-md gap-2 mb-4"
+      >
+        <img src="/icono-bus.png" alt="Bus" className="w-8 h-8" />
+        <input
+          type="text"
+          placeholder="Ruta o bus"
+          value={idruta}
+          onChange={(e) => setIdRuta(e.target.value)}
+          className="p-1 rounded-sm w-48 text-black"
+        />
+        <button
+          type="submit"
+          className="bg-yellow-400 text-black font-bold px-3 py-1 rounded hover:bg-yellow-300"
+        >
+          Enviar
+        </button>
+      </form>
+
       <LoadScript googleMapsApiKey={process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY!}>
         <GoogleMap
           mapContainerStyle={containerStyle}
@@ -64,33 +128,85 @@ export default function MapaMIO() {
             fullscreenControl: false,
             zoomControl: false,
             disableDefaultUI: true,
-            
-            styles: [
-              {
-                featureType: 'poi',
-                elementType: 'all',
-                stylers: [
-                  {
-                    visibility: 'off'
-                  }
-                ]
-              }
-            ]
-
           }}
         >
+          {/* Estaciones */}
           {iconSize &&
             estaciones.map((estacion) => (
               <Marker
-                key={estacion.nombre}
-                position={{ lat: estacion.lat, lng: estacion.lng }}
+                key={estacion.idestacion}
+                position={{ lat: estacion.lat, lng: estacion.lon }}
                 title={estacion.nombre}
                 icon={{
                   url: "/icono-parada.png",
                   scaledSize: iconSize,
                 }}
+                onClick={() => setSelectedEstacion(estacion)}
               />
             ))}
+
+          {/* Buses */}
+          {iconSize &&
+            buses.map((bus) => (
+              <Marker
+                key={bus.idbus}
+                position={{ lat: bus.lat, lng: bus.lon }}
+                title={`Bus ${bus.idbus}`}
+                animation={google.maps.Animation.DROP}
+                icon={{
+                  url: "/icono-bus.png",
+                  scaledSize: iconSize,
+                }}
+                onClick={() => setSelectedBus(bus)}
+              />
+            ))}
+
+          {/* InfoWindow para estación */}
+          {selectedEstacion && (
+            <InfoWindow
+              position={{
+                lat: selectedEstacion.lat,
+                lng: selectedEstacion.lon,
+              }}
+              onCloseClick={() => setSelectedEstacion(null)}
+              options={{
+                pixelOffset: new window.google.maps.Size(0, -35),
+                disableAutoPan: true,
+              }}
+            >
+              <div className="overflow-hidden rounded-lg">
+                <div className="bg-blue-700 text-white rounded-md p-2 w-64">
+                  <h3 className="text-yellow-400 font-bold text-sm mb-2 text-center">
+                    {selectedEstacion.nombre}
+                  </h3>
+                  <p className="text-center text-xs">Estación activa</p>
+                </div>
+              </div>
+            </InfoWindow>
+          )}
+
+          {/* InfoWindow para bus */}
+          {selectedBus && (
+            <InfoWindow
+              position={{ lat: selectedBus.lat, lng: selectedBus.lon }}
+              onCloseClick={() => setSelectedBus(null)}
+              options={{
+                pixelOffset: new window.google.maps.Size(0, -35),
+                disableAutoPan: true,
+              }}
+            >
+              <div className="overflow-hidden rounded-lg">
+                <div className="bg-white rounded-md p-2 w-40 shadow-md">
+                  <h3 className="text-blue-800 font-bold text-sm text-center mb-1">
+                    🚌 Bus {selectedBus.idbus}
+                  </h3>
+                  <p className="text-xs text-center text-gray-700">
+                    En simulación
+                  </p>
+                </div>
+              </div>
+            </InfoWindow>
+          )}
         </GoogleMap>
       </LoadScript>
     </div>
