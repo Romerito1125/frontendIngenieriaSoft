@@ -56,7 +56,7 @@ export default function MapaMIO() {
   const obtenerEstaciones = async () => {
     try {
       const { data } = await axios.get(
-        `https://tiemporeal.onrender.com/sim/recorrido/${idruta}`
+        `https://www.tiemporeal.devcorebits.com/sim/recorrido/${idruta}`
       );
       setEstaciones(data);
     } catch (err) {
