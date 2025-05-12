@@ -67,7 +67,7 @@ export default function MapaMIO() {
   const obtenerBuses = useCallback(async () => {
     try {
       const { data } = await axios.get(
-        `https://tiemporeal.onrender.com/sim/buses/${idruta}`
+        `https://www.tiemporeal.devcorebits.com/sim/buses/${idruta}`
       );
       setBuses(data);
     } catch (err) {
