@@ -46,7 +46,7 @@ export default function MapaMIO() {
 
   const iniciarSimulacion = async () => {
     try {
-      await axios.post("https://tiemporeal.onrender.com/sim/inicio", { idruta });
+      await axios.post("https://www.tiemporeal.devcorebits.com/sim/inicio", { idruta });
       obtenerEstaciones();
     } catch (err) {
       console.error("Error al iniciar simulación:", err);
