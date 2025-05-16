@@ -23,7 +23,7 @@ export default function BusesPorEstacion() {
 
   const fetchLlegadas = async () => {
     try {
-      const res = await axios.get("http://localhost:3001/info/llegadas");
+      const res = await axios.get("www.tiemporeal.devcorebits.com/info/llegadas");
       setEstaciones(res.data);
     } catch (err) {
       console.error("Error al obtener llegadas generales", err);
