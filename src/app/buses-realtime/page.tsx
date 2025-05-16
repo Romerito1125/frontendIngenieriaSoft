@@ -89,7 +89,7 @@ export default function MapaMIO() {
 
   const obtenerTiempoEstacion = async (idestacion: number) => {
     try {
-      const { data } = await axios.get(`http://localhost:3001/sim/tiempo-llegada/${idestacion}`);
+      const { data } = await axios.get(`https://www.tiemporeal.devcorebits.com/sim/tiempo-llegada/${idestacion}`);
       setTiempoEstacion(data);
     } catch (error) {
       console.error("Error al obtener tiempo de llegada:", error);
