@@ -72,11 +72,11 @@ export default function BusesPorEstacion() {
                     key={bus.idbus}
                     className="flex justify-between items-center bg-blue-50 p-2 rounded-md text-sm"
                   >
-                    <span>🚌 Bus {bus.idbus} – Ruta {bus.ruta}</span>
+                    <span> Bus {bus.idbus} – Ruta {bus.ruta}</span>
                     <span>
                       {bus.tiempo_estimado_min === 0
-                        ? "🟢 Llegó"
-                        : `⏱️ ${bus.tiempo_estimado_min} min`}
+                        ? "Llegó"
+                        : `${bus.tiempo_estimado_min} min`}
                     </span>
                   </li>
                 ))}

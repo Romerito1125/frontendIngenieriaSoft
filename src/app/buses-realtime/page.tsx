@@ -46,7 +46,9 @@ const center = {
 
 export default function MapaMIO() {
   const [iconSize, setIconSize] = useState<google.maps.Size | null>(null);
-  const [selectedEstacion, setSelectedEstacion] = useState<Estacion | null>(null);
+  const [selectedEstacion, setSelectedEstacion] = useState<Estacion | null>(
+    null
+  );
   const [selectedBus, setSelectedBus] = useState<Bus | null>(null);
   const [estaciones, setEstaciones] = useState<Estacion[]>([]);
   const [buses, setBuses] = useState<Bus[]>([]);
@@ -59,7 +61,9 @@ export default function MapaMIO() {
 
   const iniciarSimulacion = async () => {
     try {
-      await axios.post("https://tiemporeal-pr-5.onrender.com/sim/inicio", { idruta });
+      await axios.post("https://tiemporeal-pr-5.onrender.com/sim/inicio", {
+        idruta,
+      });
       obtenerEstaciones();
     } catch (err) {
       console.error("Error al iniciar simulación:", err);
@@ -68,7 +72,9 @@ export default function MapaMIO() {
 
   const obtenerEstaciones = async () => {
     try {
-      const { data } = await axios.get(`https://tiemporeal-pr-5.onrender.com/sim/recorrido/${idruta}`);
+      const { data } = await axios.get(
+        `https://tiemporeal-pr-5.onrender.com/sim/recorrido/${idruta}`
+      );
       setEstaciones(data);
     } catch (err) {
       console.error("Error al obtener estaciones:", err);
@@ -77,7 +83,9 @@ export default function MapaMIO() {
 
   const obtenerBuses = useCallback(async () => {
     try {
-      const { data } = await axios.get(`https://tiemporeal-pr-5.onrender.com/sim/buses/${idruta}`);
+      const { data } = await axios.get(
+        `https://tiemporeal-pr-5.onrender.com/sim/buses/${idruta}`
+      );
       setBuses(data);
     } catch (err) {
       console.error("Error al obtener buses:", err);
@@ -86,7 +94,9 @@ export default function MapaMIO() {
 
   const obtenerTiempoEstacion = async (idestacion: number) => {
     try {
-      const { data } = await axios.get(`https://tiemporeal-pr-5.onrender.com/sim/tiempo-llegada/${idestacion}`);
+      const { data } = await axios.get(
+        `https://tiemporeal-pr-5.onrender.com/sim/tiempo-llegada/${idestacion}`
+      );
       setTiempoEstacion(data);
     } catch (error) {
       console.error("Error al obtener tiempo de llegada:", error);
@@ -133,7 +143,9 @@ export default function MapaMIO() {
         </button>
       </form>
 
-      <LoadScript googleMapsApiKey={process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY!}>
+      <LoadScript
+        googleMapsApiKey={process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY!}
+      >
         <GoogleMap
           mapContainerStyle={containerStyle}
           center={center}
@@ -145,6 +157,12 @@ export default function MapaMIO() {
             fullscreenControl: false,
             zoomControl: false,
             disableDefaultUI: true,
+            styles: [
+              {
+                featureType: "poi",
+                stylers: [{ visibility: "off" }],
+              },
+            ],
           }}
         >
           {iconSize &&
@@ -209,16 +227,22 @@ export default function MapaMIO() {
                             index % 2 === 0 ? "bg-blue-100" : "bg-white"
                           }`}
                         >
-                          <span className="text-blue-900 font-semibold">{bus.idruta}</span>
-                          <span className="text-gray-700 text-center">{bus.destino}</span>
+                          <span className="text-blue-900 font-semibold">
+                            {bus.idruta}
+                          </span>
+                          <span className="text-gray-700 text-center">
+                            {bus.destino}
+                          </span>
                           <span className="text-gray-800 font-semibold">
-                            {bus.tiempo === "0 min" ? "🟢 Llegó" : `⏱️ ${bus.tiempo}`}
+                            {bus.tiempo === "0 min" ? "Llegó" : `${bus.tiempo}`}
                           </span>
                         </div>
                       ))}
                     </div>
                   ) : (
-                    <p className="bg-white text-center p-2 text-gray-600 text-sm">No hay buses próximos</p>
+                    <p className="bg-white text-center p-2 text-gray-600 text-sm">
+                      No hay buses próximos
+                    </p>
                   )}
                 </div>
               </div>
@@ -240,12 +264,13 @@ export default function MapaMIO() {
                     🚌 Bus {selectedBus.idbus}
                   </h3>
                   <p className="text-xs text-center text-gray-800">
-                    Ruta: <span className="font-semibold">{selectedBus.idruta}</span>
+                    Ruta:{" "}
+                    <span className="font-semibold">{selectedBus.idruta}</span>
                   </p>
                   <p className="text-xs text-center text-gray-800">
                     Dirección:{" "}
                     <span className="font-semibold">
-                      {selectedBus.enVuelta ? "🔁 Vuelta" : "🟢 Ida"}
+                      {selectedBus.enVuelta ? "Vuelta" : "Ida"}
                     </span>
                   </p>
                   <p className="text-xs text-center text-gray-800">
