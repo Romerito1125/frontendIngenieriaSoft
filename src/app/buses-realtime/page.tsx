@@ -1,3 +1,5 @@
+//src/app/buses-realtime/page.tsx
+
 "use client";
 
 import {
@@ -18,9 +20,19 @@ interface Estacion {
 
 interface Bus {
   idbus: number;
+  idruta: string;
   lat: number;
   lon: number;
+  enVuelta: boolean;
+  destino: string;
 }
+
+type TiempoEstacionBus = {
+  idbus: number;
+  idruta: string;
+  tiempo: string;
+  destino: string;
+};
 
 const containerStyle = {
   width: "100%",
@@ -39,6 +51,7 @@ export default function MapaMIO() {
   const [estaciones, setEstaciones] = useState<Estacion[]>([]);
   const [buses, setBuses] = useState<Bus[]>([]);
   const [idruta, setIdRuta] = useState("");
+  const [tiempoEstacion, setTiempoEstacion] = useState<TiempoEstacionBus[]>([]);
 
   const handleMapLoad = () => {
     setIconSize(new window.google.maps.Size(50, 50));
@@ -46,35 +59,39 @@ export default function MapaMIO() {
 
   const iniciarSimulacion = async () => {
     try {
-      await axios.post("https://tiemporeal.onrender.com/sim/inicio", { idruta });
+      await axios.post("https://tiemporeal-pr-5.onrender.com/sim/inicio", { idruta });
       obtenerEstaciones();
     } catch (err) {
       console.error("Error al iniciar simulación:", err);
     }
   };
-  
+
   const obtenerEstaciones = async () => {
     try {
-      const { data } = await axios.get(
-        `https://tiemporeal.onrender.com/sim/recorrido/${idruta}`
-      );
+      const { data } = await axios.get(`https://tiemporeal-pr-5.onrender.com/sim/recorrido/${idruta}`);
       setEstaciones(data);
     } catch (err) {
       console.error("Error al obtener estaciones:", err);
     }
   };
-  
+
   const obtenerBuses = useCallback(async () => {
     try {
-      const { data } = await axios.get(
-        `https://tiemporeal.onrender.com/sim/buses/${idruta}`
-      );
+      const { data } = await axios.get(`https://tiemporeal-pr-5.onrender.com/sim/buses/${idruta}`);
       setBuses(data);
     } catch (err) {
       console.error("Error al obtener buses:", err);
     }
   }, [idruta]);
-  
+
+  const obtenerTiempoEstacion = async (idestacion: number) => {
+    try {
+      const { data } = await axios.get(`https://tiemporeal-pr-5.onrender.com/sim/tiempo-llegada/${idestacion}`);
+      setTiempoEstacion(data);
+    } catch (error) {
+      console.error("Error al obtener tiempo de llegada:", error);
+    }
+  };
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -130,7 +147,6 @@ export default function MapaMIO() {
             disableDefaultUI: true,
           }}
         >
-          {/* Estaciones */}
           {iconSize &&
             estaciones.map((estacion) => (
               <Marker
@@ -141,11 +157,13 @@ export default function MapaMIO() {
                   url: "/icono-parada.png",
                   scaledSize: iconSize,
                 }}
-                onClick={() => setSelectedEstacion(estacion)}
+                onClick={() => {
+                  setSelectedEstacion(estacion);
+                  obtenerTiempoEstacion(estacion.idestacion);
+                }}
               />
             ))}
 
-          {/* Buses */}
           {iconSize &&
             buses.map((bus) => (
               <Marker
@@ -161,31 +179,52 @@ export default function MapaMIO() {
               />
             ))}
 
-          {/* InfoWindow para estación */}
           {selectedEstacion && (
             <InfoWindow
               position={{
                 lat: selectedEstacion.lat,
                 lng: selectedEstacion.lon,
               }}
-              onCloseClick={() => setSelectedEstacion(null)}
+              onCloseClick={() => {
+                setSelectedEstacion(null);
+                setTiempoEstacion([]);
+              }}
               options={{
                 pixelOffset: new window.google.maps.Size(0, -35),
                 disableAutoPan: true,
               }}
             >
               <div className="overflow-hidden rounded-lg">
-                <div className="bg-blue-700 text-white rounded-md p-2 w-64">
-                  <h3 className="text-yellow-400 font-bold text-sm mb-2 text-center">
+                <div className="w-80 rounded-md overflow-hidden border border-blue-900 shadow-md">
+                  <div className="bg-blue-700 text-yellow-400 font-bold text-center py-2 text-sm">
                     {selectedEstacion.nombre}
-                  </h3>
-                  <p className="text-center text-xs">Estación activa</p>
+                  </div>
+
+                  {tiempoEstacion.length > 0 ? (
+                    <div className="text-sm">
+                      {tiempoEstacion.map((bus, index) => (
+                        <div
+                          key={bus.idbus}
+                          className={`flex justify-between px-3 py-2 ${
+                            index % 2 === 0 ? "bg-blue-100" : "bg-white"
+                          }`}
+                        >
+                          <span className="text-blue-900 font-semibold">{bus.idruta}</span>
+                          <span className="text-gray-700 text-center">{bus.destino}</span>
+                          <span className="text-gray-800 font-semibold">
+                            {bus.tiempo === "0 min" ? "🟢 Llegó" : `⏱️ ${bus.tiempo}`}
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <p className="bg-white text-center p-2 text-gray-600 text-sm">No hay buses próximos</p>
+                  )}
                 </div>
               </div>
             </InfoWindow>
           )}
 
-          {/* InfoWindow para bus */}
           {selectedBus && (
             <InfoWindow
               position={{ lat: selectedBus.lat, lng: selectedBus.lon }}
@@ -196,12 +235,22 @@ export default function MapaMIO() {
               }}
             >
               <div className="overflow-hidden rounded-lg">
-                <div className="bg-white rounded-md p-2 w-40 shadow-md">
+                <div className="bg-white rounded-md p-3 w-56 shadow-md border border-gray-300">
                   <h3 className="text-blue-800 font-bold text-sm text-center mb-1">
                     🚌 Bus {selectedBus.idbus}
                   </h3>
-                  <p className="text-xs text-center text-gray-700">
-                    En simulación
+                  <p className="text-xs text-center text-gray-800">
+                    Ruta: <span className="font-semibold">{selectedBus.idruta}</span>
+                  </p>
+                  <p className="text-xs text-center text-gray-800">
+                    Dirección:{" "}
+                    <span className="font-semibold">
+                      {selectedBus.enVuelta ? "🔁 Vuelta" : "🟢 Ida"}
+                    </span>
+                  </p>
+                  <p className="text-xs text-center text-gray-800">
+                    Destino:{" "}
+                    <span className="font-semibold">{selectedBus.destino}</span>
                   </p>
                 </div>
               </div>
