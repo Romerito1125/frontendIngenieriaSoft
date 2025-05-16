@@ -1,4 +1,4 @@
-//src/app/buses-realtime/page.tsx
+// src/app/buses-realtime/page.tsx
 
 "use client";
 
@@ -46,9 +46,7 @@ const center = {
 
 export default function MapaMIO() {
   const [iconSize, setIconSize] = useState<google.maps.Size | null>(null);
-  const [selectedEstacion, setSelectedEstacion] = useState<Estacion | null>(
-    null
-  );
+  const [selectedEstacion, setSelectedEstacion] = useState<Estacion | null>(null);
   const [selectedBus, setSelectedBus] = useState<Bus | null>(null);
   const [estaciones, setEstaciones] = useState<Estacion[]>([]);
   const [buses, setBuses] = useState<Bus[]>([]);
@@ -61,9 +59,7 @@ export default function MapaMIO() {
 
   const iniciarSimulacion = async () => {
     try {
-      await axios.post("https://tiemporeal-pr-5.onrender.com/sim/inicio", {
-        idruta,
-      });
+      await axios.post("http://localhost:3001/sim/inicio", { idruta });
       obtenerEstaciones();
     } catch (err) {
       console.error("Error al iniciar simulación:", err);
@@ -72,9 +68,7 @@ export default function MapaMIO() {
 
   const obtenerEstaciones = async () => {
     try {
-      const { data } = await axios.get(
-        `https://tiemporeal-pr-5.onrender.com/sim/recorrido/${idruta}`
-      );
+      const { data } = await axios.get(`http://localhost:3001/sim/recorrido/${idruta}`);
       setEstaciones(data);
     } catch (err) {
       console.error("Error al obtener estaciones:", err);
@@ -83,9 +77,7 @@ export default function MapaMIO() {
 
   const obtenerBuses = useCallback(async () => {
     try {
-      const { data } = await axios.get(
-        `https://tiemporeal-pr-5.onrender.com/sim/buses/${idruta}`
-      );
+      const { data } = await axios.get(`http://localhost:3001/sim/buses/${idruta}`);
       setBuses(data);
     } catch (err) {
       console.error("Error al obtener buses:", err);
@@ -94,9 +86,7 @@ export default function MapaMIO() {
 
   const obtenerTiempoEstacion = async (idestacion: number) => {
     try {
-      const { data } = await axios.get(
-        `https://tiemporeal-pr-5.onrender.com/sim/tiempo-llegada/${idestacion}`
-      );
+      const { data } = await axios.get(`http://localhost:3001/sim/tiempo-llegada/${idestacion}`);
       setTiempoEstacion(data);
     } catch (error) {
       console.error("Error al obtener tiempo de llegada:", error);
@@ -106,22 +96,28 @@ export default function MapaMIO() {
   useEffect(() => {
     const interval = setInterval(() => {
       if (idruta) obtenerBuses();
-    }, 1000);
+    }, 100);
     return () => clearInterval(interval);
   }, [idruta, obtenerBuses]);
 
+  useEffect(() => {
+    if (!selectedEstacion) return;
+
+    const intervaloTiempo = setInterval(() => {
+      obtenerTiempoEstacion(selectedEstacion.idestacion);
+    }, 1000); // cada 30 segundos
+
+    return () => clearInterval(intervaloTiempo);
+  }, [selectedEstacion]);
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (idruta.trim()) {
-      iniciarSimulacion();
-    }
+    if (idruta.trim()) iniciarSimulacion();
   };
 
   return (
     <div className="w-full px-4 md:px-8 py-4">
-      <h2 className="text-xl font-bold text-center text-black mb-2">
-        Mapa rutas tiempo real MIO
-      </h2>
+      <h2 className="text-xl font-bold text-center text-black mb-2">Mapa rutas tiempo real MIO</h2>
 
       <form
         onSubmit={handleSubmit}
@@ -143,9 +139,7 @@ export default function MapaMIO() {
         </button>
       </form>
 
-      <LoadScript
-        googleMapsApiKey={process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY!}
-      >
+      <LoadScript googleMapsApiKey={process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY!}>
         <GoogleMap
           mapContainerStyle={containerStyle}
           center={center}
@@ -158,10 +152,7 @@ export default function MapaMIO() {
             zoomControl: false,
             disableDefaultUI: true,
             styles: [
-              {
-                featureType: "poi",
-                stylers: [{ visibility: "off" }],
-              },
+              { featureType: "poi", stylers: [{ visibility: "off" }] },
             ],
           }}
         >
@@ -199,25 +190,18 @@ export default function MapaMIO() {
 
           {selectedEstacion && (
             <InfoWindow
-              position={{
-                lat: selectedEstacion.lat,
-                lng: selectedEstacion.lon,
-              }}
+              position={{ lat: selectedEstacion.lat, lng: selectedEstacion.lon }}
               onCloseClick={() => {
                 setSelectedEstacion(null);
                 setTiempoEstacion([]);
               }}
-              options={{
-                pixelOffset: new window.google.maps.Size(0, -35),
-                disableAutoPan: true,
-              }}
+              options={{ pixelOffset: new window.google.maps.Size(0, -35), disableAutoPan: true }}
             >
               <div className="overflow-hidden rounded-lg">
                 <div className="w-80 rounded-md overflow-hidden border border-blue-900 shadow-md">
                   <div className="bg-blue-700 text-yellow-400 font-bold text-center py-2 text-sm">
                     {selectedEstacion.nombre}
                   </div>
-
                   {tiempoEstacion.length > 0 ? (
                     <div className="text-sm">
                       {tiempoEstacion.map((bus, index) => (
@@ -227,12 +211,8 @@ export default function MapaMIO() {
                             index % 2 === 0 ? "bg-blue-100" : "bg-white"
                           }`}
                         >
-                          <span className="text-blue-900 font-semibold">
-                            {bus.idruta}
-                          </span>
-                          <span className="text-gray-700 text-center">
-                            {bus.destino}
-                          </span>
+                          <span className="text-blue-900 font-semibold">{bus.idruta}</span>
+                          <span className="text-gray-700 text-center">{bus.destino}</span>
                           <span className="text-gray-800 font-semibold">
                             {bus.tiempo === "0 min" ? "Llegó" : `${bus.tiempo}`}
                           </span>
@@ -253,10 +233,7 @@ export default function MapaMIO() {
             <InfoWindow
               position={{ lat: selectedBus.lat, lng: selectedBus.lon }}
               onCloseClick={() => setSelectedBus(null)}
-              options={{
-                pixelOffset: new window.google.maps.Size(0, -35),
-                disableAutoPan: true,
-              }}
+              options={{ pixelOffset: new window.google.maps.Size(0, -35), disableAutoPan: true }}
             >
               <div className="overflow-hidden rounded-lg">
                 <div className="bg-white rounded-md p-3 w-56 shadow-md border border-gray-300">
@@ -264,8 +241,7 @@ export default function MapaMIO() {
                     🚌 Bus {selectedBus.idbus}
                   </h3>
                   <p className="text-xs text-center text-gray-800">
-                    Ruta:{" "}
-                    <span className="font-semibold">{selectedBus.idruta}</span>
+                    Ruta: <span className="font-semibold">{selectedBus.idruta}</span>
                   </p>
                   <p className="text-xs text-center text-gray-800">
                     Dirección:{" "}
