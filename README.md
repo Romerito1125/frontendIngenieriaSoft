@@ -17,6 +17,3 @@ Se están usando íconos de:
 - 🔹 [`react-icons`](https://react-icons.github.io/react-icons/icons/sl/)  
 
 ---
-
-## 📌 Calláte Muñoz hijueputa
-```
