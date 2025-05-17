@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg id="Capa_1" data-name="Capa 1" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 500 500">
+  <defs>
+    <style>
+      .cls-1 {
+        fill: none;
+        stroke: #919be3;
+        stroke-linecap: round;
+        stroke-linejoin: round;
+        stroke-width: 18px;
+      }
+    </style>
+  </defs>
+  <path class="cls-1" d="M429.7,145.52c14.3,5.48,21.3,18.48,24.3,32.48,1,8,0,17-1,25-12,68-41,237-45,248-7,17-25,29-44,26-69-11-133-21-202-33-19-3-38-10-46.3-28.02"/>
+  <path class="cls-1" d="M92.72,44.05l258.48,15.89c23.72,1.46,41.77,21.87,40.31,45.59l-15.58,253.46c-1.46,23.72-21.87,41.77-45.59,40.31l-215.53-13.25c-23.72-1.46-41.77-21.87-40.31-45.59l15.51-252.26"/>
+  <rect class="cls-1" x="128.57" y="97.02" width="221" height="55.63" transform="translate(8.16 -14.52) rotate(3.54)"/>
+  <rect class="cls-1" x="247.2" y="182.39" width="91.73" height="72.29" transform="translate(14.05 -17.67) rotate(3.54)"/>
+  <rect class="cls-1" x="115.2" y="274.39" width="91.73" height="72.29" transform="translate(19.47 -9.35) rotate(3.54)"/>
+  <line class="cls-1" x1="125.19" y1="181.95" x2="213.27" y2="187.77"/>
+  <line class="cls-1" x1="124.63" y1="212.86" x2="212.7" y2="218.68"/>
+  <line class="cls-1" x1="124.06" y1="243.76" x2="212.14" y2="249.59"/>
+  <line class="cls-1" x1="238.31" y1="277.58" x2="332.38" y2="283.71"/>
+  <line class="cls-1" x1="237.74" y1="310.59" x2="331.81" y2="316.73"/>
+  <line class="cls-1" x1="237.16" y1="343.6" x2="331.23" y2="349.74"/>
+</svg>
