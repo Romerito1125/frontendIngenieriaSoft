@@ -10,7 +10,7 @@ export default function Home() {
     { name: "Mapa MIO", path: "/mapa", icon: "/svg/MapaMIO1.svg" },
     { name: "Noticias", path: "/noticias", icon: "/svg/Noticias1.svg" },
     { name: "Denuncias", path: "/denuncias", icon: "/svg/Denuncias1.svg" },
-    { name: "Grupo WhatsApp", path: "/canal-de-whatsapp", icon: "/svg/GrupoWhatsapp1.svg" },
+    { name: "Foro", path: "/Foro", icon: "/svg/GrupoWhatsapp1.svg" },
   ];
 
   return (
