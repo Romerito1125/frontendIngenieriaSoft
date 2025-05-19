@@ -1,66 +1,72 @@
-'use client';
+"use client";
 
-import { useState } from 'react';
-import toast, { Toaster } from 'react-hot-toast';
+import { useState } from "react";
+import toast, { Toaster } from "react-hot-toast";
 
 export default function RecuperarPasswordPage() {
-  const [correo, setCorreo] = useState('');
-  const [otp, setOtp] = useState('');
-  const [verificado, setVerificado] = useState(false);
-  const [nueva, setNueva] = useState('');
-  const [confirmar, setConfirmar] = useState('');
-  const [fase, setFase] = useState<'inicio' | 'verificacion' | 'recuperacion'>('inicio');
+  const [correo, setCorreo] = useState("");
+  const [otp, setOtp] = useState("");
+  const [nueva, setNueva] = useState("");
+  const [confirmar, setConfirmar] = useState("");
+  const [fase, setFase] = useState<"inicio" | "verificacion" | "recuperacion">("inicio");
 
   const handleEnviarOtp = async () => {
     try {
-      const res = await fetch('http://localhost:3008/cuenta/send-otp', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ correo, tipo: 'recuperacion' }),
+      const res = await fetch("http://localhost:3008/cuenta/send-otp", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ correo, tipo: "recuperacion" }),
       });
 
       if (!res.ok) throw new Error();
-      toast.success('Código OTP enviado al correo');
-      setFase('verificacion');
+      toast.success("Código OTP enviado al correo");
+      setFase("verificacion");
     } catch {
-      toast.error('Error al enviar OTP');
+      toast.error("Error al enviar OTP");
     }
   };
 
   const handleVerificarOtp = async () => {
     try {
-      const res = await fetch('http://localhost:3008/cuenta/verify-otp', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+      const res = await fetch("http://localhost:3008/cuenta/verify-otp", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ correo, otp }),
       });
 
-      if (!res.ok) throw new Error('OTP inválido o expirado');
-      toast.success('OTP verificado');
-      setVerificado(true);
-      setFase('recuperacion');
-    } catch (e: any) {
-      toast.error(e.message);
+      if (!res.ok) throw new Error("OTP inválido o expirado");
+      toast.success("OTP verificado");
+      setFase("recuperacion");
+    } catch (e: unknown) {
+      if (e instanceof Error) {
+        toast.error(e.message);
+      } else {
+        toast.error("Error desconocido");
+      }
     }
   };
 
   const handleResetPassword = async () => {
-    if (nueva !== confirmar) return toast.error('Las contraseñas no coinciden');
+    if (nueva !== confirmar) return toast.error("Las contraseñas no coinciden");
 
     try {
-      const res = await fetch('http://localhost:3008/cuenta/reset-password', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+      const res = await fetch("http://localhost:3008/cuenta/reset-password", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ correo, nuevaContrasenia: nueva }),
       });
 
       const data = await res.json();
-      if (!res.ok) throw new Error(data.message || 'Error al cambiar contraseña');
+      if (!res.ok) throw new Error(data.message || "Error al cambiar contraseña");
 
-      toast.success('Contraseña restablecida con éxito');
-      setTimeout(() => (window.location.href = '/auth/login'), 2000);
-    } catch (e: any) {
-      toast.error(e.message);
+      toast.success("Contraseña restablecida con éxito");
+      setTimeout(() => (window.location.href = "/auth/login"), 2000);
+    } catch (e: unknown) {
+      if (e instanceof Error) {
+        toast.error(e.message);
+      } else {
+        toast.error("Error desconocido");
+      }
     }
   };
 
@@ -70,7 +76,7 @@ export default function RecuperarPasswordPage() {
       <div className="bg-white p-6 rounded-lg shadow-md w-full max-w-md">
         <h1 className="text-2xl font-bold text-blue-800 mb-4 text-center">Recuperar contraseña</h1>
 
-        {fase === 'inicio' && (
+        {fase === "inicio" && (
           <>
             <input
               type="email"
@@ -88,7 +94,7 @@ export default function RecuperarPasswordPage() {
           </>
         )}
 
-        {fase === 'verificacion' && (
+        {fase === "verificacion" && (
           <>
             <p className="text-sm text-gray-600 mb-2">Revisa tu correo e ingresa el código OTP:</p>
             <input
@@ -107,7 +113,7 @@ export default function RecuperarPasswordPage() {
           </>
         )}
 
-        {fase === 'recuperacion' && (
+        {fase === "recuperacion" && (
           <>
             <input
               type="password"

@@ -9,6 +9,7 @@ import {
 } from "@react-google-maps/api";
 import { useEffect, useState, useCallback } from "react";
 import axios from "axios";
+import Image from "next/image";
 
 interface Estacion {
   idestacion: number;
@@ -126,7 +127,7 @@ export default function MapaMIO() {
         onSubmit={handleSubmit}
         className="flex items-center justify-center bg-blue-700 p-2 rounded-md gap-2 mb-4"
       >
-        <img src="/icono-bus.png" alt="Bus" className="w-8 h-8" />
+        <Image src="/icono-bus.png" alt="Bus" className="w-8 h-8" />
         <input
           type="text"
           placeholder="Ruta o bus"

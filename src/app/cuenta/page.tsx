@@ -30,7 +30,7 @@ export default function CuentaPage() {
       toast.error("Token inválido");
       router.push("/auth/login");
     }
-  }, []);
+  }, [router]);
 
   return (
     <div className="flex h-screen bg-gray-50 text-gray-800">

@@ -71,8 +71,12 @@ export default function SeccionCuenta({ correo, id }: Props) {
       toast.success("Identidad verificada");
       setVerificado(true);
       setMostrarOtp(false);
-    } catch (error: any) {
-      toast.error(error.message || "OTP inválido");
+    } catch (error: unknown) {
+      if (error instanceof Error) {
+        toast.error(error.message || "OTP inválido");
+      } else {
+        toast.error("Error desconocido");
+      }
     }
   };
 
@@ -97,8 +101,12 @@ export default function SeccionCuenta({ correo, id }: Props) {
       const data = await res.json();
       if (!res.ok) throw new Error(data.message);
       toast.success("Información actualizada correctamente");
-    } catch (error: any) {
-      toast.error(error.message || "Error al actualizar");
+    } catch (error: unknown) {
+      if (error instanceof Error) {
+        toast.error(error.message || "Error al actualizar");
+      } else {
+        toast.error("Error desconocido");
+      }
     }
   };
 

@@ -37,8 +37,12 @@ export default function SeccionPassword({ correo }: Props) {
       if (!res.ok) throw new Error("OTP inválido o expirado");
       toast.success("OTP verificado");
       setValidado(true);
-    } catch (e: any) {
-      toast.error(e.message);
+    } catch (e: unknown) {
+      if (e instanceof Error) {
+        toast.error(e.message);
+      } else {
+        toast.error("Error desconocido");
+      }
     }
   };
 
@@ -57,9 +61,16 @@ export default function SeccionPassword({ correo }: Props) {
       if (!res.ok) throw new Error(data?.message || "Ocurrió un error inesperado");
 
       toast.success("Contraseña actualizada exitosamente");
-      setOtp(""); setNueva(""); setConfirmar(""); setValidado(false);
-    } catch (e: any) {
-      toast.error(e.message);
+      setOtp("");
+      setNueva("");
+      setConfirmar("");
+      setValidado(false);
+    } catch (e: unknown) {
+      if (e instanceof Error) {
+        toast.error(e.message);
+      } else {
+        toast.error("Error desconocido");
+      }
     }
   };
 

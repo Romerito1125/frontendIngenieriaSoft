@@ -30,7 +30,7 @@ export default function RegisterPage() {
     if (token) {
       router.push("/");
     }
-  }, []);
+  }, [router]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -51,15 +51,16 @@ export default function RegisterPage() {
 
       toast.success("¡Registro exitoso!");
       window.location.href = "/";
-    } catch (error: any) {
-      const message = error.message || "";
+    } catch (error: unknown) {
+      const message =
+        error instanceof Error ? error.message : "Error al registrar";
       if (
         message.toLowerCase().includes("correo") &&
         message.toLowerCase().includes("registrado")
       ) {
         setCorreoRepetido(true);
       } else {
-        toast.error(message || "Error al registrar");
+        toast.error(message);
       }
     } finally {
       setLoading(false);

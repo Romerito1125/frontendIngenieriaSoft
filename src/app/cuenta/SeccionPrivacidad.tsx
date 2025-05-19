@@ -36,8 +36,12 @@ export default function SeccionPrivacidad({ correo }: Props) {
       if (!res.ok) throw new Error("OTP inválido o expirado");
       toast.success("OTP verificado");
       setValidado(true);
-    } catch (e: any) {
-      toast.error(e.message);
+    } catch (e: unknown) {
+      if (e instanceof Error) {
+        toast.error(e.message);
+      } else {
+        toast.error("Error desconocido");
+      }
     }
   };
 
@@ -48,12 +52,16 @@ export default function SeccionPrivacidad({ correo }: Props) {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ correo, otp }),
       });
-        const data = await res.json();
-        if (!res.ok) throw new Error(data?.message || "Ocurrió un error inesperado");
+      const data = await res.json();
+      if (!res.ok) throw new Error(data?.message || "Ocurrió un error inesperado");
       toast.success("Cuenta eliminada exitosamente");
       setTimeout(() => window.location.href = "/auth/login", 2000);
-    } catch (e: any) {
-      toast.error(e.message);
+    } catch (e: unknown) {
+      if (e instanceof Error) {
+        toast.error(e.message);
+      } else {
+        toast.error("Error desconocido");
+      }
     }
   };
 

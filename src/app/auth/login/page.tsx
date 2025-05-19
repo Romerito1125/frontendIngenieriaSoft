@@ -17,7 +17,7 @@ export default function LoginPage() {
     if (token) {
       router.push("/");
     }
-  }, []);
+  }, [router]);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -32,8 +32,12 @@ export default function LoginPage() {
 
       toast.success("Bienvenido 👋");
       window.location.href = "/";
-    } catch (error: any) {
-      toast.error(error.message || "Error de autenticación");
+    } catch (error: unknown) {
+      if (error instanceof Error) {
+        toast.error(error.message || "Error de autenticación");
+      } else {
+        toast.error("Error desconocido");
+      }
     } finally {
       setLoading(false);
     }
@@ -79,7 +83,6 @@ export default function LoginPage() {
           </button>
         </form>
 
-        {/* 🔗 Recuperación de contraseña */}
         <p className="mt-3 text-center text-sm">
           <a href="/auth/recuperar" className="text-blue-700 hover:underline">
             ¿Olvidaste tu contraseña?
