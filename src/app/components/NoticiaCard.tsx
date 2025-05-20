@@ -8,11 +8,9 @@ type NoticiaProps = {
   descripcion: string;
   fecha: string;
   autor: string;
-  link?: string;
-  tipo: string;
 };
 
-export default function NoticiaCard({ idnoticia, titulo, descripcion, fecha, autor, link, tipo }: NoticiaProps) {
+export default function NoticiaCard({ idnoticia, titulo, descripcion, fecha, autor}: NoticiaProps) {
   return (
     <div className="border border-blue-300 bg-blue-50 rounded-xl p-4 shadow-sm space-y-2">
       <div className="flex items-center gap-2">

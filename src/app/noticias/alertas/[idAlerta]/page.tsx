@@ -3,16 +3,25 @@
 import { useEffect, useState } from 'react';
 import { useParams } from 'next/navigation';
 
+interface Alerta {
+  tipo: string;
+  mensaje: string;
+  idruta: string;
+  idestacion: string;
+  prioridad: string;
+  hora: string;
+}
+
 export default function AlertaDetalle() {
   const { idAlerta } = useParams();
-  const [alerta, setAlerta] = useState<any>(null);
+  const [alerta, setAlerta] = useState<Alerta | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const fetchAlerta = async () => {
       try {
         const res = await fetch(`https://www.alertas.devcorebits.com/alertas/alertaEspecifica/${idAlerta}`);
-        const data = await res.json();
+        const data: Alerta = await res.json();
         setAlerta(data);
       } catch (error) {
         console.error('Error cargando la alerta:', error);

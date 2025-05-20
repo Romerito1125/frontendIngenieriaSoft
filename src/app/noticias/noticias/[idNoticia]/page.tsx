@@ -3,16 +3,25 @@
 import { useEffect, useState } from 'react';
 import { useParams } from 'next/navigation';
 
+interface Noticia {
+  idnoticia: number;
+  titulo: string;
+  descripcion: string;
+  link?: string;
+  autor: string;
+  fecha: string;
+}
+
 export default function NoticiaDetalle() {
   const { idNoticia } = useParams();
-  const [noticia, setNoticia] = useState<any>(null);
+  const [noticia, setNoticia] = useState<Noticia | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const fetchNoticia = async () => {
       try {
         const res = await fetch(`https://servicionoticias.onrender.com/noticias/getNoticiaId/${idNoticia}`);
-        const data = await res.json();
+        const data: Noticia = await res.json();
         setNoticia(data);
       } catch (error) {
         console.error('Error cargando la noticia:', error);

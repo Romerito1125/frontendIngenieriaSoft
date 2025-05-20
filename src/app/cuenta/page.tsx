@@ -12,11 +12,17 @@ import SeccionPrivacidad from "./SeccionPrivacidad";
 // HeroIcons
 import { HiUserCircle, HiLockClosed, HiCog, HiLogout } from "react-icons/hi";
 
+// Tipado de la cuenta solo con los campos que usas
+interface Cuenta {
+  nombre: string;
+  apellido: string;
+}
+
 export default function CuentaPage() {
   const [seccion, setSeccion] = useState("cuenta");
   const [correo, setCorreo] = useState<string>("");
   const [userId, setUserId] = useState<number | null>(null);
-  const [cuenta, setCuenta] = useState<any>(null);
+  const [cuenta, setCuenta] = useState<Cuenta | null>(null);
   const [cargando, setCargando] = useState(true);
   const router = useRouter();
 
@@ -42,7 +48,7 @@ export default function CuentaPage() {
 
     fetch(`https://www.cuentas.devcorebits.com/cuenta/getCuenta/${userId}`)
       .then((res) => res.json())
-      .then((data) => {
+      .then((data: Cuenta) => {
         if (data.nombre) {
           setCuenta(data);
         } else {

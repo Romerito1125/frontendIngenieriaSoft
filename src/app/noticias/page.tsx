@@ -4,9 +4,28 @@ import { useEffect, useState } from 'react';
 import AlertaCard from '../components/AlertaCard';
 import NoticiaCard from '../components/NoticiaCard';
 
+interface Alerta {
+  idalerta: number;
+  tipo: string;
+  mensaje: string;
+  idruta: string;
+  idestacion: string;
+  prioridad: string;
+  hora: string;
+}
+
+interface Noticia {
+  idnoticia: number;
+  titulo: string;
+  descripcion: string;
+  link?: string;
+  autor: string;
+  fecha: string;
+}
+
 export default function Page() {
-  const [noticias, setNoticias] = useState([]);
-  const [alertas, setAlertas] = useState([]);
+  const [noticias, setNoticias] = useState<Noticia[]>([]);
+  const [alertas, setAlertas] = useState<Alerta[]>([]);
   const [loadingNoticias, setLoadingNoticias] = useState(true);
   const [loadingAlertas, setLoadingAlertas] = useState(true);
 
@@ -14,7 +33,7 @@ export default function Page() {
     const fetchNoticias = async () => {
       try {
         const res = await fetch('https://servicionoticias.onrender.com/noticias/listarNoticias');
-        const data = await res.json();
+        const data: Noticia[] = await res.json();
         setNoticias(data);
       } catch (error) {
         console.error('Error al cargar noticias:', error);
@@ -26,7 +45,7 @@ export default function Page() {
     const fetchAlertas = async () => {
       try {
         const res = await fetch('https://www.alertas.devcorebits.com/alertas/listarAlertas');
-        const data = await res.json();
+        const data: Alerta[] = await res.json();
         setAlertas(data);
       } catch (error) {
         console.error('Error al cargar alertas:', error);
@@ -51,7 +70,7 @@ export default function Page() {
           ) : alertas.length === 0 ? (
             <p className="text-red-500">No hay alertas disponibles.</p>
           ) : (
-            alertas.map((alerta: any) => (
+            alertas.map((alerta) => (
               <AlertaCard key={alerta.idalerta} {...alerta} />
             ))
           )}
@@ -68,7 +87,7 @@ export default function Page() {
           ) : noticias.length === 0 ? (
             <p className="text-red-500">No hay noticias disponibles.</p>
           ) : (
-            noticias.map((noticia: any) => (
+            noticias.map((noticia) => (
               <NoticiaCard key={noticia.idnoticia} {...noticia} />
             ))
           )}

@@ -23,7 +23,6 @@ export default function SeccionCuenta({ correo, id }: Props) {
   const [otp, setOtp] = useState("");
   const [verificado, setVerificado] = useState(false);
   const [mostrarOtp, setMostrarOtp] = useState(false);
-  const [cargando, setCargando] = useState(true);
 
   useEffect(() => {
     if (!id) return;
@@ -38,9 +37,8 @@ export default function SeccionCuenta({ correo, id }: Props) {
         }
       })
       .catch(() => toast.error("Error cargando cuenta"))
-      .finally(() => setCargando(false));
-  }, [id]);
 
+  }, [id])
   const handleEnviarOtp = async () => {
     try {
       const res = await fetch("https://www.cuentas.devcorebits.com/cuenta/send-otp", {

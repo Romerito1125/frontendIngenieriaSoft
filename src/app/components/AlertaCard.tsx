@@ -5,7 +5,7 @@ type AlertaProps = {
   mensaje: string;
   hora: string;
   tipo: string;
-  idestacion: number;
+  idestacion: string;
   idruta: string;
   prioridad: string;
 };

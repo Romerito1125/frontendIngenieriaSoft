@@ -25,12 +25,16 @@ interface Bus {
   destino: string;
 }
 
-type TiempoEstacionBus = {
+interface TiempoEstacionBus {
   idbus: number;
   idruta: string;
   tiempo: string;
   destino: string;
-};
+}
+
+interface Ruta {
+  idruta: string;
+}
 
 const containerStyle = {
   width: "100%",
@@ -49,7 +53,7 @@ export default function MapaMIO() {
   const [estaciones, setEstaciones] = useState<Estacion[]>([]);
   const [buses, setBuses] = useState<Bus[]>([]);
   const [idruta, setIdRuta] = useState("");
-  const [rutaActiva, setRutaActiva] = useState(""); // Nueva: solo inicia al hacer submit
+  const [rutaActiva, setRutaActiva] = useState("");
   const [tiempoEstacion, setTiempoEstacion] = useState<TiempoEstacionBus[]>([]);
   const [rutasDisponibles, setRutasDisponibles] = useState<string[]>([]);
   const [sugerencias, setSugerencias] = useState<string[]>([]);
@@ -61,7 +65,7 @@ export default function MapaMIO() {
   const iniciarSimulacion = async () => {
     try {
       await axios.post("https://www.tiemporeal.devcorebits.com/sim/inicio", { idruta });
-      setRutaActiva(idruta); // activa solo después de enviar
+      setRutaActiva(idruta);
       obtenerEstaciones(idruta);
     } catch (err) {
       console.error("Error al iniciar simulación:", err);
@@ -122,8 +126,8 @@ export default function MapaMIO() {
   useEffect(() => {
     const fetchRutas = async () => {
       try {
-        const { data } = await axios.get("https://www.tiemporeal.devcorebits.com/rutas");
-        setRutasDisponibles(data.map((ruta: any) => ruta.idruta));
+        const { data }: { data: Ruta[] } = await axios.get("https://www.tiemporeal.devcorebits.com/rutas");
+        setRutasDisponibles(data.map((ruta) => ruta.idruta));
       } catch (error) {
         console.error("Error al cargar rutas:", error);
       }
