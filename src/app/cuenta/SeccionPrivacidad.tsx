@@ -14,7 +14,7 @@ export default function SeccionPrivacidad({ correo }: Props) {
 
   const handleEnviarOtp = async () => {
     try {
-      const res = await fetch("http://localhost:3008/cuenta/send-otp", {
+      const res = await fetch("https://www.cuentas.devcorebits.com/cuenta/send-otp", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ correo, tipo: "eliminacion" }),
@@ -28,7 +28,7 @@ export default function SeccionPrivacidad({ correo }: Props) {
 
   const handleVerificarOtp = async () => {
     try {
-      const res = await fetch("http://localhost:3008/cuenta/verify-otp", {
+      const res = await fetch("https://www.cuentas.devcorebits.com/cuenta/verify-otp", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ correo, otp }),
@@ -47,7 +47,7 @@ export default function SeccionPrivacidad({ correo }: Props) {
 
   const handleEliminarCuenta = async () => {
     try {
-      const res = await fetch(`http://localhost:3008/cuenta/eliminar-con-otp`, {
+      const res = await fetch(`https://www.cuentas.devcorebits.com/cuenta/eliminar-con-otp`, {
         method: "DELETE",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ correo, otp }),

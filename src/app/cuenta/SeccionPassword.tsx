@@ -15,7 +15,7 @@ export default function SeccionPassword({ correo }: Props) {
 
   const handleEnviarOtp = async () => {
     try {
-      const res = await fetch("http://localhost:3008/cuenta/send-otp", {
+      const res = await fetch("https://www.cuentas.devcorebits.com/cuenta/send-otp", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ correo, tipo: "cambio" }),
@@ -29,7 +29,7 @@ export default function SeccionPassword({ correo }: Props) {
 
   const handleVerificarOtp = async () => {
     try {
-      const res = await fetch("http://localhost:3008/cuenta/verify-otp", {
+      const res = await fetch("https://www.cuentas.devcorebits.com/cuenta/verify-otp", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ correo, otp }),
@@ -51,7 +51,7 @@ export default function SeccionPassword({ correo }: Props) {
     if (nueva !== confirmar) return toast.error("Las contraseñas no coinciden");
 
     try {
-      const res = await fetch("http://localhost:3008/cuenta/cambiar-password", {
+      const res = await fetch("https://www.cuentas.devcorebits.com/cuenta/cambiar-password", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ correo, contrasenia: nueva }),

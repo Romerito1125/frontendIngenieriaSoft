@@ -12,7 +12,7 @@ export default function RecuperarPasswordPage() {
 
   const handleEnviarOtp = async () => {
     try {
-      const res = await fetch("http://localhost:3008/cuenta/send-otp", {
+      const res = await fetch("https://www.cuentas.devcorebits.com/cuenta/send-otp", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ correo, tipo: "recuperacion" }),
@@ -28,7 +28,7 @@ export default function RecuperarPasswordPage() {
 
   const handleVerificarOtp = async () => {
     try {
-      const res = await fetch("http://localhost:3008/cuenta/verify-otp", {
+      const res = await fetch("https://www.cuentas.devcorebits.com/cuenta/verify-otp", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ correo, otp }),
@@ -50,7 +50,7 @@ export default function RecuperarPasswordPage() {
     if (nueva !== confirmar) return toast.error("Las contraseñas no coinciden");
 
     try {
-      const res = await fetch("http://localhost:3008/cuenta/reset-password", {
+      const res = await fetch("https://www.cuentas.devcorebits.com/cuenta/reset-password", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ correo, nuevaContrasenia: nueva }),

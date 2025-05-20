@@ -28,7 +28,7 @@ export default function SeccionCuenta({ correo, id }: Props) {
   useEffect(() => {
     if (!id) return;
 
-    fetch(`http://localhost:3008/cuenta/getCuenta/${id}`)
+    fetch(`https://www.cuentas.devcorebits.com/cuenta/getCuenta/${id}`)
       .then((res) => res.json())
       .then((data) => {
         if (data.nombre) {
@@ -43,7 +43,7 @@ export default function SeccionCuenta({ correo, id }: Props) {
 
   const handleEnviarOtp = async () => {
     try {
-      const res = await fetch("http://localhost:3008/cuenta/send-otp", {
+      const res = await fetch("https://www.cuentas.devcorebits.com/cuenta/send-otp", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ correo, tipo: "actualizacion" }),
@@ -59,7 +59,7 @@ export default function SeccionCuenta({ correo, id }: Props) {
 
   const handleConfirmarOtp = async () => {
     try {
-      const res = await fetch("http://localhost:3008/cuenta/verify-otp", {
+      const res = await fetch("https://www.cuentas.devcorebits.com/cuenta/verify-otp", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ correo, otp }),
@@ -87,7 +87,7 @@ export default function SeccionCuenta({ correo, id }: Props) {
     }
 
     try {
-      const res = await fetch("http://localhost:3008/cuenta/actualizar-con-otp", {
+      const res = await fetch("https://www.cuentas.devcorebits.com/cuenta/actualizar-con-otp", {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -110,7 +110,6 @@ export default function SeccionCuenta({ correo, id }: Props) {
     }
   };
 
-  if (cargando) return <div className="p-10">Cargando datos...</div>;
 
   return (
     <div className="max-w-3xl mx-auto bg-white p-10 rounded shadow-md">
