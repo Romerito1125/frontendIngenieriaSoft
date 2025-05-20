@@ -40,7 +40,7 @@ export default function EstacionesPage() {
 
   useEffect(() => {
     const obtenerEstaciones = async () => {
-      const res = await fetch("http://localhost:3001/estaciones");
+      const res = await fetch("https://www.tiemporeal.devcorebits.com/estaciones");
       const data = await res.json();
       setEstaciones(data);
 
@@ -58,7 +58,7 @@ export default function EstacionesPage() {
   const calcularRuta = async () => {
     if (!origen || !destino) return alert("Selecciona origen y destino");
 
-    const res = await fetch("http://localhost:3001/viajes/planear", {
+    const res = await fetch("https://www.tiemporeal.devcorebits.com/viajes/planear", {
       method: "POST",
       headers: {
         "Content-Type": "application/json"
@@ -77,7 +77,7 @@ export default function EstacionesPage() {
 
       const tipos = await Promise.all(
         data.rutas.map(async (idruta: string) => {
-          const resRuta = await fetch(`http://localhost:3001/rutas/${idruta}`);
+          const resRuta = await fetch(`https://www.tiemporeal.devcorebits.com/rutas/${idruta}`);
           const dataRuta = await resRuta.json();
           return { id: idruta, tipo: dataRuta?.tipo || "desconocido" };
         })
