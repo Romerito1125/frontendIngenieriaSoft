@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState, useRef } from "react";
-import { ChevronDoubleRightIcon } from "@heroicons/react/24/solid";
+import { ChevronDoubleRightIcon, MapPinIcon } from "@heroicons/react/24/solid";
 
 type Estacion = {
   idestacion: number;
@@ -35,12 +35,16 @@ export default function EstacionesPage() {
   const [origen, setOrigen] = useState<number | null>(null);
   const [destino, setDestino] = useState<number | null>(null);
   const [rutaResultado, setRutaResultado] = useState<string[] | null>(null);
-  const [rutasConTipo, setRutasConTipo] = useState<{ id: string; tipo: string }[]>([]);
+  const [rutasConTipo, setRutasConTipo] = useState<
+    { id: string; tipo: string }[]
+  >([]);
   const resultadoRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
     const obtenerEstaciones = async () => {
-      const res = await fetch("https://www.tiemporeal.devcorebits.com/estaciones");
+      const res = await fetch(
+        "https://www.tiemporeal.devcorebits.com/estaciones"
+      );
       const data = await res.json();
       setEstaciones(data);
 
@@ -58,17 +62,20 @@ export default function EstacionesPage() {
   const calcularRuta = async () => {
     if (!origen || !destino) return alert("Selecciona origen y destino");
 
-    const res = await fetch("https://www.tiemporeal.devcorebits.com/viajes/planear", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify({
-        tipo: "viaje_normal",
-        origen,
-        destino
-      })
-    });
+    const res = await fetch(
+      "https://www.tiemporeal.devcorebits.com/viajes/planear",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          tipo: "viaje_normal",
+          origen,
+          destino,
+        }),
+      }
+    );
 
     const data = await res.json();
 
@@ -77,7 +84,9 @@ export default function EstacionesPage() {
 
       const tipos = await Promise.all(
         data.rutas.map(async (idruta: string) => {
-          const resRuta = await fetch(`https://www.tiemporeal.devcorebits.com/rutas/${idruta}`);
+          const resRuta = await fetch(
+            `https://www.tiemporeal.devcorebits.com/rutas/${idruta}`
+          );
           const dataRuta = await resRuta.json();
           return { id: idruta, tipo: dataRuta?.tipo || "desconocido" };
         })
@@ -86,7 +95,7 @@ export default function EstacionesPage() {
       setRutasConTipo(tipos);
 
       setTimeout(() => {
-        resultadoRef.current?.scrollIntoView({ behavior: 'smooth' });
+        resultadoRef.current?.scrollIntoView({ behavior: "smooth" });
       }, 100);
     } else {
       alert("No se pudo calcular la ruta.");
@@ -107,36 +116,51 @@ export default function EstacionesPage() {
 
   return (
     <div className="p-4 max-w-7xl mx-auto">
-      <h1 className="text-2xl font-bold mb-4 text-center">
-        Selecciona origen y destino
-      </h1>
+      {/* TÍTULO */}
+      <div className="flex items-center justify-center gap-2 mb-6">
+        <MapPinIcon className="w-6 h-6 text-blue-700 animate-bounce" />
+        <h1 className="text-3xl sm:text-4xl font-extrabold text-center text-gray-800">
+          Selecciona origen y destino
+        </h1>
+      </div>
 
-      <div className="mb-8 flex flex-col sm:flex-row sm:items-center sm:justify-center gap-4 bg-gray-50 border border-gray-200 rounded-lg px-6 py-4 shadow-sm">
-        <div className="flex flex-col sm:flex-row gap-4 sm:items-center">
-          <div className="text-center sm:text-left">
-            <p className="text-sm font-semibold text-gray-700">Origen:</p>
-            <p className="text-base font-medium text-blue-700">
+      <div className="mb-10 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-6 bg-gradient-to-r from-blue-50 via-white to-red-50 border border-gray-300 rounded-xl px-8 py-5 shadow-md">
+        <div className="flex flex-col sm:flex-row sm:items-center gap-6 w-full sm:w-auto justify-center">
+          <div className="flex flex-col text-center sm:text-left">
+            <span className="text-sm font-semibold text-gray-700">Origen</span>
+            <span
+              className={`text-base font-medium ${
+                origen ? "text-gray-700" : "text-gray-400 italic"
+              }`}
+            >
               {origen
                 ? estaciones.find((e) => e.idestacion === origen)?.nombre
                 : "No seleccionado"}
-            </p>
+            </span>
           </div>
-          <div className="text-center sm:text-left">
-            <p className="text-sm font-semibold text-gray-700">Destino:</p>
-            <p className="text-base font-medium text-red-600">
+          <div className="flex flex-col text-center sm:text-left">
+            <span className="text-sm font-semibold text-gray-700">Destino</span>
+            <span
+              className={`text-base font-medium ${
+                destino ? "text-green-600" : "text-gray-400 italic"
+              }`}
+            >
               {destino
                 ? estaciones.find((e) => e.idestacion === destino)?.nombre
                 : "No seleccionado"}
-            </p>
+            </span>
           </div>
         </div>
-        <button
-          className="bg-blue-600 text-white px-6 py-2 rounded-full font-semibold shadow hover:bg-blue-700 disabled:opacity-50 transition"
-          onClick={calcularRuta}
-          disabled={!origen || !destino}
-        >
-          Calcular ruta
-        </button>
+
+        <div className="flex justify-center sm:justify-end w-full sm:w-auto">
+          <button
+            onClick={calcularRuta}
+            disabled={!origen || !destino}
+            className="bg-blue-600 text-white px-6 py-2 rounded-full font-semibold shadow hover:bg-blue-700 disabled:bg-blue-300 transition"
+          >
+            Calcular ruta
+          </button>
+        </div>
       </div>
 
       {Object.entries(agrupadas).map(([zona, estacionesZona]) => (
@@ -155,9 +179,9 @@ export default function EstacionesPage() {
                   className={`border rounded-lg p-4 cursor-pointer transition hover:shadow
                     ${
                       isOrigen
-                        ? "bg-green-100 border-green-500 ring-2 ring-green-300"
+                        ? "bg-gray-100 border-gray-500 ring-2 ring-gray-300"
                         : isDestino
-                        ? "bg-red-100 border-red-500 ring-2 ring-red-300"
+                        ? "bg-green-100 border-green-500 ring-2 ring-green-300"
                         : "bg-white border-gray-300"
                     }`}
                   onClick={() => handleSeleccion(estacion.idestacion)}
