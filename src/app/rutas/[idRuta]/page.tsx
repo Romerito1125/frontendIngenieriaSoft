@@ -4,10 +4,25 @@ import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import Link from "next/link";
 
+// Tipos explícitos
+type Ruta = {
+  idruta: string;
+  LugarInicio: string;
+  LugarFin: string;
+  horariolunvier: string;
+  horariofinsem: string;
+};
+
+type Estacion = {
+  idestacion: number;
+  nombre: string;
+  zona: string;
+};
+
 export default function RutaDetallePage() {
   const { idRuta } = useParams();
-  const [ruta, setRuta] = useState<any>(null);
-  const [estaciones, setEstaciones] = useState<any[]>([]);
+  const [ruta, setRuta] = useState<Ruta | null>(null);
+  const [estaciones, setEstaciones] = useState<Estacion[]>([]);
   const [error, setError] = useState(false);
 
   useEffect(() => {
@@ -15,15 +30,15 @@ export default function RutaDetallePage() {
       try {
         const rutaRes = await fetch(`https://www.tiemporeal.devcorebits.com/rutas/${idRuta}`);
         if (!rutaRes.ok) throw new Error("Error ruta");
-        const rutaData = await rutaRes.json();
+        const rutaData: Ruta = await rutaRes.json();
         setRuta(rutaData);
 
         const estacionesRes = await fetch(`https://www.tiemporeal.devcorebits.com/sim/recorrido/${idRuta}`);
         if (!estacionesRes.ok) throw new Error("Error estaciones");
-        const estacionesData = await estacionesRes.json();
+        const estacionesData: { idestacion: number; nombre: string }[] = await estacionesRes.json();
 
-        const estacionesConZona = await Promise.all(
-          estacionesData.map(async (estacion: any) => {
+        const estacionesConZona: Estacion[] = await Promise.all(
+          estacionesData.map(async (estacion) => {
             const res = await fetch(`https://www.tiemporeal.devcorebits.com/estaciones/${estacion.idestacion}`);
             const data = await res.json();
             return { ...estacion, zona: data.zona };
@@ -45,7 +60,7 @@ export default function RutaDetallePage() {
       case "0": return "bg-orange-500";
       case "1": return "bg-blue-500";
       case "2": return "bg-fuchsia-400";
-      case "3": return "bg-amber-400"; // Centro
+      case "3": return "bg-amber-400";
       case "4": return "bg-purple-500";
       case "5": return "bg-sky-600";
       case "6": return "bg-cyan-500";
@@ -100,14 +115,12 @@ export default function RutaDetallePage() {
                 <span className="ml-2 text-sm text-gray-600">Cargando estaciones...</span>
               </div>
             ) : (
-              estaciones.map((estacion: any, index: number) => {
+              estaciones.map((estacion, index) => {
                 const color = getColorByZona(estacion.zona);
                 const isFirst = index === 0;
                 const isLast = index === estaciones.length - 1;
 
-                const borderRadius = `${
-                  isFirst ? "rounded-t-full" : ""
-                } ${isLast ? "rounded-b-full" : ""}`;
+                const borderRadius = `${isFirst ? "rounded-t-full" : ""} ${isLast ? "rounded-b-full" : ""}`;
 
                 return (
                   <div key={index} className="flex items-start gap-3">
@@ -118,7 +131,6 @@ export default function RutaDetallePage() {
                     ></div>
                     <span className="text-gray-800">{index + 1}. {estacion.nombre}</span>
                   </div>
-                  
                 );
               })
             )}
