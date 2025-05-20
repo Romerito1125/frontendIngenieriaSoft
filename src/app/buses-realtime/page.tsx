@@ -1,5 +1,3 @@
-// src/app/buses-realtime/page.tsx
-
 "use client";
 import {
   GoogleMap,
@@ -51,7 +49,10 @@ export default function MapaMIO() {
   const [estaciones, setEstaciones] = useState<Estacion[]>([]);
   const [buses, setBuses] = useState<Bus[]>([]);
   const [idruta, setIdRuta] = useState("");
+  const [rutaActiva, setRutaActiva] = useState(""); // Nueva: solo inicia al hacer submit
   const [tiempoEstacion, setTiempoEstacion] = useState<TiempoEstacionBus[]>([]);
+  const [rutasDisponibles, setRutasDisponibles] = useState<string[]>([]);
+  const [sugerencias, setSugerencias] = useState<string[]>([]);
 
   const handleMapLoad = () => {
     setIconSize(new window.google.maps.Size(50, 50));
@@ -60,16 +61,17 @@ export default function MapaMIO() {
   const iniciarSimulacion = async () => {
     try {
       await axios.post("https://www.tiemporeal.devcorebits.com/sim/inicio", { idruta });
-      obtenerEstaciones();
+      setRutaActiva(idruta); // activa solo después de enviar
+      obtenerEstaciones(idruta);
     } catch (err) {
       console.error("Error al iniciar simulación:", err);
     }
   };
 
-  const obtenerEstaciones = async () => {
+  const obtenerEstaciones = async (ruta: string) => {
     try {
       const { data } = await axios.get(
-        `https://www.tiemporeal.devcorebits.com/sim/recorrido/${idruta}`
+        `https://www.tiemporeal.devcorebits.com/sim/recorrido/${ruta}`
       );
       setEstaciones(data);
     } catch (err) {
@@ -78,19 +80,22 @@ export default function MapaMIO() {
   };
 
   const obtenerBuses = useCallback(async () => {
+    if (!rutaActiva) return;
     try {
       const { data } = await axios.get(
-        `https://www.tiemporeal.devcorebits.com/sim/buses/${idruta}`
+        `https://www.tiemporeal.devcorebits.com/sim/buses/${rutaActiva}`
       );
       setBuses(data);
     } catch (err) {
       console.error("Error al obtener buses:", err);
     }
-  }, [idruta]);
+  }, [rutaActiva]);
 
   const obtenerTiempoEstacion = async (idestacion: number) => {
     try {
-      const { data } = await axios.get(`https://www.tiemporeal.devcorebits.com/sim/tiempo-llegada/${idestacion}`);
+      const { data } = await axios.get(
+        `https://www.tiemporeal.devcorebits.com/sim/tiempo-llegada/${idestacion}`
+      );
       setTiempoEstacion(data);
     } catch (error) {
       console.error("Error al obtener tiempo de llegada:", error);
@@ -99,10 +104,10 @@ export default function MapaMIO() {
 
   useEffect(() => {
     const interval = setInterval(() => {
-      if (idruta) obtenerBuses();
+      if (rutaActiva) obtenerBuses();
     }, 100);
     return () => clearInterval(interval);
-  }, [idruta, obtenerBuses]);
+  }, [rutaActiva, obtenerBuses]);
 
   useEffect(() => {
     if (!selectedEstacion) return;
@@ -114,30 +119,77 @@ export default function MapaMIO() {
     return () => clearInterval(intervaloTiempo);
   }, [selectedEstacion]);
 
+  useEffect(() => {
+    const fetchRutas = async () => {
+      try {
+        const { data } = await axios.get("https://www.tiemporeal.devcorebits.com/rutas");
+        setRutasDisponibles(data.map((ruta: any) => ruta.idruta));
+      } catch (error) {
+        console.error("Error al cargar rutas:", error);
+      }
+    };
+
+    fetchRutas();
+  }, []);
+
+  const handleInputRuta = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const valor = e.target.value;
+    setIdRuta(valor);
+    const filtradas = rutasDisponibles.filter((ruta) =>
+      ruta.toLowerCase().includes(valor.toLowerCase())
+    );
+    setSugerencias(valor.length > 0 ? filtradas : []);
+  };
+
+  const seleccionarSugerencia = (ruta: string) => {
+    setIdRuta(ruta);
+    setSugerencias([]);
+  };
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (idruta.trim()) iniciarSimulacion();
   };
 
   return (
-    <div className="w-full px-4 md:px-8 py-4">
-      <h2 className="text-xl font-bold text-center text-black mb-2">Mapa rutas tiempo real MIO</h2>
+    <div className="w-full px-4 md:px-8 py-6 bg-gray-50 min-h-screen">
+      <h2 className="text-2xl font-extrabold text-center text-blue-900 mb-4">
+        Mapa de rutas en tiempo real del MIO
+      </h2>
 
       <form
         onSubmit={handleSubmit}
-        className="flex items-center justify-center bg-blue-700 p-2 rounded-md gap-2 mb-4"
+        className="relative flex flex-col sm:flex-row items-center justify-center gap-3 bg-blue-700 px-6 py-4 rounded-xl mb-6 shadow-md"
       >
-        <Image src="/icono-bus.png" alt="Bus" className="w-8 h-8" width={50} height={50}/>
-        <input
-          type="text"
-          placeholder="Ruta o bus"
-          value={idruta}
-          onChange={(e) => setIdRuta(e.target.value)}
-          className="p-1 rounded-sm w-48 text-black"
-        />
+        <div className="relative flex flex-col w-full sm:w-auto">
+          <div className="flex items-center gap-3">
+            <Image src="/icono-bus.png" alt="Bus" width={24} height={24} className="w-6 h-6" />
+            <input
+              type="text"
+              placeholder="Ingresa ID de ruta o bus"
+              value={idruta}
+              onChange={handleInputRuta}
+              className="w-full sm:w-60 px-4 py-2 bg-white text-gray-800 border border-blue-500 rounded-md placeholder:text-gray-500 shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-300 transition"
+            />
+          </div>
+          {sugerencias.length > 0 && (
+            <div className="absolute top-full mt-1 left-1/2 -translate-x-1/2 bg-white border border-gray-300 rounded-md shadow-lg z-50 w-60 max-h-48 overflow-auto">
+              {sugerencias.map((ruta) => (
+                <div
+                  key={ruta}
+                  className="px-4 py-2 cursor-pointer hover:bg-blue-100"
+                  onClick={() => seleccionarSugerencia(ruta)}
+                >
+                  {ruta}
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+
         <button
           type="submit"
-          className="bg-yellow-400 text-black font-bold px-3 py-1 rounded hover:bg-yellow-300"
+          className="bg-yellow-400 text-black font-bold px-6 py-2 rounded-md hover:bg-yellow-300 transition"
         >
           Enviar
         </button>
@@ -155,9 +207,7 @@ export default function MapaMIO() {
             fullscreenControl: false,
             zoomControl: false,
             disableDefaultUI: true,
-            styles: [
-              { featureType: "poi", stylers: [{ visibility: "off" }] },
-            ],
+            styles: [{ featureType: "poi", stylers: [{ visibility: "off" }] }],
           }}
         >
           {iconSize &&
@@ -166,10 +216,7 @@ export default function MapaMIO() {
                 key={estacion.idestacion}
                 position={{ lat: estacion.lat, lng: estacion.lon }}
                 title={estacion.nombre}
-                icon={{
-                  url: "/icono-parada.png",
-                  scaledSize: iconSize,
-                }}
+                icon={{ url: "/icono-parada.png", scaledSize: iconSize }}
                 onClick={() => {
                   setSelectedEstacion(estacion);
                   obtenerTiempoEstacion(estacion.idestacion);
@@ -184,10 +231,7 @@ export default function MapaMIO() {
                 position={{ lat: bus.lat, lng: bus.lon }}
                 title={`Bus ${bus.idbus}`}
                 animation={google.maps.Animation.DROP}
-                icon={{
-                  url: "/icono-bus.png",
-                  scaledSize: iconSize,
-                }}
+                icon={{ url: "/icono-bus.png", scaledSize: iconSize }}
                 onClick={() => setSelectedBus(bus)}
               />
             ))}
@@ -248,14 +292,10 @@ export default function MapaMIO() {
                     Ruta: <span className="font-semibold">{selectedBus.idruta}</span>
                   </p>
                   <p className="text-xs text-center text-gray-800">
-                    Dirección:{" "}
-                    <span className="font-semibold">
-                      {selectedBus.enVuelta ? "Vuelta" : "Ida"}
-                    </span>
+                    Dirección: <span className="font-semibold">{selectedBus.enVuelta ? "Vuelta" : "Ida"}</span>
                   </p>
                   <p className="text-xs text-center text-gray-800">
-                    Destino:{" "}
-                    <span className="font-semibold">{selectedBus.destino}</span>
+                    Destino: <span className="font-semibold">{selectedBus.destino}</span>
                   </p>
                 </div>
               </div>
