@@ -75,7 +75,6 @@ export default function EstacionesPage() {
     if (data.rutas) {
       setRutaResultado(data.rutas);
 
-      // Consultar tipo de cada ruta
       const tipos = await Promise.all(
         data.rutas.map(async (idruta: string) => {
           const resRuta = await fetch(`http://localhost:3001/rutas/${idruta}`);
@@ -147,8 +146,6 @@ export default function EstacionesPage() {
           </h2>
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
             {estacionesZona.map((estacion) => {
-              const selected =
-                estacion.idestacion === origen || estacion.idestacion === destino;
               const isOrigen = estacion.idestacion === origen;
               const isDestino = estacion.idestacion === destino;
 
