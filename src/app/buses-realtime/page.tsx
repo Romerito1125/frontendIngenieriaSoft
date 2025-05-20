@@ -127,7 +127,7 @@ export default function MapaMIO() {
         onSubmit={handleSubmit}
         className="flex items-center justify-center bg-blue-700 p-2 rounded-md gap-2 mb-4"
       >
-        <Image src="/icono-bus.png" alt="Bus" className="w-8 h-8" />
+        <Image src="/icono-bus.png" alt="Bus" className="w-8 h-8" width={50} height={50}/>
         <input
           type="text"
           placeholder="Ruta o bus"

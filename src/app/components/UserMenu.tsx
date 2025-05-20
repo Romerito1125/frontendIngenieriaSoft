@@ -38,10 +38,12 @@ export default function UserMenu() {
   if (!user) {
     return (
       <div className="flex items-center gap-4 text-sm">
-        <Link href="/auth/login" className="text-blue-700 hover:underline">
+        <Link href="/auth/login" className="text-blue-700 hover:underline text-xl font-normal text-blue-900"
+          style={{ fontFamily: "Lobster, cursive" }}>
           Iniciar sesión
         </Link>
-        <Link href="/auth/register" className="text-blue-700 hover:underline">
+        <Link href="/auth/register" className="text-blue-700 hover:underline text-xl font-normal text-blue-900"
+          style={{ fontFamily: "Lobster, cursive" }}>
           Registrarse
         </Link>
       </div>
