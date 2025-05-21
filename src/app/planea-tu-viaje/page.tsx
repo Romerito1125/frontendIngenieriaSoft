@@ -2,6 +2,7 @@
 
 import { useEffect, useState, useRef } from "react";
 import { ChevronDoubleRightIcon, MapPinIcon } from "@heroicons/react/24/solid";
+import toast, { Toaster } from "react-hot-toast";
 
 type Estacion = {
   idestacion: number;
@@ -29,22 +30,43 @@ const getColorByType = (tipo: string) => {
   }
 };
 
+const getNombreZona = (zona: string) => {
+  switch (zona) {
+    case "0":
+      return "Zona 0 - Centro";
+    case "1":
+      return "Zona 1 - Universidades";
+    case "2":
+      return "Zona 2 - Menga";
+    case "3":
+      return "Zona 3 - Paso del Comercio";
+    case "4":
+      return "Zona 4 - Andrés Sanín";
+    case "5":
+      return "Zona 5 - Aguablanca";
+    case "6":
+      return "Zona 6 - Simón Bolívar";
+    case "7":
+      return "Zona 7 - Cañaveralejo";
+    case "8":
+      return "Zona 8 - Calipso";
+    default:
+      return `Zona ${zona}`;
+  }
+};
+
 export default function EstacionesPage() {
   const [estaciones, setEstaciones] = useState<Estacion[]>([]);
   const [agrupadas, setAgrupadas] = useState<AgrupadasPorZona>({});
   const [origen, setOrigen] = useState<number | null>(null);
   const [destino, setDestino] = useState<number | null>(null);
   const [rutaResultado, setRutaResultado] = useState<string[] | null>(null);
-  const [rutasConTipo, setRutasConTipo] = useState<
-    { id: string; tipo: string }[]
-  >([]);
+  const [rutasConTipo, setRutasConTipo] = useState<{ id: string; tipo: string }[]>([]);
   const resultadoRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
     const obtenerEstaciones = async () => {
-      const res = await fetch(
-        "https://www.tiemporeal.devcorebits.com/estaciones"
-      );
+      const res = await fetch("https://www.tiemporeal.devcorebits.com/estaciones");
       const data = await res.json();
       setEstaciones(data);
 
@@ -60,45 +82,43 @@ export default function EstacionesPage() {
   }, []);
 
   const calcularRuta = async () => {
-    if (!origen || !destino) return alert("Selecciona origen y destino");
+    if (!origen || !destino) {
+      toast.error("Selecciona origen y destino");
+      return;
+    }
 
-    const res = await fetch(
-      "https://www.tiemporeal.devcorebits.com/viajes/planear",
-      {
+    try {
+      const res = await fetch("https://www.tiemporeal.devcorebits.com/viajes/planear", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          tipo: "viaje_normal",
-          origen,
-          destino,
-        }),
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ tipo: "viaje_normal", origen, destino }),
+      });
+
+      const data = await res.json();
+
+      if (data.rutas) {
+        setRutaResultado(data.rutas);
+
+        const tipos = await Promise.all(
+          data.rutas.map(async (idruta: string) => {
+            const resRuta = await fetch(`https://www.tiemporeal.devcorebits.com/rutas/${idruta}`);
+            const dataRuta = await resRuta.json();
+            return { id: idruta, tipo: dataRuta?.tipo || "desconocido" };
+          })
+        );
+
+        setRutasConTipo(tipos);
+
+        setTimeout(() => {
+          resultadoRef.current?.scrollIntoView({ behavior: "smooth" });
+        }, 100);
+
+        toast.success("Ruta calculada con éxito");
+      } else {
+        toast.error("No se pudo calcular la ruta. Intenta con otras estaciones.");
       }
-    );
-
-    const data = await res.json();
-
-    if (data.rutas) {
-      setRutaResultado(data.rutas);
-
-      const tipos = await Promise.all(
-        data.rutas.map(async (idruta: string) => {
-          const resRuta = await fetch(
-            `https://www.tiemporeal.devcorebits.com/rutas/${idruta}`
-          );
-          const dataRuta = await resRuta.json();
-          return { id: idruta, tipo: dataRuta?.tipo || "desconocido" };
-        })
-      );
-
-      setRutasConTipo(tipos);
-
-      setTimeout(() => {
-        resultadoRef.current?.scrollIntoView({ behavior: "smooth" });
-      }, 100);
-    } else {
-      alert("No se pudo calcular la ruta.");
+    } catch (error) {
+      toast.error("Error al conectarse con el servidor.");
     }
   };
 
@@ -116,7 +136,27 @@ export default function EstacionesPage() {
 
   return (
     <div className="p-4 max-w-7xl mx-auto">
-      {/* TÍTULO */}
+      <Toaster
+        position="top-center"
+        toastOptions={{
+          success: {
+            style: {
+              background: '#e7f9e5',          // Verde clarito
+              color: '#155724',               // Verde oscuro para texto
+              border: '1px solid #28a745',    // Borde verde fuerte
+            },
+          },
+          error: {
+            style: {
+              background: '#fcebea',          // Rojo clarito
+              color: '#721c24',               // Rojo oscuro para texto
+              border: '1px solid #dc3545',    // Borde rojo fuerte
+            },
+          },
+        }}
+      />
+
+
       <div className="flex items-center justify-center gap-2 mb-6">
         <MapPinIcon className="w-6 h-6 text-blue-700 animate-bounce" />
         <h1 className="text-3xl sm:text-4xl font-extrabold text-center text-gray-800">
@@ -128,26 +168,14 @@ export default function EstacionesPage() {
         <div className="flex flex-col sm:flex-row sm:items-center gap-6 w-full sm:w-auto justify-center">
           <div className="flex flex-col text-center sm:text-left">
             <span className="text-sm font-semibold text-gray-700">Origen</span>
-            <span
-              className={`text-base font-medium ${
-                origen ? "text-gray-700" : "text-gray-400 italic"
-              }`}
-            >
-              {origen
-                ? estaciones.find((e) => e.idestacion === origen)?.nombre
-                : "No seleccionado"}
+            <span className={`text-base font-medium ${origen ? "text-gray-700" : "text-gray-400 italic"}`}>
+              {origen ? estaciones.find((e) => e.idestacion === origen)?.nombre : "No seleccionado"}
             </span>
           </div>
           <div className="flex flex-col text-center sm:text-left">
             <span className="text-sm font-semibold text-gray-700">Destino</span>
-            <span
-              className={`text-base font-medium ${
-                destino ? "text-green-600" : "text-gray-400 italic"
-              }`}
-            >
-              {destino
-                ? estaciones.find((e) => e.idestacion === destino)?.nombre
-                : "No seleccionado"}
+            <span className={`text-base font-medium ${destino ? "text-green-600" : "text-gray-400 italic"}`}>
+              {destino ? estaciones.find((e) => e.idestacion === destino)?.nombre : "No seleccionado"}
             </span>
           </div>
         </div>
@@ -165,9 +193,7 @@ export default function EstacionesPage() {
 
       {Object.entries(agrupadas).map(([zona, estacionesZona]) => (
         <div key={zona} className="mb-6">
-          <h2 className="text-xl font-semibold mb-2 text-blue-700">
-            Zona {zona}
-          </h2>
+          <h2 className="text-xl font-semibold mb-2 text-blue-700">{getNombreZona(zona)}</h2>
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
             {estacionesZona.map((estacion) => {
               const isOrigen = estacion.idestacion === origen;
@@ -177,18 +203,15 @@ export default function EstacionesPage() {
                 <div
                   key={estacion.idestacion}
                   className={`border rounded-lg p-4 cursor-pointer transition hover:shadow
-                    ${
-                      isOrigen
-                        ? "bg-gray-100 border-gray-500 ring-2 ring-gray-300"
-                        : isDestino
+                    ${isOrigen
+                      ? "bg-gray-100 border-gray-500 ring-2 ring-gray-300"
+                      : isDestino
                         ? "bg-green-100 border-green-500 ring-2 ring-green-300"
                         : "bg-white border-gray-300"
                     }`}
                   onClick={() => handleSeleccion(estacion.idestacion)}
                 >
-                  <h3 className="text-lg font-semibold text-blue-700">
-                    {estacion.nombre}
-                  </h3>
+                  <h3 className="text-lg font-semibold text-blue-700">{estacion.nombre}</h3>
                   <p className="text-sm text-gray-500">{estacion.ubicacion}</p>
                 </div>
               );
@@ -198,18 +221,13 @@ export default function EstacionesPage() {
       ))}
 
       {rutaResultado && (
-        <div
-          ref={resultadoRef}
-          className="mt-10 p-6 bg-green-100 border border-green-400 rounded text-center shadow"
-        >
+        <div ref={resultadoRef} className="mt-10 p-6 bg-green-100 border border-green-400 rounded text-center shadow">
           <h3 className="text-xl font-bold mb-4">Ruta sugerida:</h3>
           <div className="flex flex-wrap items-center justify-center gap-3 text-white text-sm font-semibold">
             {rutasConTipo.map((ruta, index) => (
               <div key={index} className="flex items-center gap-2">
                 <span
-                  className={`px-3 py-1 rounded-md shadow text-sm ${getColorByType(
-                    ruta.tipo
-                  )}`}
+                  className={`px-3 py-1 rounded-md shadow text-sm ${getColorByType(ruta.tipo)}`}
                   style={{ minWidth: "45px", textAlign: "center" }}
                 >
                   {ruta.id}
