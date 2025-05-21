@@ -1,4 +1,6 @@
 // components/AlertaCard.tsx
+// s
+
 import React from 'react';
 
 type AlertaProps = {
