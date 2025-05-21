@@ -7,10 +7,10 @@ export default function Home() {
     { name: "Buses por Estación", path: "/buses-por-estacion", icon: "/svg/BusesPorEstacion1.svg" },
     { name: "Saldo y Recargas", path: "/saldo-y-recargas", icon: "/svg/Saldo1.svg" },
     { name: "Planea tu Viaje", path: "/planea-tu-viaje", icon: "/svg/PlaneaTuViaje1.svg" },
-    { name: "Mapa MIO", path: "/mapa", icon: "/svg/MapaMIO1.svg" },
-    { name: "Noticias", path: "/noticias", icon: "/svg/Noticias1.svg" },
+    { name: "Rutas en tiempo real", path: "/buses-realtime", icon: "/svg/MapaMIO1.svg" },
+    { name: "Noticias y alertas", path: "/noticias", icon: "/svg/Noticias1.svg" },
     { name: "Denuncias", path: "/denuncias", icon: "/svg/Denuncias1.svg" },
-    { name: "Grupo WhatsApp", path: "/canal-de-whatsapp", icon: "/svg/GrupoWhatsapp1.svg" },
+    { name: "Foro", path: "/Foro", icon: "/svg/GrupoWhatsapp1.svg" },
   ];
 
   return (
