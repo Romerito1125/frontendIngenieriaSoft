@@ -5,7 +5,7 @@ type LoginPayload = {
   contrasenia: string;
 };
 
-const API_URL = "http://localhost:3008/cuenta";
+const API_URL = "https://www.cuentas.devcorebits.com/cuenta";
 
 export async function loginUsuario(data: LoginPayload) {
   const res = await fetch(`${API_URL}/login`, {

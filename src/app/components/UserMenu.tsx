@@ -27,7 +27,7 @@ export default function UserMenu() {
 
     try {
       const decoded = jwtDecode<TokenPayload>(token);
-      fetch(`http://localhost:3008/cuenta/getCuenta/${decoded.userId}`)
+      fetch(`https://www.cuentas.devcorebits.com/cuenta/getCuenta/${decoded.userId}`)
         .then((res) => res.json())
         .then((data) => setUser(data));
     } catch {
