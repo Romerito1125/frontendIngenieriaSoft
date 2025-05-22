@@ -1,3 +1,9 @@
+import { createClient } from '@supabase/supabase-js';
+
+export const supabase = createClient(
+  'https://vrhudhgvjtcbebdnpftb.supabase.co',
+  'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZyaHVkaGd2anRjYmViZG5wZnRiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDAyMDE5NjMsImV4cCI6MjA1NTc3Nzk2M30.aOBYppQ4VC1w9_uM0wRc1LAuWw8n4qM-e2vLidALmJM'
+);
 const BASE_URL = process.env.NEXT_PUBLIC_API_URL || "https://servicioforo.onrender.com"
 
 //#region -- FOROS --
@@ -95,10 +101,18 @@ export async function eliminarRespuesta(id: string) {
 }
 
 export async function obtenerCantidadRespuestas(idForo: string) {
-  const res = await fetch(`${BASE_URL}/foro/cantidadRespuestas/${idForo}`)
-  if (!res.ok) throw new Error("Error al contar respuestas")
-  const data = await res.json()
-  return data.count || 0
+  const res = await fetch(`${BASE_URL}/foro/cantidadRespuestas/${idForo}`);
+  if (!res.ok) throw new Error("Error al contar respuestas");
+
+  const data = await res.json();
+
+  if (!data || typeof data.count !== "number") {
+    console.warn("⚠️ La respuesta no tiene 'count':", data);
+    return 0;
+  }
+
+  return data.count;
 }
+
 
 //#endregion

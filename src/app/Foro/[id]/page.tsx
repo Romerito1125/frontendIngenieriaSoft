@@ -1,5 +1,5 @@
 "use client"
-
+import { supabase } from "../api-service";
 import { useState, useEffect } from "react"
 import { useParams, useRouter } from "next/navigation"
 import { obtenerForo, listarRespuestas, eliminarForo, obtenerCantidadRespuestas } from "../api-service"
@@ -61,6 +61,24 @@ export default function ForoDetailPage() {
     fetchData()
   }, [id])
 
+    useEffect(() => {
+    const canalRespuestas = supabase
+      .channel('respuestas-realtime')
+      .on('broadcast', { event: 'nueva-respuesta' }, (payload) => {
+        console.log('🟢 Respuesta realtime recibida:', payload.payload);
+        // Validación opcional: que sea del foro actual
+        if (payload.payload.idforo === id) {
+          setRespuestas((prev) => [...prev, payload.payload]);
+          setCantidadRespuestas((prev) => prev + 1);
+        }
+      })
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(canalRespuestas);
+    };
+  }, [id]);
+  
   const actualizarCantidadRespuestas = async () => {
     if (!id) return
 

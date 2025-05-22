@@ -1,245 +1,757 @@
-"use client";
+"use client"
 
-import { useEffect, useState, useRef } from "react";
-import { ChevronDoubleRightIcon, MapPinIcon } from "@heroicons/react/24/solid";
-import toast, { Toaster } from "react-hot-toast";
+import { useEffect, useState, useRef } from "react"
+import { MapPin, ChevronRight, Search, Loader2, MapPinned, Route, Bus } from "lucide-react"
+import toast, { Toaster } from "react-hot-toast"
+import { motion, AnimatePresence } from "framer-motion"
+import { Input } from "@/components/ui/input"
+import { Button } from "@/components/ui/button"
+import { Badge } from "@/components/ui/badge"
+import { Card, CardContent } from "@/components/ui/card"
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
 
 type Estacion = {
-  idestacion: number;
-  nombre: string;
-  ubicacion: string;
-  Zona: string;
-};
+  idestacion: number
+  nombre: string
+  ubicacion: string
+  Zona: string
+}
 
 type AgrupadasPorZona = {
-  [zona: string]: Estacion[];
-};
+  [zona: string]: Estacion[]
+}
 
 const getColorByType = (tipo: string) => {
   switch (tipo.toLowerCase()) {
     case "troncal":
-      return "bg-red-600";
+      return "bg-gradient-to-r from-red-600 to-red-500 border-red-700"
     case "pretroncal":
-      return "bg-blue-600";
+      return "bg-gradient-to-r from-blue-600 to-blue-500 border-blue-700"
     case "expreso":
-      return "bg-yellow-500 text-black";
+      return "bg-gradient-to-r from-yellow-500 to-yellow-400 text-black border-yellow-600"
     case "alimentador":
-      return "bg-green-600";
+      return "bg-gradient-to-r from-green-600 to-green-500 border-green-700"
     default:
-      return "bg-gray-500";
+      return "bg-gradient-to-r from-gray-600 to-gray-500 border-gray-700"
   }
-};
+}
 
 const getNombreZona = (zona: string) => {
   switch (zona) {
     case "0":
-      return "Zona 0 - Centro";
+      return "Zona 0 - Centro"
     case "1":
-      return "Zona 1 - Universidades";
+      return "Zona 1 - Universidades"
     case "2":
-      return "Zona 2 - Menga";
+      return "Zona 2 - Menga"
     case "3":
-      return "Zona 3 - Paso del Comercio";
+      return "Zona 3 - Paso del Comercio"
     case "4":
-      return "Zona 4 - Andrés Sanín";
+      return "Zona 4 - Andrés Sanín"
     case "5":
-      return "Zona 5 - Aguablanca";
+      return "Zona 5 - Aguablanca"
     case "6":
-      return "Zona 6 - Simón Bolívar";
+      return "Zona 6 - Simón Bolívar"
     case "7":
-      return "Zona 7 - Cañaveralejo";
+      return "Zona 7 - Cañaveralejo"
     case "8":
-      return "Zona 8 - Calipso";
+      return "Zona 8 - Calipso"
     default:
-      return `Zona ${zona}`;
+      return `Zona ${zona}`
   }
-};
+}
+
+const getZonaColor = (zona: string) => {
+  const colors = [
+    "from-blue-600 to-blue-400",
+    "from-purple-600 to-purple-400",
+    "from-green-600 to-green-400",
+    "from-yellow-600 to-yellow-400",
+    "from-red-600 to-red-400",
+    "from-pink-600 to-pink-400",
+    "from-indigo-600 to-indigo-400",
+    "from-teal-600 to-teal-400",
+    "from-orange-600 to-orange-400",
+  ]
+
+  const index = Number.parseInt(zona) % colors.length
+  return colors[index] || colors[0]
+}
 
 export default function EstacionesPage() {
-  const [estaciones, setEstaciones] = useState<Estacion[]>([]);
-  const [agrupadas, setAgrupadas] = useState<AgrupadasPorZona>({});
-  const [origen, setOrigen] = useState<number | null>(null);
-  const [destino, setDestino] = useState<number | null>(null);
-  const [rutaResultado, setRutaResultado] = useState<string[] | null>(null);
-  const [rutasConTipo, setRutasConTipo] = useState<{ id: string; tipo: string }[]>([]);
-  const resultadoRef = useRef<HTMLDivElement | null>(null);
+  const [estaciones, setEstaciones] = useState<Estacion[]>([])
+  const [agrupadas, setAgrupadas] = useState<AgrupadasPorZona>({})
+  const [origen, setOrigen] = useState<number | null>(null)
+  const [destino, setDestino] = useState<number | null>(null)
+  const [rutaResultado, setRutaResultado] = useState<string[] | null>(null)
+  const [rutasConTipo, setRutasConTipo] = useState<{ id: string; tipo: string }[]>([])
+  const [isLoading, setIsLoading] = useState(true)
+  const [isCalculating, setIsCalculating] = useState(false)
+  const [searchTerm, setSearchTerm] = useState("")
+  const [activeTab, setActiveTab] = useState("todas")
+  const resultadoRef = useRef<HTMLDivElement | null>(null)
 
   useEffect(() => {
     const obtenerEstaciones = async () => {
-      const res = await fetch("https://www.tiemporeal.devcorebits.com/estaciones");
-      const data = await res.json();
-      setEstaciones(data);
+      try {
+        setIsLoading(true)
+        const res = await fetch("https://www.tiemporeal.devcorebits.com/estaciones")
+        const data = await res.json()
+        setEstaciones(data)
 
-      const agrupado: AgrupadasPorZona = {};
-      data.forEach((estacion: Estacion) => {
-        if (!agrupado[estacion.Zona]) agrupado[estacion.Zona] = [];
-        agrupado[estacion.Zona].push(estacion);
-      });
-      setAgrupadas(agrupado);
-    };
+        const agrupado: AgrupadasPorZona = {}
+        data.forEach((estacion: Estacion) => {
+          if (!agrupado[estacion.Zona]) agrupado[estacion.Zona] = []
+          agrupado[estacion.Zona].push(estacion)
+        })
+        setAgrupadas(agrupado)
+      } catch (error) {
+        toast.error("Error al cargar las estaciones")
+        console.error("Error al cargar estaciones:", error)
+      } finally {
+        setIsLoading(false)
+      }
+    }
 
-    obtenerEstaciones();
-  }, []);
+    obtenerEstaciones()
+  }, [])
 
   const calcularRuta = async () => {
     if (!origen || !destino) {
-      toast.error("Selecciona origen y destino");
-      return;
+      toast.error("Selecciona origen y destino")
+      return
     }
 
     try {
+      setIsCalculating(true)
+      setRutaResultado(null)
+      setRutasConTipo([])
+
       const res = await fetch("https://www.tiemporeal.devcorebits.com/viajes/planear", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ tipo: "viaje_normal", origen, destino }),
-      });
+      })
 
-      const data = await res.json();
+      const data = await res.json()
 
-      if (data.rutas) {
-        setRutaResultado(data.rutas);
+      if (data.rutas && data.rutas.length > 0) {
+        setRutaResultado(data.rutas)
 
         const tipos = await Promise.all(
           data.rutas.map(async (idruta: string) => {
-            const resRuta = await fetch(`https://www.tiemporeal.devcorebits.com/rutas/${idruta}`);
-            const dataRuta = await resRuta.json();
-            return { id: idruta, tipo: dataRuta?.tipo || "desconocido" };
-          })
-        );
+            const resRuta = await fetch(`https://www.tiemporeal.devcorebits.com/rutas/${idruta}`)
+            const dataRuta = await resRuta.json()
+            return { id: idruta, tipo: dataRuta?.tipo || "desconocido" }
+          }),
+        )
 
-        setRutasConTipo(tipos);
+        setRutasConTipo(tipos)
 
         setTimeout(() => {
-          resultadoRef.current?.scrollIntoView({ behavior: "smooth" });
-        }, 100);
+          resultadoRef.current?.scrollIntoView({ behavior: "smooth" })
+        }, 100)
 
-        toast.success("Ruta calculada con éxito");
+        toast.success("Ruta calculada con éxito")
       } else {
-        toast.error("No se pudo calcular la ruta. Intenta con otras estaciones.");
+        toast.error("No se pudo calcular la ruta. Intenta con otras estaciones.")
       }
     } catch (error) {
-      toast.error("Error al conectarse con el servidor.");
+      toast.error("Error al conectarse con el servidor.")
+    } finally {
+      setIsCalculating(false)
     }
-  };
+  }
 
   const handleSeleccion = (idestacion: number) => {
-    if (origen === null) {
-      setOrigen(idestacion);
-    } else if (destino === null && idestacion !== origen) {
-      setDestino(idestacion);
-    } else {
-      setOrigen(idestacion);
-      setDestino(null);
-      setRutaResultado(null);
+    // Si la estación ya está seleccionada como origen, la deseleccionamos
+    if (origen === idestacion) {
+      setOrigen(null)
+      toast.success("Origen deseleccionado")
+      return
     }
-  };
+
+    // Si la estación ya está seleccionada como destino, la deseleccionamos
+    if (destino === idestacion) {
+      setDestino(null)
+      toast.success("Destino deseleccionado")
+      return
+    }
+
+    // Si no hay origen seleccionado, esta estación se convierte en origen
+    if (origen === null) {
+      setOrigen(idestacion)
+      toast.success("Origen seleccionado")
+      return
+    }
+
+    // Si hay origen pero no destino, esta estación se convierte en destino
+    if (destino === null) {
+      setDestino(idestacion)
+      toast.success("Destino seleccionado")
+      return
+    }
+
+    // Si ya hay origen y destino, reemplazamos el origen con esta nueva selección
+    setOrigen(idestacion)
+    setDestino(null)
+    setRutaResultado(null)
+    toast.success("Nueva selección iniciada")
+  }
+
+  const resetSeleccion = () => {
+    setOrigen(null)
+    setDestino(null)
+    setRutaResultado(null)
+    setRutasConTipo([])
+    toast.success("Selección reiniciada")
+  }
+
+  const filteredEstaciones = searchTerm
+    ? estaciones.filter(
+        (e) =>
+          e.nombre.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          e.ubicacion.toLowerCase().includes(searchTerm.toLowerCase()),
+      )
+    : []
+
+  const getEstacionesForActiveTab = () => {
+    if (activeTab === "todas") {
+      return Object.entries(agrupadas)
+    } else {
+      return Object.entries(agrupadas).filter(([zona]) => zona === activeTab)
+    }
+  }
 
   return (
-    <div className="p-4 max-w-7xl mx-auto">
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-blue-50 p-4 md:p-6">
       <Toaster
         position="top-center"
         toastOptions={{
           success: {
             style: {
-              background: '#e7f9e5',          // Verde clarito
-              color: '#155724',               // Verde oscuro para texto
-              border: '1px solid #28a745',    // Borde verde fuerte
+              background: "#e7f9e5",
+              color: "#155724",
+              border: "1px solid #28a745",
+              borderLeft: "6px solid #28a745",
+              borderRadius: "8px",
+              padding: "16px",
+              boxShadow: "0 4px 12px rgba(0, 0, 0, 0.1)",
             },
+            icon: "🚍",
           },
           error: {
             style: {
-              background: '#fcebea',          // Rojo clarito
-              color: '#721c24',               // Rojo oscuro para texto
-              border: '1px solid #dc3545',    // Borde rojo fuerte
+              background: "#fcebea",
+              color: "#721c24",
+              border: "1px solid #dc3545",
+              borderLeft: "6px solid #dc3545",
+              borderRadius: "8px",
+              padding: "16px",
+              boxShadow: "0 4px 12px rgba(0, 0, 0, 0.1)",
             },
+            icon: "⚠️",
           },
         }}
       />
 
-
-      <div className="flex items-center justify-center gap-2 mb-6">
-        <MapPinIcon className="w-6 h-6 text-blue-700 animate-bounce" />
-        <h1 className="text-3xl sm:text-4xl font-extrabold text-center text-gray-800">
-          Selecciona origen y destino
-        </h1>
-      </div>
-
-      <div className="mb-10 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-6 bg-gradient-to-r from-blue-50 via-white to-red-50 border border-gray-300 rounded-xl px-8 py-5 shadow-md">
-        <div className="flex flex-col sm:flex-row sm:items-center gap-6 w-full sm:w-auto justify-center">
-          <div className="flex flex-col text-center sm:text-left">
-            <span className="text-sm font-semibold text-gray-700">Origen</span>
-            <span className={`text-base font-medium ${origen ? "text-gray-700" : "text-gray-400 italic"}`}>
-              {origen ? estaciones.find((e) => e.idestacion === origen)?.nombre : "No seleccionado"}
-            </span>
-          </div>
-          <div className="flex flex-col text-center sm:text-left">
-            <span className="text-sm font-semibold text-gray-700">Destino</span>
-            <span className={`text-base font-medium ${destino ? "text-green-600" : "text-gray-400 italic"}`}>
-              {destino ? estaciones.find((e) => e.idestacion === destino)?.nombre : "No seleccionado"}
-            </span>
-          </div>
-        </div>
-
-        <div className="flex justify-center sm:justify-end w-full sm:w-auto">
-          <button
-            onClick={calcularRuta}
-            disabled={!origen || !destino}
-            className="bg-blue-600 text-white px-6 py-2 rounded-full font-semibold shadow hover:bg-blue-700 disabled:bg-blue-300 transition"
-          >
-            Calcular ruta
-          </button>
-        </div>
-      </div>
-
-      {Object.entries(agrupadas).map(([zona, estacionesZona]) => (
-        <div key={zona} className="mb-6">
-          <h2 className="text-xl font-semibold mb-2 text-blue-700">{getNombreZona(zona)}</h2>
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
-            {estacionesZona.map((estacion) => {
-              const isOrigen = estacion.idestacion === origen;
-              const isDestino = estacion.idestacion === destino;
-
-              return (
-                <div
-                  key={estacion.idestacion}
-                  className={`border rounded-lg p-4 cursor-pointer transition hover:shadow
-                    ${isOrigen
-                      ? "bg-gray-100 border-gray-500 ring-2 ring-gray-300"
-                      : isDestino
-                        ? "bg-green-100 border-green-500 ring-2 ring-green-300"
-                        : "bg-white border-gray-300"
-                    }`}
-                  onClick={() => handleSeleccion(estacion.idestacion)}
-                >
-                  <h3 className="text-lg font-semibold text-blue-700">{estacion.nombre}</h3>
-                  <p className="text-sm text-gray-500">{estacion.ubicacion}</p>
+      <div className="max-w-7xl mx-auto">
+        {/* Header con efecto de glassmorphism */}
+        <div className="relative mb-8">
+          <div className="absolute inset-0 bg-blue-600 opacity-10 rounded-2xl blur-3xl"></div>
+          <div className="relative bg-white bg-opacity-80 backdrop-blur-sm rounded-2xl shadow-lg p-6 border border-blue-100">
+            <div className="flex flex-col items-center justify-center gap-2 mb-6">
+              <div className="relative">
+                <div className="absolute -inset-1 bg-blue-600 opacity-30 rounded-full blur"></div>
+                <div className="relative bg-gradient-to-r from-blue-600 to-blue-500 p-3 rounded-full shadow-lg">
+                  <MapPin className="w-8 h-8 text-white" />
                 </div>
-              );
-            })}
+              </div>
+              <h1 className="text-3xl sm:text-4xl font-extrabold text-center bg-gradient-to-r from-blue-700 to-blue-500 bg-clip-text text-transparent mt-3">
+                Planificador de Rutas
+              </h1>
+              <p className="text-blue-600 text-center opacity-80 max-w-2xl">
+                Selecciona tu estación de origen y destino para calcular la mejor ruta disponible
+              </p>
+            </div>
+
+            {/* Panel de selección */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5 }}
+              className="mb-6 bg-gradient-to-r from-blue-50 via-white to-blue-50 border border-blue-200 rounded-xl px-6 py-5 shadow-md"
+            >
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div className="flex flex-col">
+                  <div className="flex items-center gap-2 mb-2">
+                    <Badge variant="outline" className="bg-blue-100 text-blue-700 border-blue-300 px-2 py-1">
+                      Origen
+                    </Badge>
+                    <span className="text-sm text-blue-600">Estación de partida</span>
+                  </div>
+                  <div className="bg-white rounded-lg border border-blue-200 p-3 h-16 flex items-center shadow-sm">
+                    {origen ? (
+                      <div className="flex items-center gap-2 w-full">
+                        <MapPin className="h-5 w-5 text-blue-600 flex-shrink-0" />
+                        <span className="font-medium text-gray-800 truncate">
+                          {estaciones.find((e) => e.idestacion === origen)?.nombre}
+                        </span>
+                      </div>
+                    ) : (
+                      <span className="text-gray-400 italic">No seleccionado</span>
+                    )}
+                  </div>
+                </div>
+
+                <div className="flex flex-col">
+                  <div className="flex items-center gap-2 mb-2">
+                    <Badge variant="outline" className="bg-green-100 text-green-700 border-green-300 px-2 py-1">
+                      Destino
+                    </Badge>
+                    <span className="text-sm text-green-600">Estación de llegada</span>
+                  </div>
+                  <div className="bg-white rounded-lg border border-green-200 p-3 h-16 flex items-center shadow-sm">
+                    {destino ? (
+                      <div className="flex items-center gap-2 w-full">
+                        <MapPinned className="h-5 w-5 text-green-600 flex-shrink-0" />
+                        <span className="font-medium text-gray-800 truncate">
+                          {estaciones.find((e) => e.idestacion === destino)?.nombre}
+                        </span>
+                      </div>
+                    ) : (
+                      <span className="text-gray-400 italic">No seleccionado</span>
+                    )}
+                  </div>
+                </div>
+
+                <div className="flex flex-col md:flex-row gap-3 items-end justify-end">
+                  <Button
+                    variant="outline"
+                    onClick={resetSeleccion}
+                    className="border-gray-300 text-gray-700 hover:bg-gray-100"
+                    disabled={!origen && !destino}
+                  >
+                    Reiniciar
+                  </Button>
+                  <Button
+                    onClick={calcularRuta}
+                    disabled={!origen || !destino || isCalculating}
+                    className="bg-gradient-to-r from-blue-600 to-blue-500 text-white shadow-md hover:from-blue-700 hover:to-blue-600 transition-all"
+                  >
+                    {isCalculating ? (
+                      <>
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                        Calculando...
+                      </>
+                    ) : (
+                      <>
+                        <Route className="mr-2 h-4 w-4" />
+                        Calcular ruta
+                      </>
+                    )}
+                  </Button>
+                </div>
+              </div>
+            </motion.div>
+
+            {/* Buscador */}
+            <div className="relative mb-6">
+              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                <Search className="h-5 w-5 text-gray-400" />
+              </div>
+              <Input
+                type="text"
+                placeholder="Buscar estación por nombre o ubicación..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="pl-10 border-blue-200 focus:border-blue-400 focus:ring-blue-400"
+              />
+              {searchTerm && (
+                <button onClick={() => setSearchTerm("")} className="absolute inset-y-0 right-0 pr-3 flex items-center">
+                  <span className="text-gray-400 hover:text-gray-600">✕</span>
+                </button>
+              )}
+            </div>
+
+            {/* Resultados de búsqueda */}
+            {searchTerm && (
+              <div className="mb-6">
+                <h3 className="text-sm font-medium text-gray-500 mb-2">
+                  {filteredEstaciones.length} resultados encontrados
+                </h3>
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 max-h-60 overflow-y-auto p-1">
+                  <AnimatePresence>
+                    {filteredEstaciones.map((estacion) => {
+                      const isOrigen = estacion.idestacion === origen
+                      const isDestino = estacion.idestacion === destino
+
+                      return (
+                        <motion.div
+                          key={estacion.idestacion}
+                          initial={{ opacity: 0, scale: 0.95 }}
+                          animate={{ opacity: 1, scale: 1 }}
+                          exit={{ opacity: 0, scale: 0.95 }}
+                          transition={{ duration: 0.2 }}
+                          whileHover={{ scale: 1.02 }}
+                          whileTap={{ scale: 0.98 }}
+                        >
+                          <Card
+                            className={`cursor-pointer transition-all duration-300 overflow-hidden group relative ${
+                              isOrigen
+                                ? "ring-2 ring-blue-400 shadow-lg shadow-blue-100"
+                                : isDestino
+                                  ? "ring-2 ring-green-400 shadow-lg shadow-green-100"
+                                  : "hover:ring-1 hover:ring-blue-200 hover:shadow-md"
+                            }`}
+                            onClick={() => handleSeleccion(estacion.idestacion)}
+                          >
+                            <div
+                              className={`h-2 w-full ${
+                                isOrigen
+                                  ? "bg-gradient-to-r from-blue-500 to-blue-600"
+                                  : isDestino
+                                    ? "bg-gradient-to-r from-green-500 to-green-600"
+                                    : `bg-gradient-to-r ${getZonaColor(estacion.Zona)}`
+                              }`}
+                            ></div>
+
+                            <CardContent className="p-3 relative">
+                              {(isOrigen || isDestino) && (
+                                <div
+                                  className={`absolute top-2 right-2 w-5 h-5 rounded-full flex items-center justify-center ${
+                                    isOrigen ? "bg-blue-500" : "bg-green-500"
+                                  }`}
+                                >
+                                  {isOrigen ? (
+                                    <MapPin className="h-3 w-3 text-white" />
+                                  ) : (
+                                    <MapPinned className="h-3 w-3 text-white" />
+                                  )}
+                                </div>
+                              )}
+
+                              <div className="flex flex-col space-y-1">
+                                <h3
+                                  className={`font-medium text-sm leading-tight ${
+                                    isOrigen
+                                      ? "text-blue-700"
+                                      : isDestino
+                                        ? "text-green-700"
+                                        : "text-gray-800 group-hover:text-blue-700"
+                                  }`}
+                                >
+                                  {estacion.nombre}
+                                </h3>
+                                <p className="text-xs text-gray-500">{estacion.ubicacion}</p>
+
+                                <div className="flex items-center justify-between mt-2">
+                                  <Badge
+                                    className={`text-xs bg-gradient-to-r ${getZonaColor(estacion.Zona)} text-white`}
+                                  >
+                                    {getNombreZona(estacion.Zona).split(" - ")[0]}
+                                  </Badge>
+
+                                  {(isOrigen || isDestino) && (
+                                    <Badge
+                                      className={`text-xs ${
+                                        isOrigen
+                                          ? "bg-blue-100 text-blue-700 border-blue-300"
+                                          : "bg-green-100 text-green-700 border-green-300"
+                                      }`}
+                                    >
+                                      {isOrigen ? "Origen" : "Destino"}
+                                    </Badge>
+                                  )}
+                                </div>
+                              </div>
+                            </CardContent>
+                          </Card>
+                        </motion.div>
+                      )
+                    })}
+                  </AnimatePresence>
+                </div>
+              </div>
+            )}
           </div>
         </div>
-      ))}
 
-      {rutaResultado && (
-        <div ref={resultadoRef} className="mt-10 p-6 bg-green-100 border border-green-400 rounded text-center shadow">
-          <h3 className="text-xl font-bold mb-4">Ruta sugerida:</h3>
-          <div className="flex flex-wrap items-center justify-center gap-3 text-white text-sm font-semibold">
-            {rutasConTipo.map((ruta, index) => (
-              <div key={index} className="flex items-center gap-2">
-                <span
-                  className={`px-3 py-1 rounded-md shadow text-sm ${getColorByType(ruta.tipo)}`}
-                  style={{ minWidth: "45px", textAlign: "center" }}
-                >
-                  {ruta.id}
-                </span>
-                {index < rutasConTipo.length - 1 && (
-                  <ChevronDoubleRightIcon className="w-5 h-5 text-gray-600" />
-                )}
+        {/* Resultado de la ruta */}
+        <AnimatePresence>
+          {rutaResultado && rutasConTipo.length > 0 && (
+            <motion.div
+              ref={resultadoRef}
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -20 }}
+              transition={{ duration: 0.5 }}
+              className="mb-8 bg-white bg-opacity-90 backdrop-blur-sm rounded-2xl shadow-lg p-6 border border-green-200"
+            >
+              <div className="flex items-center gap-3 mb-4">
+                <div className="bg-gradient-to-r from-green-600 to-green-500 p-2 rounded-full shadow-md">
+                  <Route className="h-6 w-6 text-white" />
+                </div>
+                <h2 className="text-2xl font-bold bg-gradient-to-r from-green-700 to-green-500 bg-clip-text text-transparent">
+                  Ruta Recomendada
+                </h2>
               </div>
+
+              <div className="bg-green-50 rounded-xl p-4 border border-green-200">
+                <div className="flex items-center gap-2 mb-4">
+                  <div className="flex items-center gap-1">
+                    <MapPin className="h-4 w-4 text-blue-600" />
+                    <span className="text-sm font-medium text-gray-700">
+                      {estaciones.find((e) => e.idestacion === origen)?.nombre}
+                    </span>
+                  </div>
+                  <div className="flex-1 border-t-2 border-dashed border-gray-300 mx-2"></div>
+                  <div className="flex items-center gap-1">
+                    <MapPinned className="h-4 w-4 text-green-600" />
+                    <span className="text-sm font-medium text-gray-700">
+                      {estaciones.find((e) => e.idestacion === destino)?.nombre}
+                    </span>
+                  </div>
+                </div>
+
+                <div className="flex flex-wrap items-center justify-center gap-3">
+                  {rutasConTipo.map((ruta, index) => (
+                    <div key={index} className="flex items-center">
+                      <motion.div
+                        initial={{ scale: 0.8, opacity: 0 }}
+                        animate={{ scale: 1, opacity: 1 }}
+                        transition={{ delay: index * 0.1, duration: 0.3 }}
+                        className="flex items-center"
+                      >
+                        <div
+                          className={`px-4 py-2 rounded-lg shadow-md text-white font-medium border ${getColorByType(ruta.tipo)}`}
+                          style={{ minWidth: "60px", textAlign: "center" }}
+                        >
+                          <div className="flex items-center justify-center gap-1">
+                            <Bus className="h-4 w-4" />
+                            <span>{ruta.id}</span>
+                          </div>
+                        </div>
+
+                        {index < rutasConTipo.length - 1 && (
+                          <div className="mx-1">
+                            <ChevronRight className="w-5 h-5 text-gray-500" />
+                          </div>
+                        )}
+                      </motion.div>
+                    </div>
+                  ))}
+                </div>
+
+                <div className="mt-4 text-center text-sm text-gray-500">
+                  <p>Tiempo estimado: {rutasConTipo.length * 10 - 5} minutos</p>
+                </div>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        {/* Tabs para zonas */}
+        <div className="mb-6">
+          <Tabs defaultValue="todas" value={activeTab} onValueChange={setActiveTab}>
+            <TabsList className="bg-white border border-blue-100 p-1 rounded-lg shadow-sm overflow-x-auto flex w-full">
+              <TabsTrigger
+                value="todas"
+                className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-600 data-[state=active]:to-blue-500 data-[state=active]:text-white rounded-md"
+              >
+                Todas las zonas
+              </TabsTrigger>
+              {Object.keys(agrupadas)
+                .sort()
+                .map((zona) => (
+                  <TabsTrigger
+                    key={zona}
+                    value={zona}
+                    className={`data-[state=active]:bg-gradient-to-r data-[state=active]:${getZonaColor(zona)} data-[state=active]:text-white rounded-md`}
+                  >
+                    {getNombreZona(zona).split(" - ")[0]}
+                  </TabsTrigger>
+                ))}
+            </TabsList>
+          </Tabs>
+        </div>
+
+        {/* Estaciones por zona */}
+        {isLoading ? (
+          <div className="flex flex-col items-center justify-center py-20">
+            <div className="relative w-20 h-20">
+              <div className="absolute inset-0 bg-blue-100 rounded-full opacity-30 animate-ping"></div>
+              <div className="relative flex items-center justify-center w-20 h-20 bg-blue-600 rounded-full shadow-lg">
+                <Loader2 className="h-10 w-10 text-white animate-spin" />
+              </div>
+            </div>
+            <p className="mt-6 text-lg font-medium text-blue-700">Cargando estaciones...</p>
+            <p className="text-sm text-blue-500 animate-pulse">Esto puede tomar unos momentos</p>
+          </div>
+        ) : (
+          <div className="space-y-8">
+            {getEstacionesForActiveTab().map(([zona, estacionesZona]) => (
+              <motion.div
+                key={zona}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.5 }}
+                className="bg-white rounded-xl shadow-md p-6 border border-gray-200"
+              >
+                <div className="flex items-center gap-3 mb-4">
+                  <div className={`bg-gradient-to-r ${getZonaColor(zona)} p-2 rounded-full shadow-md`}>
+                    <MapPin className="h-5 w-5 text-white" />
+                  </div>
+                  <h2
+                    className={`text-xl font-bold bg-gradient-to-r ${getZonaColor(zona)} bg-clip-text text-transparent`}
+                  >
+                    {getNombreZona(zona)}
+                  </h2>
+                  <Badge className="ml-auto bg-gray-100 text-gray-700 hover:bg-gray-200">
+                    {estacionesZona.length} estaciones
+                  </Badge>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+                  <AnimatePresence>
+                    {estacionesZona.map((estacion, index) => {
+                      const isOrigen = estacion.idestacion === origen
+                      const isDestino = estacion.idestacion === destino
+
+                      return (
+                        <motion.div
+                          key={estacion.idestacion}
+                          initial={{ opacity: 0, scale: 0.95 }}
+                          animate={{ opacity: 1, scale: 1 }}
+                          transition={{ duration: 0.2, delay: index * 0.03 }}
+                          whileHover={{ scale: 1.02 }}
+                          whileTap={{ scale: 0.98 }}
+                        >
+                          <Card
+                            className={`cursor-pointer transition-all duration-300 overflow-hidden group relative ${
+                              isOrigen
+                                ? "ring-2 ring-blue-400 shadow-lg shadow-blue-100"
+                                : isDestino
+                                  ? "ring-2 ring-green-400 shadow-lg shadow-green-100"
+                                  : "hover:ring-1 hover:ring-blue-200 hover:shadow-md"
+                            }`}
+                            onClick={() => handleSeleccion(estacion.idestacion)}
+                          >
+                            {/* Barra superior con gradiente */}
+                            <div
+                              className={`h-2 w-full relative overflow-hidden ${
+                                isOrigen
+                                  ? "bg-gradient-to-r from-blue-500 to-blue-600"
+                                  : isDestino
+                                    ? "bg-gradient-to-r from-green-500 to-green-600"
+                                    : `bg-gradient-to-r ${getZonaColor(zona)}`
+                              }`}
+                            >
+                              {(isOrigen || isDestino) && (
+                                <div className="absolute inset-0 bg-white opacity-20 animate-pulse"></div>
+                              )}
+                            </div>
+
+                            <CardContent className="p-4 relative">
+                              {/* Icono de estado en la esquina superior derecha */}
+                              {(isOrigen || isDestino) && (
+                                <div
+                                  className={`absolute top-2 right-2 w-6 h-6 rounded-full flex items-center justify-center ${
+                                    isOrigen ? "bg-blue-500" : "bg-green-500"
+                                  }`}
+                                >
+                                  {isOrigen ? (
+                                    <MapPin className="h-3 w-3 text-white" />
+                                  ) : (
+                                    <MapPinned className="h-3 w-3 text-white" />
+                                  )}
+                                </div>
+                              )}
+
+                              <div className="flex flex-col space-y-2">
+                                {/* Nombre de la estación */}
+                                <h3
+                                  className={`font-semibold text-lg leading-tight transition-colors ${
+                                    isOrigen
+                                      ? "text-blue-700"
+                                      : isDestino
+                                        ? "text-green-700"
+                                        : "text-gray-800 group-hover:text-blue-700"
+                                  }`}
+                                >
+                                  {estacion.nombre}
+                                </h3>
+
+                                {/* Ubicación */}
+                                <p className="text-sm text-gray-500 leading-relaxed">{estacion.ubicacion}</p>
+
+                                {/* Badge de estado */}
+                                {(isOrigen || isDestino) && (
+                                  <motion.div
+                                    initial={{ scale: 0, opacity: 0 }}
+                                    animate={{ scale: 1, opacity: 1 }}
+                                    transition={{ delay: 0.1 }}
+                                  >
+                                    <Badge
+                                      className={`w-fit ${
+                                        isOrigen
+                                          ? "bg-blue-100 text-blue-700 border-blue-300 hover:bg-blue-200"
+                                          : "bg-green-100 text-green-700 border-green-300 hover:bg-green-200"
+                                      }`}
+                                    >
+                                      <div className="flex items-center gap-1">
+                                        {isOrigen ? (
+                                          <>
+                                            <MapPin className="h-3 w-3" />
+                                            <span>Origen</span>
+                                          </>
+                                        ) : (
+                                          <>
+                                            <MapPinned className="h-3 w-3" />
+                                            <span>Destino</span>
+                                          </>
+                                        )}
+                                      </div>
+                                    </Badge>
+                                  </motion.div>
+                                )}
+
+                                {/* Indicador de zona */}
+                                <div className="flex items-center gap-2 mt-2">
+                                  <div className={`w-3 h-3 rounded-full bg-gradient-to-r ${getZonaColor(zona)}`}></div>
+                                  <span className="text-xs text-gray-400 font-medium">{getNombreZona(zona)}</span>
+                                </div>
+                              </div>
+
+                              {/* Efecto de hover */}
+                              <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white to-transparent opacity-0 group-hover:opacity-10 transition-opacity duration-300 pointer-events-none"></div>
+                            </CardContent>
+
+                            {/* Efecto de brillo en el borde */}
+                            <div
+                              className={`absolute inset-0 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none ${
+                                isOrigen
+                                  ? "shadow-[inset_0_0_0_1px_rgba(59,130,246,0.3)]"
+                                  : isDestino
+                                    ? "shadow-[inset_0_0_0_1px_rgba(34,197,94,0.3)]"
+                                    : "shadow-[inset_0_0_0_1px_rgba(59,130,246,0.2)]"
+                              }`}
+                            ></div>
+                          </Card>
+                        </motion.div>
+                      )
+                    })}
+                  </AnimatePresence>
+                </div>
+              </motion.div>
             ))}
           </div>
-        </div>
-      )}
+        )}
+      </div>
+
+      {/* Decoración de fondo */}
+      <div className="fixed top-0 right-0 -z-10 w-1/2 h-1/2 bg-blue-100 opacity-30 rounded-full blur-3xl transform translate-x-1/3 -translate-y-1/3"></div>
+      <div className="fixed bottom-0 left-0 -z-10 w-1/2 h-1/2 bg-blue-200 opacity-20 rounded-full blur-3xl transform -translate-x-1/3 translate-y-1/3"></div>
     </div>
-  );
+  )
 }

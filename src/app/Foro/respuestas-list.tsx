@@ -36,9 +36,9 @@ export default function RespuestasList({ respuestas, onRespuestaActualizada, onR
 
   return (
     <div className="space-y-4">
-      {respuestas.map((respuesta) => (
+      {respuestas.map((respuesta, index) => (
         <RespuestaItem
-          key={respuesta.idrespuesta}
+           key={respuesta.idrespuesta || `respuesta-${index}`}
           respuesta={respuesta}
           onRespuestaActualizada={onRespuestaActualizada}
           onRespuestaEliminada={onRespuestaEliminada}

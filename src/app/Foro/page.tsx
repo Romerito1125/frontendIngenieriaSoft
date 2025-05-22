@@ -1,5 +1,5 @@
 "use client"
-
+import { supabase } from "./api-service"
 import { useState, useEffect } from "react"
 import { listarForos } from "./api-service"
 import { isAuthenticated, getCurrentUser } from "./auth-service"
@@ -62,8 +62,24 @@ export default function ForoPage() {
       }
     }
 
-    fetchForos()
+    fetchForos()  
   }, [])
+
+  useEffect(() => {
+    const canalForos = supabase
+      .channel('foros-realtime')
+      .on('broadcast', { event: 'nuevo-foro' }, (payload) => {
+        console.log('🟢 Foro realtime recibido:', payload.payload);
+        setForos((prev) => [payload.payload, ...prev]);
+        setFilteredForos((prev) => [payload.payload, ...prev]);
+      })
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(canalForos);
+    };
+  }, []);
+
 
   useEffect(() => {
     if (searchTerm.trim() === "") {

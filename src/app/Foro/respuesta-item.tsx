@@ -39,7 +39,15 @@ export default function RespuestaItem({ respuesta, onRespuestaActualizada, onRes
   const [mensaje, setMensaje] = useState(respuesta.mensaje)
   const [error, setError] = useState<string | null>(null)
 
-  const tiempo = formatDistanceToNow(new Date(respuesta.fecha), { addSuffix: true, locale: es })
+  let tiempo = "Fecha inválida";
+    try {
+      const fecha = new Date(respuesta.fecha);
+      if (!isNaN(fecha.getTime())) {
+        tiempo = formatDistanceToNow(fecha, { addSuffix: true, locale: es });
+      }
+    } catch (e) {
+      console.warn("⚠️ Fecha no válida en respuesta:", respuesta.fecha);
+    }
   const esAutor = isOwner(String(respuesta.idcuenta))
 
   // Convertir idcuenta a string antes de usar substring
