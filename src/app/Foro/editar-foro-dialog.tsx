@@ -26,6 +26,7 @@ type Props = {
     idcuenta: string | number
     titulo: string
     descripcion: string
+    fecha: string
   }
   onForoActualizado: (foro: any) => void
 }
@@ -60,9 +61,17 @@ export default function EditarForoDialog({ children, foro, onForoActualizado }: 
       setError(null)
 
       const actualizado = await actualizarForo(foro.idforo, { titulo, descripcion })
-      onForoActualizado(actualizado)
+
+      // Asegurarse de que el foro actualizado mantenga la fecha original
+      // si el backend no devuelve una fecha válida
+      const foroActualizado = {
+        ...actualizado,
+        fecha: actualizado.fecha || foro.fecha,
+      }
+
+      onForoActualizado(foroActualizado)
       setOpen(false)
-    } catch {
+    } catch (error) {
       setError("No se pudo actualizar el foro. Intenta nuevamente.")
     } finally {
       setIsSubmitting(false)

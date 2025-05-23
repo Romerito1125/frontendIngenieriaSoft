@@ -24,11 +24,19 @@ type Props = {
 }
 
 export default function ForoDetail({ foro, onForoActualizado }: Props) {
-  const fechaCreacion = new Date(foro.fecha)
-  const tiempoTranscurrido = formatDistanceToNow(fechaCreacion, {
-    addSuffix: true,
-    locale: es,
-  })
+  // Manejar fechas inválidas de manera segura
+  let tiempoTranscurrido = "Fecha inválida"
+  try {
+    const fechaCreacion = new Date(foro.fecha)
+    if (!isNaN(fechaCreacion.getTime())) {
+      tiempoTranscurrido = formatDistanceToNow(fechaCreacion, {
+        addSuffix: true,
+        locale: es,
+      })
+    }
+  } catch (e) {
+    console.warn("⚠️ Fecha no válida en foro:", foro.fecha)
+  }
 
   const esAutor = isOwner(String(foro.idcuenta))
   const cantidad = foro.cantidadRespuestas || 0

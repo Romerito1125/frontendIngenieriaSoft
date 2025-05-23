@@ -103,15 +103,8 @@ export async function eliminarRespuesta(id: string) {
 export async function obtenerCantidadRespuestas(idForo: string) {
   const res = await fetch(`${BASE_URL}/foro/cantidadRespuestas/${idForo}`);
   if (!res.ok) throw new Error("Error al contar respuestas");
-
   const data = await res.json();
-
-  if (!data || typeof data.count !== "number") {
-    console.warn("⚠️ La respuesta no tiene 'count':", data);
-    return 0;
-  }
-
-  return data.count;
+  return data?.count ?? 0;
 }
 
 

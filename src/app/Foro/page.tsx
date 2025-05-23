@@ -68,10 +68,27 @@ export default function ForoPage() {
   useEffect(() => {
     const canalForos = supabase
       .channel('foros-realtime')
-      .on('broadcast', { event: 'nuevo-foro' }, (payload) => {
-        console.log('🟢 Foro realtime recibido:', payload.payload);
-        setForos((prev) => [payload.payload, ...prev]);
-        setFilteredForos((prev) => [payload.payload, ...prev]);
+      .on('broadcast', { event: 'evento-foro' }, (payload) => {
+        const { tipo, foro } = payload.payload;
+
+        if (tipo === "nuevo-foro") {
+          setForos((prev) => [foro, ...prev]);
+          setFilteredForos((prev) => [foro, ...prev]);
+        }
+
+        if (tipo === "foro-actualizado") {
+          setForos((prev) =>
+            prev.map(f => f.idforo === foro.idforo ? { ...f, ...foro } : f)
+          );
+          setFilteredForos((prev) =>
+            prev.map(f => f.idforo === foro.idforo ? { ...f, ...foro } : f)
+          );
+        }
+
+        if (tipo === "foro-eliminado") {
+          setForos((prev) => prev.filter(f => f.idforo !== foro.idforo));
+          setFilteredForos((prev) => prev.filter(f => f.idforo !== foro.idforo));
+        }
       })
       .subscribe();
 

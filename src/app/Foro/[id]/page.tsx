@@ -1,5 +1,5 @@
 "use client"
-import { supabase } from "../api-service";
+import { supabase } from "../api-service"
 import { useState, useEffect } from "react"
 import { useParams, useRouter } from "next/navigation"
 import { obtenerForo, listarRespuestas, eliminarForo, obtenerCantidadRespuestas } from "../api-service"
@@ -46,10 +46,11 @@ export default function ForoDetailPage() {
       try {
         const foroData = await obtenerForo(id)
         setForo(foroData)
-        setCantidadRespuestas(foroData.cantidadRespuestas || 0)
 
         const respuestasData = await listarRespuestas(id)
         setRespuestas(respuestasData)
+        // Usar la longitud real del array de respuestas
+        setCantidadRespuestas(respuestasData.length)
       } catch (err) {
         console.error(err)
         setError("No se pudo cargar el foro. Intenta de nuevo más tarde.")
@@ -61,24 +62,60 @@ export default function ForoDetailPage() {
     fetchData()
   }, [id])
 
-    useEffect(() => {
+  useEffect(() => {
     const canalRespuestas = supabase
-      .channel('respuestas-realtime')
-      .on('broadcast', { event: 'nueva-respuesta' }, (payload) => {
-        console.log('🟢 Respuesta realtime recibida:', payload.payload);
-        // Validación opcional: que sea del foro actual
-        if (payload.payload.idforo === id) {
-          setRespuestas((prev) => [...prev, payload.payload]);
-          setCantidadRespuestas((prev) => prev + 1);
+      .channel("respuestas-realtime")
+      .on("broadcast", { event: "evento-respuesta" }, (payload) => {
+        const { tipo, respuesta } = payload.payload
+
+        if (!respuesta) return
+
+        if (tipo === "nueva-respuesta" && respuesta.idforo === id) {
+          const fechaValida = respuesta.fecha ?? new Date().toISOString()
+
+          // Mejorar la obtención del nombre de usuario
+          let nombreValido = respuesta.nombreUsuario
+
+          if (!nombreValido) {
+            // Si no viene el nombre del backend, intentar obtenerlo del usuario actual
+            const usuarioActual = getCurrentUser()
+            if (usuarioActual && String(usuarioActual.idcuenta) === String(respuesta.idcuenta)) {
+              nombreValido = usuarioActual.nombre || usuarioActual.email?.split("@")[0]
+            } else {
+              nombreValido = `Usuario ${String(respuesta.idcuenta).substring(0, 4)}`
+            }
+          }
+
+          setRespuestas((prev) => [
+            ...prev,
+            {
+              ...respuesta,
+              fecha: fechaValida,
+              nombreUsuario: nombreValido,
+            },
+          ])
+
+          setCantidadRespuestas((prev) => prev + 1)
+        }
+
+        if (tipo === "respuesta-editada") {
+          setRespuestas((prev) =>
+            prev.map((r) => (r.idrespuesta === respuesta.idrespuesta ? { ...r, ...respuesta } : r)),
+          )
+        }
+
+        if (tipo === "respuesta-eliminada") {
+          setRespuestas((prev) => prev.filter((r) => r.idrespuesta !== respuesta.idrespuesta))
+          setCantidadRespuestas((prev) => Math.max(0, prev - 1))
         }
       })
-      .subscribe();
+      .subscribe()
 
     return () => {
-      supabase.removeChannel(canalRespuestas);
-    };
-  }, [id]);
-  
+      supabase.removeChannel(canalRespuestas)
+    }
+  }, [id, currentUser])
+
   const actualizarCantidadRespuestas = async () => {
     if (!id) return
 
@@ -94,8 +131,14 @@ export default function ForoDetailPage() {
   }
 
   const handleRespuestaCreada = (nuevaRespuesta: any) => {
+    // Asegurar que la nueva respuesta tenga el nombre correcto
+    const usuarioActual = getCurrentUser()
+    if (!nuevaRespuesta.nombreUsuario && usuarioActual) {
+      nuevaRespuesta.nombreUsuario = usuarioActual.nombre || usuarioActual.email?.split("@")[0]
+    }
+
     setRespuestas([...respuestas, nuevaRespuesta])
-    actualizarCantidadRespuestas()
+    setCantidadRespuestas((prev) => prev + 1)
   }
 
   const handleRespuestaActualizada = (respuestaActualizada: any) => {
@@ -106,7 +149,7 @@ export default function ForoDetailPage() {
 
   const handleRespuestaEliminada = (id: string) => {
     setRespuestas(respuestas.filter((r) => r.idrespuesta !== id))
-    actualizarCantidadRespuestas()
+    setCantidadRespuestas((prev) => Math.max(0, prev - 1))
   }
 
   const handleForoActualizado = (foroActualizado: any) => {

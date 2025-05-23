@@ -1,23 +1,22 @@
 "use client"
 
 import type React from "react"
-
 import { useState } from "react"
-import { Button } from "@/components/ui/button"
-import { Textarea } from "@/components/ui/textarea"
+import { getCurrentUserId, getCurrentUser } from "./auth-service"
 import { crearRespuesta } from "./api-service"
-import { getCurrentUserId } from "./auth-service"
 import { Send } from "lucide-react"
+import { Textarea } from "@/components/ui/textarea"
+import { Button } from "@/components/ui/button"
 
-type Props = {
+interface Props {
   idForo: string
   onRespuestaCreada: (respuesta: any) => void
 }
 
-export default function CrearRespuestaForm({ idForo, onRespuestaCreada }: Props) {
+const CrearRespuestaForm: React.FC<Props> = ({ idForo, onRespuestaCreada }) => {
   const [mensaje, setMensaje] = useState("")
-  const [isSubmitting, setIsSubmitting] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [isSubmitting, setIsSubmitting] = useState(false)
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -35,10 +34,32 @@ export default function CrearRespuestaForm({ idForo, onRespuestaCreada }: Props)
       setIsSubmitting(true)
       setError(null)
 
-      const nueva = await crearRespuesta(idForo, { mensaje, idcuenta: userId })
-      onRespuestaCreada(nueva)
+      // Obtener el usuario actual para tener acceso a su nombre
+      const currentUser = getCurrentUser()
+
+      // Crear la respuesta
+      const respuestaResponse = await crearRespuesta(idForo, {
+        mensaje,
+        idcuenta: userId,
+      })
+
+      // Extraer la respuesta del response (puede venir en data[0] o directamente)
+      const nuevaRespuesta = respuestaResponse.data?.[0] || respuestaResponse
+
+      // Asegurar que la respuesta tenga todos los datos necesarios
+      const respuestaCompleta = {
+        ...nuevaRespuesta,
+        fecha: nuevaRespuesta.fecha || new Date().toISOString(),
+        nombreUsuario:
+          nuevaRespuesta.nombreUsuario ||
+          (currentUser ? currentUser.nombre || currentUser.email?.split("@")[0] : null) ||
+          `Usuario ${String(userId).substring(0, 4)}`,
+      }
+
+      onRespuestaCreada(respuestaCompleta)
       setMensaje("")
     } catch (err) {
+      console.error("Error al crear respuesta:", err)
       setError("No se pudo crear la respuesta. Intenta nuevamente.")
     } finally {
       setIsSubmitting(false)
@@ -67,3 +88,5 @@ export default function CrearRespuestaForm({ idForo, onRespuestaCreada }: Props)
     </form>
   )
 }
+
+export default CrearRespuestaForm

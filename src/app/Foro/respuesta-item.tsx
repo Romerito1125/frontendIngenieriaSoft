@@ -28,6 +28,10 @@ type Props = {
     idcuenta: string | number
     mensaje: string
     fecha: string
+    nombreUsuario?: string
+    cuentas?: {
+      nombre?: string
+    }
   }
   onRespuestaActualizada: (r: any) => void
   onRespuestaEliminada: (id: string) => void
@@ -39,20 +43,22 @@ export default function RespuestaItem({ respuesta, onRespuestaActualizada, onRes
   const [mensaje, setMensaje] = useState(respuesta.mensaje)
   const [error, setError] = useState<string | null>(null)
 
-  let tiempo = "Fecha inválida";
-    try {
-      const fecha = new Date(respuesta.fecha);
-      if (!isNaN(fecha.getTime())) {
-        tiempo = formatDistanceToNow(fecha, { addSuffix: true, locale: es });
-      }
-    } catch (e) {
-      console.warn("⚠️ Fecha no válida en respuesta:", respuesta.fecha);
+  let tiempo = "Fecha inválida"
+  try {
+    const fecha = new Date(respuesta.fecha)
+    if (!isNaN(fecha.getTime())) {
+      tiempo = formatDistanceToNow(fecha, { addSuffix: true, locale: es })
     }
+  } catch (e) {
+    console.warn("⚠️ Fecha no válida en respuesta:", respuesta.fecha)
+  }
   const esAutor = isOwner(String(respuesta.idcuenta))
 
-  // Convertir idcuenta a string antes de usar substring
-  const idCuentaStr = String(respuesta.idcuenta)
-  const idCortado = idCuentaStr.substring(0, 5) // Mostrar solo los primeros 5 caracteres del ID
+  // Mejorar la obtención del nombre de usuario
+  const nombreUsuario =
+    respuesta.nombreUsuario ||
+    (respuesta.cuentas && typeof respuesta.cuentas === "object" && respuesta.cuentas.nombre) ||
+    `Usuario ${String(respuesta.idcuenta).substring(0, 4)}`
 
   const handleGuardar = async () => {
     if (!mensaje.trim()) return setError("El mensaje no puede estar vacío")
@@ -88,7 +94,7 @@ export default function RespuestaItem({ respuesta, onRespuestaActualizada, onRes
                 <User className="h-4 w-4" />
               </div>
               <div>
-                <div className="font-medium">Usuario {idCortado}</div>
+                <div className="font-medium">{nombreUsuario}</div>
                 <div className="text-xs text-gray-500 flex items-center">
                   <Calendar className="h-3 w-3 mr-1" />
                   {tiempo}
