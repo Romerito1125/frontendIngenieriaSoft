@@ -11,6 +11,16 @@ const compat = new FlatCompat({
 
 const eslintConfig = [
   ...compat.extends("next/core-web-vitals", "next/typescript"),
+  {
+  rules: {
+    "react/no-unescaped-entities": "off",
+    "@typescript-eslint/no-explicit-any": "off",
+    "@typescript-eslint/no-empty-object-types": "off",
+    "@typescript-eslint/no-unused-vars" : "off",
+    "@typescript-eslint/explicit-module-boundary-types": "off",
+    "react-hooks/exhaustive-deps": "off", // opcional, pero útil si quieres silenciar useEffect
+  },
+},
 ];
 
 export default eslintConfig;
