@@ -2,7 +2,7 @@
 import { supabase } from "../api-service"
 import { useState, useEffect } from "react"
 import { useParams, useRouter } from "next/navigation"
-import { obtenerForo, listarRespuestas, eliminarForo, obtenerCantidadRespuestas } from "../api-service"
+import { obtenerForo, listarRespuestas } from "../api-service"
 import { isAuthenticated, isOwner, getCurrentUser } from "../auth-service"
 import ForoDetail from "../foro-detail"
 import RespuestasList from "../respuestas-list"
@@ -11,17 +11,6 @@ import Link from "next/link"
 import { motion } from "framer-motion"
 import { Loader2, ArrowLeft, LogIn } from "lucide-react"
 import { Button } from "@/components/ui/button"
-import {
-  AlertDialog,
-  AlertDialogTrigger,
-  AlertDialogContent,
-  AlertDialogHeader,
-  AlertDialogTitle,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogCancel,
-  AlertDialogAction,
-} from "@/components/ui/alert-dialog"
 
 export default function ForoDetailPage() {
   const params = useParams()
@@ -31,7 +20,6 @@ export default function ForoDetailPage() {
   const [respuestas, setRespuestas] = useState<any[]>([])
   const [cantidadRespuestas, setCantidadRespuestas] = useState(0)
   const [isLoading, setIsLoading] = useState(true)
-  const [isDeleting, setIsDeleting] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [isAuth, setIsAuth] = useState(false)
   const [currentUser, setCurrentUser] = useState<any>(null)
@@ -45,11 +33,18 @@ export default function ForoDetailPage() {
 
       try {
         const foroData = await obtenerForo(id)
-        setForo(foroData)
 
+        // Obtener la cantidad de respuestas
         const respuestasData = await listarRespuestas(id)
+
+        // Actualizar el foro con la cantidad de respuestas
+        const foroConRespuestas = {
+          ...foroData,
+          cantidadRespuestas: respuestasData.length,
+        }
+
+        setForo(foroConRespuestas)
         setRespuestas(respuestasData)
-        // Usar la longitud real del array de respuestas
         setCantidadRespuestas(respuestasData.length)
       } catch (err) {
         console.error(err)
@@ -86,16 +81,22 @@ export default function ForoDetailPage() {
             }
           }
 
-          setRespuestas((prev) => [
-            ...prev,
-            {
-              ...respuesta,
-              fecha: fechaValida,
-              nombreUsuario: nombreValido,
-            },
-          ])
+          const nuevaRespuesta = {
+            ...respuesta,
+            fecha: fechaValida,
+            nombreUsuario: nombreValido,
+          }
 
+          setRespuestas((prev) => [...prev, nuevaRespuesta])
           setCantidadRespuestas((prev) => prev + 1)
+
+          // Actualizar también el contador en el objeto foro
+          if (foro) {
+            setForo({
+              ...foro,
+              cantidadRespuestas: (foro.cantidadRespuestas || 0) + 1,
+            })
+          }
         }
 
         if (tipo === "respuesta-editada") {
@@ -107,6 +108,14 @@ export default function ForoDetailPage() {
         if (tipo === "respuesta-eliminada") {
           setRespuestas((prev) => prev.filter((r) => r.idrespuesta !== respuesta.idrespuesta))
           setCantidadRespuestas((prev) => Math.max(0, prev - 1))
+
+          // Actualizar también el contador en el objeto foro
+          if (foro) {
+            setForo({
+              ...foro,
+              cantidadRespuestas: Math.max(0, (foro.cantidadRespuestas || 0) - 1),
+            })
+          }
         }
       })
       .subscribe()
@@ -114,21 +123,7 @@ export default function ForoDetailPage() {
     return () => {
       supabase.removeChannel(canalRespuestas)
     }
-  }, [id, currentUser])
-
-  const actualizarCantidadRespuestas = async () => {
-    if (!id) return
-
-    try {
-      const cantidad = await obtenerCantidadRespuestas(id)
-      setCantidadRespuestas(cantidad)
-      if (foro) {
-        setForo({ ...foro, cantidadRespuestas: cantidad })
-      }
-    } catch (err) {
-      console.error("Error actualizando cantidad de respuestas", err)
-    }
-  }
+  }, [id, foro])
 
   const handleRespuestaCreada = (nuevaRespuesta: any) => {
     // Asegurar que la nueva respuesta tenga el nombre correcto
@@ -139,6 +134,14 @@ export default function ForoDetailPage() {
 
     setRespuestas([...respuestas, nuevaRespuesta])
     setCantidadRespuestas((prev) => prev + 1)
+
+    // Actualizar también el contador en el objeto foro
+    if (foro) {
+      setForo({
+        ...foro,
+        cantidadRespuestas: (foro.cantidadRespuestas || 0) + 1,
+      })
+    }
   }
 
   const handleRespuestaActualizada = (respuestaActualizada: any) => {
@@ -150,24 +153,27 @@ export default function ForoDetailPage() {
   const handleRespuestaEliminada = (id: string) => {
     setRespuestas(respuestas.filter((r) => r.idrespuesta !== id))
     setCantidadRespuestas((prev) => Math.max(0, prev - 1))
+
+    // Actualizar también el contador en el objeto foro
+    if (foro) {
+      setForo({
+        ...foro,
+        cantidadRespuestas: Math.max(0, (foro.cantidadRespuestas || 0) - 1),
+      })
+    }
   }
 
   const handleForoActualizado = (foroActualizado: any) => {
-    setForo({ ...foroActualizado, cantidadRespuestas })
+    // Mantener la cantidad de respuestas al actualizar el foro
+    setForo({
+      ...foroActualizado,
+      cantidadRespuestas: foro.cantidadRespuestas,
+    })
   }
 
-  const handleEliminarForo = async () => {
-    if (!foro?.idforo) return
-
-    try {
-      setIsDeleting(true)
-      await eliminarForo(foro.idforo)
-      router.push("/foro")
-    } catch (err) {
-      console.error("Error al eliminar foro:", err)
-      setError("No se pudo eliminar el foro. Intenta nuevamente.")
-      setIsDeleting(false)
-    }
+  const handleForoEliminado = () => {
+    // Redirigir a la página principal de foros
+    router.push("/Foro")
   }
 
   if (isLoading) {
@@ -224,33 +230,7 @@ export default function ForoDetailPage() {
       </div>
 
       <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}>
-        <ForoDetail foro={foro} onForoActualizado={handleForoActualizado} />
-
-        {esAutor && (
-          <div className="mt-4 flex justify-end">
-            <AlertDialog>
-              <AlertDialogTrigger asChild>
-                <Button variant="destructive" disabled={isDeleting}>
-                  {isDeleting ? "Eliminando..." : "Eliminar foro"}
-                </Button>
-              </AlertDialogTrigger>
-              <AlertDialogContent>
-                <AlertDialogHeader>
-                  <AlertDialogTitle>¿Estás seguro?</AlertDialogTitle>
-                  <AlertDialogDescription>
-                    Esta acción no se puede deshacer. Se eliminará este foro y todas sus respuestas.
-                  </AlertDialogDescription>
-                </AlertDialogHeader>
-                <AlertDialogFooter>
-                  <AlertDialogCancel>Cancelar</AlertDialogCancel>
-                  <AlertDialogAction onClick={handleEliminarForo} className="bg-red-600 hover:bg-red-700">
-                    Eliminar
-                  </AlertDialogAction>
-                </AlertDialogFooter>
-              </AlertDialogContent>
-            </AlertDialog>
-          </div>
-        )}
+        <ForoDetail foro={foro} onForoActualizado={handleForoActualizado} onForoEliminado={handleForoEliminado} />
       </motion.div>
 
       <motion.div className="mt-10" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.3 }}>

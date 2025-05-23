@@ -14,7 +14,10 @@ type Foro = {
   titulo: string
   descripcion: string
   fecha: string
-  cantidadRespuestas?: number
+  cuentas?: {
+    nombre?: string
+  }
+  respuestas_foro?: { idrespuesta: string }[]
 }
 
 export default function ForoCard({ foro }: { foro: Foro }) {
@@ -32,18 +35,15 @@ export default function ForoCard({ foro }: { foro: Foro }) {
   }
 
   const esAutor = isOwner(String(foro.idcuenta))
-  const cantidad = foro.cantidadRespuestas || 0
-
-  // Convertir idcuenta a string antes de usar substring
-  const idCuentaStr = String(foro.idcuenta)
-  const idCortado = idCuentaStr.substring(0, 5) // Mostrar solo los primeros 5 caracteres del ID
+  const cantidad = foro.respuestas_foro?.length || 0
+  const nombreUsuario = foro.cuentas?.nombre || "Usuario desconocido"
 
   return (
     <Card className="overflow-hidden transition-all duration-300 hover:shadow-lg border-t-4 border-t-blue-600 h-full flex flex-col">
       <CardHeader className="pb-2">
         <div className="flex justify-between items-start">
           <CardTitle className="text-xl text-blue-700 line-clamp-2">
-            <Link href={`/foro/${foro.idforo}`} className="hover:underline">
+            <Link href={`/Foro/${foro.idforo}`} className="hover:underline">
               {foro.titulo}
             </Link>
           </CardTitle>
@@ -55,7 +55,7 @@ export default function ForoCard({ foro }: { foro: Foro }) {
         <p className="text-gray-600 line-clamp-3 mb-4">{foro.descripcion}</p>
         <div className="flex items-center text-sm text-gray-500">
           <User className="h-4 w-4 mr-1" />
-          <span>Usuario {idCortado}</span>
+          <span>{nombreUsuario}</span>
         </div>
       </CardContent>
 
@@ -75,7 +75,7 @@ export default function ForoCard({ foro }: { foro: Foro }) {
         </div>
 
         <Link
-          href={`/Foro/${foro.idforo}`}
+          href={`Foro/${foro.idforo}`}
           className="inline-flex items-center text-blue-600 hover:text-blue-800 font-medium"
         >
           Ver discusión

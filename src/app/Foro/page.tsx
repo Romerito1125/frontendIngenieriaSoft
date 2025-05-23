@@ -1,5 +1,5 @@
 "use client"
-import { supabase } from "./api-service"
+import { crearForo, supabase } from "./api-service"
 import { useState, useEffect } from "react"
 import { listarForos } from "./api-service"
 import { isAuthenticated, getCurrentUser } from "./auth-service"
@@ -113,26 +113,20 @@ export default function ForoPage() {
 
   const handleForoCreado = async (titulo: string, descripcion: string) => {
     try {
-      // Aquí normalmente llamarías a tu API para crear el foro
-      // Por ahora, simulamos la respuesta
-      const nuevoForo: Foro = {
-        idforo: `temp-${Date.now()}`,
-        idcuenta: currentUser?.idcuenta || "unknown",
+      const nuevoForo = await crearForo({
         titulo,
         descripcion,
-        fecha: new Date().toISOString(),
-        cantidadRespuestas: 0,
-      }
+        idcuenta: currentUser?.idcuenta || "unknown",
+      });
 
-      setForos([nuevoForo, ...foros])
-      return nuevoForo
+      setForos([nuevoForo, ...foros]);
+
+      return nuevoForo;
     } catch (error) {
-      console.error("Error al crear foro:", error)
-      throw new Error("No se pudo crear el foro")
+      console.error("Error al crear foro:", error);
+      throw new Error("No se pudo crear el foro");
     }
-  }
-
-  const userName = currentUser?.nombre || currentUser?.email?.split("@")[0] || ""
+  };
 
   return (
     <div className="container mx-auto px-4 py-8">
@@ -142,7 +136,7 @@ export default function ForoPage() {
             <h1 className="text-3xl font-bold text-white mb-2">Foros de Discusión</h1>
             <p className="text-blue-100">
               {isAuth
-                ? `Bienvenido${userName ? `, ${userName}` : ""}. Comparte tus ideas y participa en conversaciones.`
+                ? `Bienvenido. Comparte tus ideas y participa en conversaciones.`
                 : "Inicia sesión para participar en las conversaciones."}
             </p>
           </div>

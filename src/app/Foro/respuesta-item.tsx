@@ -8,7 +8,7 @@ import { Edit, Trash2, Calendar, User, Check, X } from "lucide-react"
 import { formatDistanceToNow } from "date-fns"
 import { es } from "date-fns/locale"
 import { actualizarRespuesta, eliminarRespuesta } from "./api-service"
-import { isOwner } from "./auth-service"
+import { isOwner, getCurrentUserId } from "./auth-service"
 import { motion } from "framer-motion"
 import {
   AlertDialog,
@@ -40,6 +40,7 @@ type Props = {
 export default function RespuestaItem({ respuesta, onRespuestaActualizada, onRespuestaEliminada }: Props) {
   const [isEditing, setIsEditing] = useState(false)
   const [isDeleting, setIsDeleting] = useState(false)
+  const [isUpdating, setIsUpdating] = useState(false)
   const [mensaje, setMensaje] = useState(respuesta.mensaje)
   const [error, setError] = useState<string | null>(null)
 
@@ -52,6 +53,8 @@ export default function RespuestaItem({ respuesta, onRespuestaActualizada, onRes
   } catch (e) {
     console.warn("⚠️ Fecha no válida en respuesta:", respuesta.fecha)
   }
+
+  // Verificar si el usuario actual es el autor de la respuesta
   const esAutor = isOwner(String(respuesta.idcuenta))
 
   // Mejorar la obtención del nombre de usuario
@@ -61,25 +64,61 @@ export default function RespuestaItem({ respuesta, onRespuestaActualizada, onRes
     `Usuario ${String(respuesta.idcuenta).substring(0, 4)}`
 
   const handleGuardar = async () => {
-    if (!mensaje.trim()) return setError("El mensaje no puede estar vacío")
+    if (!mensaje.trim()) {
+      setError("El mensaje no puede estar vacío")
+      return
+    }
 
     try {
-      const actualizada = await actualizarRespuesta(respuesta.idrespuesta, { mensaje })
-      onRespuestaActualizada(actualizada)
+      setIsUpdating(true)
+      setError(null)
+
+      // Verificar que el usuario esté autenticado
+      const userId = getCurrentUserId()
+      if (!userId) {
+        setError("Debes iniciar sesión para editar")
+        return
+      }
+
+      // Enviar solo el mensaje para actualizar
+      const respuestaActualizada = await actualizarRespuesta(respuesta.idrespuesta, { mensaje })
+
+      // Actualizar la UI después de la actualización exitosa
+      onRespuestaActualizada({
+        ...respuesta,
+        mensaje: mensaje,
+      })
+
       setIsEditing(false)
       setError(null)
-    } catch (err) {
-      setError("Error al actualizar. Intenta nuevamente.")
+    } catch (err: any) {
+      console.error("Error al actualizar respuesta:", err)
+      setError(err.message || "Error al actualizar. Intenta nuevamente.")
+    } finally {
+      setIsUpdating(false)
     }
   }
 
   const handleEliminar = async () => {
     try {
       setIsDeleting(true)
+      setError(null)
+
+      // Verificar que el usuario esté autenticado
+      const userId = getCurrentUserId()
+      if (!userId) {
+        setError("Debes iniciar sesión para eliminar")
+        return
+      }
+
+      // Intentar eliminar la respuesta
       await eliminarRespuesta(respuesta.idrespuesta)
+
+      // Si llegamos aquí, la eliminación fue exitosa
       onRespuestaEliminada(respuesta.idrespuesta)
-    } catch {
-      setError("No se pudo eliminar. Intenta nuevamente.")
+    } catch (err: any) {
+      console.error("Error al eliminar respuesta:", err)
+      setError(err.message || "No se pudo eliminar. Intenta nuevamente.")
       setIsDeleting(false)
     }
   }
@@ -104,26 +143,49 @@ export default function RespuestaItem({ respuesta, onRespuestaActualizada, onRes
 
             {esAutor && !isEditing && (
               <div className="flex gap-2">
-                <Button variant="ghost" size="sm" className="text-blue-600" onClick={() => setIsEditing(true)}>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="text-blue-600"
+                  onClick={() => setIsEditing(true)}
+                  disabled={isUpdating || isDeleting}
+                >
                   <Edit className="h-4 w-4" />
                 </Button>
                 <AlertDialog>
                   <AlertDialogTrigger asChild>
-                    <Button variant="ghost" size="sm" className="text-red-600" disabled={isDeleting}>
+                    <Button variant="ghost" size="sm" className="text-red-600" disabled={isDeleting || isUpdating}>
                       <Trash2 className="h-4 w-4" />
                     </Button>
                   </AlertDialogTrigger>
-                  <AlertDialogContent className="bg-white">
-                    <AlertDialogHeader>
-                      <AlertDialogTitle>¿Eliminar esta respuesta?</AlertDialogTitle>
-                      <AlertDialogDescription>
+                  <AlertDialogContent className="bg-white border-2 border-gray-200 shadow-2xl max-w-md">
+                    <AlertDialogHeader className="space-y-3">
+                      <AlertDialogTitle className="text-xl font-semibold text-gray-900 flex items-center gap-2">
+                        <div className="w-8 h-8 bg-red-100 rounded-full flex items-center justify-center">
+                          <Trash2 className="w-4 h-4 text-red-600" />
+                        </div>
+                        ¿Eliminar esta respuesta?
+                      </AlertDialogTitle>
+                      <AlertDialogDescription className="text-gray-600 leading-relaxed">
                         Esta acción no se puede deshacer. La respuesta será eliminada permanentemente.
                       </AlertDialogDescription>
                     </AlertDialogHeader>
-                    <AlertDialogFooter>
-                      <AlertDialogCancel>Cancelar</AlertDialogCancel>
-                      <AlertDialogAction onClick={handleEliminar} className="bg-red-600 hover:bg-red-700">
-                        Eliminar
+                    <AlertDialogFooter className="gap-3 pt-4">
+                      <AlertDialogCancel className="bg-gray-100 hover:bg-gray-200 text-gray-700 border-gray-300">
+                        Cancelar
+                      </AlertDialogCancel>
+                      <AlertDialogAction
+                        onClick={handleEliminar}
+                        className="bg-red-600 hover:bg-red-700 text-white shadow-lg"
+                      >
+                        {isDeleting ? (
+                          <div className="flex items-center gap-2">
+                            <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                            Eliminando...
+                          </div>
+                        ) : (
+                          "Eliminar"
+                        )}
                       </AlertDialogAction>
                     </AlertDialogFooter>
                   </AlertDialogContent>
@@ -134,7 +196,12 @@ export default function RespuestaItem({ respuesta, onRespuestaActualizada, onRes
 
           {isEditing ? (
             <div className="space-y-4">
-              <Textarea value={mensaje} onChange={(e) => setMensaje(e.target.value)} className="min-h-[100px]" />
+              <Textarea
+                value={mensaje}
+                onChange={(e) => setMensaje(e.target.value)}
+                className="min-h-[100px]"
+                disabled={isUpdating}
+              />
               {error && <div className="text-red-500 text-sm">{error}</div>}
               <div className="flex justify-end gap-2">
                 <Button
@@ -145,19 +212,26 @@ export default function RespuestaItem({ respuesta, onRespuestaActualizada, onRes
                     setMensaje(respuesta.mensaje)
                     setError(null)
                   }}
+                  disabled={isUpdating}
                 >
                   <X className="mr-2 h-4 w-4" />
                   Cancelar
                 </Button>
-                <Button size="sm" onClick={handleGuardar} className="bg-blue-600 hover:bg-blue-700">
+                <Button
+                  size="sm"
+                  onClick={handleGuardar}
+                  className="bg-blue-600 hover:bg-blue-700"
+                  disabled={isUpdating || !mensaje.trim()}
+                >
                   <Check className="mr-2 h-4 w-4" />
-                  Guardar
+                  {isUpdating ? "Guardando..." : "Guardar"}
                 </Button>
               </div>
             </div>
           ) : (
             <div className="bg-white p-4 rounded-lg border border-gray-100">
               <p className="text-gray-700 whitespace-pre-line">{respuesta.mensaje}</p>
+              {error && <div className="mt-2 text-red-500 text-sm">{error}</div>}
             </div>
           )}
         </CardContent>

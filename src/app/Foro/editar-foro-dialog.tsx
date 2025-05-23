@@ -17,7 +17,8 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { actualizarForo } from "./api-service"
-import { isOwner } from "./auth-service"
+import { isOwner, getCurrentUserId } from "./auth-service"
+import { Edit } from "lucide-react"
 
 type Props = {
   children: React.ReactNode
@@ -27,6 +28,11 @@ type Props = {
     titulo: string
     descripcion: string
     fecha: string
+    nombreUsuario?: string
+    cuentas?: {
+      nombre?: string
+    }
+    cantidadRespuestas?: number
   }
   onForoActualizado: (foro: any) => void
 }
@@ -42,6 +48,7 @@ export default function EditarForoDialog({ children, foro, onForoActualizado }: 
     if (open) {
       setTitulo(foro.titulo)
       setDescripcion(foro.descripcion)
+      setError(null)
     }
   }, [open, foro])
 
@@ -52,6 +59,12 @@ export default function EditarForoDialog({ children, foro, onForoActualizado }: 
       return setError("Por favor completa todos los campos")
     }
 
+    // Verificar que el usuario esté autenticado y sea el propietario
+    const userId = getCurrentUserId()
+    if (!userId) {
+      return setError("Debes iniciar sesión para editar")
+    }
+
     if (!isOwner(String(foro.idcuenta))) {
       return setError("No tienes permiso para editar este foro")
     }
@@ -60,19 +73,30 @@ export default function EditarForoDialog({ children, foro, onForoActualizado }: 
       setIsSubmitting(true)
       setError(null)
 
-      const actualizado = await actualizarForo(foro.idforo, { titulo, descripcion })
+      // Enviar solo los campos que se van a actualizar
+      await actualizarForo(foro.idforo, {
+        titulo,
+        descripcion,
+      })
 
-      // Asegurarse de que el foro actualizado mantenga la fecha original
-      // si el backend no devuelve una fecha válida
+      // Crear un objeto completo con todos los datos originales y los actualizados
       const foroActualizado = {
-        ...actualizado,
-        fecha: actualizado.fecha || foro.fecha,
+        ...foro,
+        titulo,
+        descripcion,
+        // Mantener estos campos del foro original
+        fecha: foro.fecha,
+        nombreUsuario: foro.nombreUsuario,
+        cuentas: foro.cuentas,
+        cantidadRespuestas: foro.cantidadRespuestas,
       }
 
+      // Actualizar el estado en el componente padre
       onForoActualizado(foroActualizado)
       setOpen(false)
-    } catch (error) {
-      setError("No se pudo actualizar el foro. Intenta nuevamente.")
+    } catch (error: any) {
+      console.error("Error al actualizar foro:", error)
+      setError(error.message || "No se pudo actualizar el foro. Intenta nuevamente.")
     } finally {
       setIsSubmitting(false)
     }
@@ -87,10 +111,17 @@ export default function EditarForoDialog({ children, foro, onForoActualizado }: 
       }}
     >
       <DialogTrigger asChild>{children}</DialogTrigger>
-      <DialogContent className="sm:max-w-[550px] bg-white">
-        <DialogHeader>
-          <DialogTitle className="text-2xl text-blue-700">Editar foro</DialogTitle>
-          <DialogDescription>Actualiza el título y la descripción de tu foro.</DialogDescription>
+      <DialogContent className="sm:max-w-[550px] bg-white border-2 border-gray-200 shadow-2xl">
+        <DialogHeader className="space-y-3">
+          <DialogTitle className="text-xl font-semibold text-gray-900 flex items-center gap-2">
+            <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
+              <Edit className="w-4 h-4 text-blue-600" />
+            </div>
+            Editar foro
+          </DialogTitle>
+          <DialogDescription className="text-gray-600 leading-relaxed">
+            Actualiza el título y la descripción de tu foro.
+          </DialogDescription>
         </DialogHeader>
 
         <form onSubmit={handleSubmit} className="space-y-6 pt-4">
@@ -120,11 +151,21 @@ export default function EditarForoDialog({ children, foro, onForoActualizado }: 
             <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg text-sm">{error}</div>
           )}
 
-          <DialogFooter>
-            <Button type="button" variant="outline" onClick={() => setOpen(false)} disabled={isSubmitting}>
+          <DialogFooter className="gap-3 pt-4">
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => setOpen(false)}
+              disabled={isSubmitting}
+              className="bg-gray-100 hover:bg-gray-200 text-gray-700 border-gray-300"
+            >
               Cancelar
             </Button>
-            <Button type="submit" className="bg-blue-700 hover:bg-blue-800" disabled={isSubmitting}>
+            <Button
+              type="submit"
+              className="bg-blue-600 hover:bg-blue-700 text-white shadow-lg"
+              disabled={isSubmitting}
+            >
               {isSubmitting ? "Guardando..." : "Guardar cambios"}
             </Button>
           </DialogFooter>
