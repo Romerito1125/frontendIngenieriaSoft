@@ -3,13 +3,10 @@
 import { useState } from "react";
 import md5 from "crypto-js/md5";
 
-interface RecargaPayUProps {
-  idTarjeta: string;
-}
 
-export default function RecargaPayU({ idTarjeta }: RecargaPayUProps) {
+export default function RecargaPayU() {
   const [valor, setValor] = useState("");
-  const [tarjeta, setTarjeta] = useState(idTarjeta);
+  const [tarjeta, setTarjeta] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 

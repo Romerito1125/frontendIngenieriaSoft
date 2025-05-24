@@ -2,14 +2,10 @@
 
 import RecargaPayU from "../../components/RecargaPayU";
 
-type RecargaPageProps = {
-  params: {
-    idTarjeta: string;
-  };
-};
 
-export default async function RecargaPage({ params }: RecargaPageProps) {
+
+export default async function RecargaPage() {
   // Aquí podrías agregar lógica async si la necesitas, p.ej. fetch de datos
 
-  return <RecargaPayU idTarjeta={params.idTarjeta} />;
+  return <RecargaPayU  />;
 }
