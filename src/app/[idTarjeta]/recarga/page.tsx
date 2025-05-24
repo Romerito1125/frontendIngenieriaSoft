@@ -1,5 +1,15 @@
+"use server"; // Opcional, para indicar que es un componente servidor (por defecto)
+
 import RecargaPayU from "../../components/RecargaPayU";
 
-export default async function RecargaPage({ params }: { params: { idTarjeta: string } }) {
+type RecargaPageProps = {
+  params: {
+    idTarjeta: string;
+  };
+};
+
+export default async function RecargaPage({ params }: RecargaPageProps) {
+  // Aquí podrías agregar lógica async si la necesitas, p.ej. fetch de datos
+
   return <RecargaPayU idTarjeta={params.idTarjeta} />;
 }
