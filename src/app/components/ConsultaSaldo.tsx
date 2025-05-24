@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
+import Image from "next/image";
 
 type TarjetaData = {
   idTarjeta: string;
@@ -22,7 +23,11 @@ export default function ConsultaSaldo() {
     setError("");
     setTarjetaData(null);
     try {
-      const res = await fetch(`https://serviciotarjetas.onrender.com/tarjetas/${encodeURIComponent(id)}`);
+      const res = await fetch(
+        `https://serviciotarjetas.onrender.com/tarjetas/${encodeURIComponent(
+          id
+        )}`
+      );
       if (!res.ok) {
         throw new Error(`Error al obtener datos: ${res.statusText}`);
       }
@@ -53,7 +58,10 @@ export default function ConsultaSaldo() {
   return (
     <div className="h-screen overflow-hidden flex flex-col items-center justify-start pt-10 px-4 bg-white text-blue-900">
       <div className="bg-[#4e8aff] rounded-2xl p-6 w-full max-w-sm shadow-lg">
-        <label htmlFor="numero" className="block text-sm font-semibold mb-2 text-white">
+        <label
+          htmlFor="numero"
+          className="block text-sm font-semibold mb-2 text-white"
+        >
           Introduce el número aquí
         </label>
 
@@ -66,35 +74,40 @@ export default function ConsultaSaldo() {
           className="w-full bg-white text-blue-600 placeholder-blue-400 rounded-md px-4 py-2 mt-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
         />
 
-        <img
+        <Image
           src="/FondoTarjeta.png"
           alt="Fondo Tarjeta MIO"
+          width={320}
+          height={200}
           className="rounded-lg w-full my-4"
         />
 
         {loading && (
           <p className="text-white font-semibold">Cargando datos...</p>
         )}
-        {error && (
-          <p className="text-red-300 font-semibold">Error: {error}</p>
-        )}
+        {error && <p className="text-red-300 font-semibold">Error: {error}</p>}
 
         {tarjetaData && (
           <div className="bg-white text-[#2962ff] font-bold rounded-lg p-4 shadow space-y-2 mb-4">
             <p>
-              <span className="font-semibold">ID Tarjeta:</span> {tarjetaData.idTarjeta}
+              <span className="font-semibold">ID Tarjeta:</span>{" "}
+              {tarjetaData.idTarjeta}
             </p>
             <p>
-              <span className="font-semibold">Fecha Expedición:</span> {tarjetaData.fechaexpedicion}
+              <span className="font-semibold">Fecha Expedición:</span>{" "}
+              {tarjetaData.fechaexpedicion}
             </p>
             <p>
-              <span className="font-semibold">Última Recarga:</span> {tarjetaData.ultimarecarga}
+              <span className="font-semibold">Última Recarga:</span>{" "}
+              {tarjetaData.ultimarecarga}
             </p>
             <p>
-              <span className="font-semibold">Saldo:</span> ${tarjetaData.saldo.toLocaleString()}
+              <span className="font-semibold">Saldo:</span> $
+              {tarjetaData.saldo.toLocaleString()}
             </p>
             <p>
-              <span className="font-semibold">ID Cuenta:</span> {tarjetaData.idCuenta}
+              <span className="font-semibold">ID Cuenta:</span>{" "}
+              {tarjetaData.idCuenta}
             </p>
           </div>
         )}

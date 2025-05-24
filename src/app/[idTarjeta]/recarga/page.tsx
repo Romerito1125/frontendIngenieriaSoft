@@ -1,10 +1,5 @@
 import RecargaPayU from "../../components/RecargaPayU";
 
-interface PageProps {
-  params: { idTarjeta: string };
-}
-
-export default function RecargaPage({ params }: PageProps) {
-  // params.idTarjeta ya viene decodificado
+export default function RecargaPage({ params }: { params: { idTarjeta: string } }) {
   return <RecargaPayU idTarjeta={params.idTarjeta} />;
 }
