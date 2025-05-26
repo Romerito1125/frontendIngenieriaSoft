@@ -1,4 +1,3 @@
-
 "use client"
 
 import { useState } from "react"
@@ -15,36 +14,164 @@ export default function SeccionPrivacidad({ correo }: Props) {
   const [validado, setValidado] = useState(false)
   const [confirmacion, setConfirmacion] = useState(false)
   const [cargando, setCargando] = useState(false)
+  const [otpEnviado, setOtpEnviado] = useState(false)
 
   const handleEnviarOtp = async () => {
+    console.log("🚀 Iniciando envío de OTP para eliminación...")
+    console.log("Correo:", correo)
+
+    if (!correo) {
+      toast.error("Correo no disponible")
+      return
+    }
+
     setCargando(true)
     try {
+      console.log("📤 Enviando solicitud OTP...")
       const res = await fetch("https://www.cuentas.devcorebits.com/cuenta/send-otp", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ correo, tipo: "eliminacion" }),
+        body: JSON.stringify({ correo: correo.trim(), tipo: "eliminacion" }),
       })
-      if (!res.ok) throw new Error()
-      toast.success("OTP enviado al correo")
-    } catch {
-      toast.error("No se pudo enviar OTP")
+
+      const data = await res.json()
+      console.log("📥 Respuesta del servidor:", data)
+
+      if (!res.ok) {
+        throw new Error(data.message || "Error al enviar OTP")
+      }
+
+      toast.success("✅ Código OTP enviado a tu correo")
+      // Mostrar automáticamente el campo OTP después de enviar
+      if (otp.length === 0) {
+        setOtp(" ") // Trigger para mostrar el campo OTP
+        setTimeout(() => setOtp(""), 100) // Reset inmediato pero mantiene la animación
+      }
+      setOtpEnviado(true)
+    } catch (error) {
+      console.error("❌ Error enviando OTP:", error)
+      toast.error(error instanceof Error ? error.message : "No se pudo enviar el código OTP")
     } finally {
       setCargando(false)
     }
   }
 
   const handleVerificarOtp = async () => {
+    console.log("🔐 Verificando OTP para eliminación...")
+    console.log("OTP ingresado:", otp)
+    console.log("Correo:", correo)
+
+    if (!otp || otp.length !== 6) {
+      toast.error("Ingresa el código OTP completo")
+      return
+    }
+
     setCargando(true)
     try {
+      console.log("📤 Enviando verificación OTP...")
       const res = await fetch("https://www.cuentas.devcorebits.com/cuenta/verify-otp", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ correo, otp }),
+        body: JSON.stringify({ correo: correo.trim(), otp }),
       })
-      if (!res.ok) throw new Error("OTP inválido o expirado")
-      toast.success("OTP verificado")
+
+      const data = await res.json()
+      console.log("📥 Respuesta verificación OTP:", data)
+
+      if (!res.ok) {
+        throw new Error(data.message || "OTP inválido o expirado")
+      }
+
+      toast.success("✅ Identidad verificada correctamente")
       setValidado(true)
+      setOtpEnviado(false)
+    } catch (error) {
+      console.error("❌ Error verificando OTP:", error)
+      toast.error(error instanceof Error ? error.message : "Error al verificar el código")
+    } finally {
+      setCargando(false)
+    }
+  }
+
+  const handleEliminarCuenta = async () => {
+    console.log("🗑️ Iniciando eliminación de cuenta...")
+    console.log("Correo:", correo)
+    console.log("Validado:", validado)
+    console.log("Confirmación:", confirmacion)
+
+    if (!validado) {
+      toast.error("Debes verificar tu identidad primero")
+      return
+    }
+
+    if (!confirmacion) {
+      toast.error("Debes confirmar la eliminación")
+      return
+    }
+
+    setCargando(true)
+    try {
+      console.log("📤 Buscando cuenta por correo...")
+      // Primero buscar la cuenta por correo para obtener el ID
+      const buscarRes = await fetch(`https://www.cuentas.devcorebits.com/cuenta/buscar-por-correo`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ correo: correo.trim() }),
+      })
+
+      let cuentaId = null
+
+      if (!buscarRes.ok) {
+        // Si no existe el endpoint de búsqueda, intentar con el endpoint directo
+        console.log("📤 Endpoint de búsqueda no disponible, intentando método alternativo...")
+
+        // Intentar obtener el ID desde el localStorage o desde el JWT
+        const token = document.cookie
+          .split("; ")
+          .find((row) => row.startsWith("token="))
+          ?.split("=")[1]
+        if (token) {
+          try {
+            const payload = JSON.parse(atob(token.split(".")[1]))
+            cuentaId = payload.userId
+            console.log("📥 ID obtenido del token:", cuentaId)
+          } catch (e) {
+            console.error("Error decodificando token:", e)
+          }
+        }
+
+        if (!cuentaId) {
+          throw new Error("No se pudo identificar la cuenta para eliminar")
+        }
+      } else {
+        const buscarData = await buscarRes.json()
+        console.log("📥 Datos de búsqueda:", buscarData)
+        cuentaId = buscarData.idcuenta || buscarData.id
+      }
+
+      if (!cuentaId) {
+        throw new Error("No se pudo identificar la cuenta")
+      }
+
+      console.log("📤 Eliminando cuenta con ID:", cuentaId)
+      // Ahora eliminar usando el ID
+      const res = await fetch(`https://www.cuentas.devcorebits.com/cuenta/eliminar/${cuentaId}`, {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+      })
+
+      const data = await res.json()
+      console.log("📥 Respuesta eliminación:", data)
+
+      if (!res.ok) throw new Error(data?.message || "Ocurrió un error inesperado")
+
+      toast.success("✅ Cuenta eliminada exitosamente")
+
+      // Limpiar cookies y redirigir
+      document.cookie = "token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;"
+      setTimeout(() => (window.location.href = "/auth/login"), 2000)
     } catch (e: unknown) {
+      console.error("❌ Error eliminando cuenta:", e)
       if (e instanceof Error) {
         toast.error(e.message)
       } else {
@@ -55,27 +182,13 @@ export default function SeccionPrivacidad({ correo }: Props) {
     }
   }
 
-  const handleEliminarCuenta = async () => {
-    setCargando(true)
-    try {
-      const res = await fetch(`https://www.cuentas.devcorebits.com/cuenta/eliminar-con-otp`, {
-        method: "DELETE",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ correo, otp }),
-      })
-      const data = await res.json()
-      if (!res.ok) throw new Error(data?.message || "Ocurrió un error inesperado")
-      toast.success("Cuenta eliminada exitosamente")
-      setTimeout(() => (window.location.href = "/auth/login"), 2000)
-    } catch (e: unknown) {
-      if (e instanceof Error) {
-        toast.error(e.message)
-      } else {
-        toast.error("Error desconocido")
-      }
-    } finally {
-      setCargando(false)
-    }
+  const resetearFormulario = () => {
+    console.log("🔄 Reseteando formulario de eliminación...")
+    setOtp("")
+    setValidado(false)
+    setOtpEnviado(false)
+    setConfirmacion(false)
+    toast.success("Proceso cancelado")
   }
 
   return (
@@ -116,95 +229,106 @@ export default function SeccionPrivacidad({ correo }: Props) {
                 <p className="text-xs text-gray-500 mt-1">Enviaremos un código de verificación a este correo</p>
               </div>
 
-              <div className="flex justify-center pt-2">
-                <button
-                  onClick={handleEnviarOtp}
-                  disabled={cargando}
-                  className="px-6 py-2.5 bg-gradient-to-r from-red-500 to-red-600 text-white rounded-lg shadow-md hover:shadow-lg transition-all duration-200 flex items-center gap-2 disabled:opacity-70"
-                >
-                  {cargando ? (
-                    <>
-                      <div className="h-4 w-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                      <span>Enviando...</span>
-                    </>
-                  ) : (
-                    <>
-                      <Shield className="w-4 h-4" />
-                      <span>Verificar identidad</span>
-                    </>
-                  )}
-                </button>
-              </div>
-            </div>
-
-            <motion.div
-              initial={{ opacity: 0, height: 0 }}
-              animate={{
-                opacity: otp.length > 0 ? 1 : 0,
-                height: otp.length > 0 ? "auto" : 0,
-              }}
-              className="overflow-hidden"
-            >
-              <div className="mt-6 p-5 bg-white border border-gray-200 rounded-xl shadow-sm">
-                <h3 className="font-medium text-gray-800 mb-3 flex items-center gap-2">
-                  <Shield className="w-5 h-5 text-blue-500" />
-                  <span>Verificar código</span>
-                </h3>
-
-                <div className="space-y-4">
-                  <div className="flex gap-2 justify-center">
-                    {[0, 1, 2, 3, 4, 5].map((i) => (
-                      <input
-                        key={i}
-                        type="text"
-                        maxLength={1}
-                        value={otp[i] || ""}
-                        onChange={(e) => {
-                          const newOtp = otp.split("")
-                          newOtp[i] = e.target.value
-                          setOtp(newOtp.join(""))
-
-                          // Auto-focus next input
-                          if (e.target.value && i < 5) {
-                            const nextInput = e.target.parentElement?.nextElementSibling?.querySelector("input")
-                            if (nextInput) nextInput.focus()
-                          }
-                        }}
-                        className="w-10 h-12 text-center border border-gray-300 rounded-lg focus:border-blue-500 focus:ring-2 focus:ring-blue-200"
-                      />
-                    ))}
-                  </div>
-
-                  <div className="flex justify-between items-center">
-                    <button
-                      onClick={handleEnviarOtp}
-                      disabled={cargando}
-                      className="text-sm text-blue-600 hover:text-blue-800"
-                    >
-                      Reenviar código
-                    </button>
-
-                    <button
-                      onClick={handleVerificarOtp}
-                      disabled={cargando || otp.length !== 6}
-                      className="px-5 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 flex items-center gap-2"
-                    >
-                      {cargando ? (
-                        <>
-                          <div className="h-4 w-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                          <span>Verificando...</span>
-                        </>
-                      ) : (
-                        <>
-                          <CheckCircle className="w-4 h-4" />
-                          <span>Verificar</span>
-                        </>
-                      )}
-                    </button>
-                  </div>
+              {!otpEnviado ? (
+                <div className="flex justify-center pt-2">
+                  <button
+                    onClick={() => {
+                      console.log("🔘 Botón 'Verificar identidad' clickeado")
+                      handleEnviarOtp()
+                    }}
+                    disabled={cargando}
+                    className="px-6 py-2.5 bg-gradient-to-r from-red-500 to-red-600 text-white rounded-lg shadow-md hover:shadow-lg transition-all duration-200 flex items-center gap-2 disabled:opacity-70"
+                  >
+                    {cargando ? (
+                      <>
+                        <div className="h-4 w-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                        <span>Enviando...</span>
+                      </>
+                    ) : (
+                      <>
+                        <Shield className="w-4 h-4" />
+                        <span>Verificar identidad</span>
+                      </>
+                    )}
+                  </button>
                 </div>
-              </div>
-            </motion.div>
+              ) : (
+                <motion.div
+                  initial={{ opacity: 0, height: 0 }}
+                  animate={{
+                    opacity: otp.length > 0 || otpEnviado ? 1 : 0,
+                    height: otp.length > 0 || otpEnviado ? "auto" : 0,
+                  }}
+                  className="overflow-hidden"
+                >
+                  <div className="mt-6 p-5 bg-white border border-gray-200 rounded-xl shadow-sm">
+                    <h3 className="font-medium text-gray-800 mb-3 flex items-center gap-2">
+                      <Shield className="w-5 h-5 text-blue-500" />
+                      <span>Verificar código</span>
+                    </h3>
+
+                    <div className="space-y-4">
+                      <div className="flex gap-2 justify-center">
+                        {[0, 1, 2, 3, 4, 5].map((i) => (
+                          <input
+                            key={i}
+                            type="text"
+                            maxLength={1}
+                            value={otp[i] || ""}
+                            onChange={(e) => {
+                              const newOtp = otp.split("")
+                              newOtp[i] = e.target.value
+                              setOtp(newOtp.join(""))
+
+                              // Auto-focus next input
+                              if (e.target.value && i < 5) {
+                                const nextInput = e.target.parentElement?.nextElementSibling?.querySelector("input")
+                                if (nextInput) nextInput.focus()
+                              }
+                            }}
+                            className="w-10 h-12 text-center border border-gray-300 rounded-lg focus:border-blue-500 focus:ring-2 focus:ring-blue-200"
+                          />
+                        ))}
+                      </div>
+
+                      <div className="flex justify-between items-center">
+                        <button
+                          onClick={() => {
+                            console.log("🔘 Botón 'Reenviar código' clickeado")
+                            handleEnviarOtp()
+                          }}
+                          disabled={cargando}
+                          className="text-sm text-blue-600 hover:text-blue-800 disabled:opacity-50"
+                        >
+                          Reenviar código
+                        </button>
+
+                        <button
+                          onClick={() => {
+                            console.log("🔘 Botón 'Verificar' clickeado")
+                            handleVerificarOtp()
+                          }}
+                          disabled={cargando || otp.length !== 6}
+                          className="px-5 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 flex items-center gap-2"
+                        >
+                          {cargando ? (
+                            <>
+                              <div className="h-4 w-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                              <span>Verificando...</span>
+                            </>
+                          ) : (
+                            <>
+                              <CheckCircle className="w-4 h-4" />
+                              <span>Verificar</span>
+                            </>
+                          )}
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                </motion.div>
+              )}
+            </div>
           </div>
         </motion.div>
       ) : (
@@ -223,12 +347,27 @@ export default function SeccionPrivacidad({ correo }: Props) {
 
               {!confirmacion ? (
                 <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
-                  <button
-                    onClick={() => setConfirmacion(true)}
-                    className="px-6 py-3 bg-white border border-red-300 text-red-600 rounded-lg hover:bg-red-50 transition-colors"
-                  >
-                    Quiero eliminar mi cuenta
-                  </button>
+                  <div className="flex gap-4 justify-center">
+                    <button
+                      onClick={() => {
+                        console.log("🔘 Botón 'Cancelar' clickeado")
+                        resetearFormulario()
+                      }}
+                      className="px-5 py-2 bg-white border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
+                    >
+                      Cancelar
+                    </button>
+                    <button
+                      onClick={() => {
+                        console.log("🔘 Botón 'Quiero eliminar mi cuenta' clickeado")
+                        setConfirmacion(true)
+                        toast.success("Confirmación activada. Ahora puedes proceder con la eliminación.")
+                      }}
+                      className="px-6 py-3 bg-white border border-red-300 text-red-600 rounded-lg hover:bg-red-50 transition-colors"
+                    >
+                      Quiero eliminar mi cuenta
+                    </button>
+                  </div>
                 </motion.div>
               ) : (
                 <motion.div
@@ -242,16 +381,23 @@ export default function SeccionPrivacidad({ correo }: Props) {
 
                   <div className="flex gap-4 justify-center">
                     <button
-                      onClick={() => setConfirmacion(false)}
+                      onClick={() => {
+                        console.log("🔘 Botón 'Cancelar' (segunda confirmación) clickeado")
+                        setConfirmacion(false)
+                        toast.success("Eliminación cancelada")
+                      }}
                       className="px-5 py-2 bg-white border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
                     >
                       Cancelar
                     </button>
 
                     <button
-                      onClick={handleEliminarCuenta}
+                      onClick={() => {
+                        console.log("🔘 Botón 'Eliminar permanentemente' clickeado")
+                        handleEliminarCuenta()
+                      }}
                       disabled={cargando}
-                      className="px-5 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors flex items-center gap-2"
+                      className="px-5 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors flex items-center gap-2 disabled:opacity-70"
                     >
                       {cargando ? (
                         <>
