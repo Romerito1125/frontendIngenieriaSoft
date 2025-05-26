@@ -18,73 +18,223 @@ export default function SeccionPassword({ correo }: Props) {
   const [mostrarPassword, setMostrarPassword] = useState(false)
   const [mostrarConfirmar, setMostrarConfirmar] = useState(false)
   const [fortaleza, setFortaleza] = useState(0)
+  const [otpEnviado, setOtpEnviado] = useState(false)
 
   const handleEnviarOtp = async () => {
+    console.log("🚀 Iniciando envío de OTP para cambio de contraseña...")
+    console.log("Correo:", correo)
+
+    if (!correo || correo.trim() === "") {
+      toast.error("Error: Correo no disponible")
+      return
+    }
+
     setCargando(true)
     try {
+      console.log("📤 Enviando solicitud OTP...")
       const res = await fetch("https://www.cuentas.devcorebits.com/cuenta/send-otp", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ correo, tipo: "cambio" }),
+        body: JSON.stringify({ correo: correo.trim(), tipo: "cambio" }),
       })
-      if (!res.ok) throw new Error()
-      toast.success("OTP enviado al correo")
-    } catch {
-      toast.error("No se pudo enviar OTP")
+
+      const data = await res.json()
+      console.log("📥 Respuesta del servidor:", data)
+
+      if (!res.ok) {
+        throw new Error(data.message || "Error al enviar OTP")
+      }
+
+      toast.success("✅ Código OTP enviado a tu correo")
+      // Mostrar automáticamente el campo OTP después de enviar
+      if (otp.length === 0) {
+        setOtp(" ") // Trigger para mostrar el campo OTP
+        setTimeout(() => setOtp(""), 100) // Reset inmediato pero mantiene la animación
+      }
+      setOtpEnviado(true)
+    } catch (error) {
+      console.error("❌ Error enviando OTP:", error)
+
+      let errorMessage = "No se pudo enviar el código OTP"
+      if (error instanceof Error) {
+        errorMessage = error.message
+      }
+
+      toast.error(errorMessage, {
+        duration: 5000,
+        position: "top-center",
+      })
     } finally {
       setCargando(false)
     }
   }
 
   const handleVerificarOtp = async () => {
+    console.log("🔐 Verificando OTP para cambio de contraseña...")
+    console.log("OTP ingresado:", otp)
+    console.log("Correo:", correo)
+
+    if (!correo || correo.trim() === "") {
+      toast.error("Error: Correo no disponible")
+      return
+    }
+
+    if (!otp || otp.length !== 6) {
+      toast.error("Ingresa el código OTP completo")
+      return
+    }
+
     setCargando(true)
     try {
+      console.log("📤 Enviando verificación OTP...")
       const res = await fetch("https://www.cuentas.devcorebits.com/cuenta/verify-otp", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ correo, otp }),
+        body: JSON.stringify({ correo: correo.trim(), otp }),
       })
-      if (!res.ok) throw new Error("OTP inválido o expirado")
-      toast.success("OTP verificado")
-      setValidado(true)
-    } catch (e: unknown) {
-      if (e instanceof Error) {
-        toast.error(e.message)
-      } else {
-        toast.error("Error desconocido")
+
+      const data = await res.json()
+      console.log("📥 Respuesta verificación OTP:", data)
+
+      if (!res.ok) {
+        throw new Error(data.message || "OTP inválido o expirado")
       }
+
+      toast.success("✅ Identidad verificada correctamente")
+      setValidado(true)
+      setOtpEnviado(false)
+    } catch (error) {
+      console.error("❌ Error verificando OTP:", error)
+
+      let errorMessage = "Error al verificar el código"
+      if (error instanceof Error) {
+        errorMessage = error.message
+      }
+
+      toast.error(errorMessage, {
+        duration: 5000,
+        position: "top-center",
+      })
     } finally {
       setCargando(false)
     }
   }
 
   const handleCambiarPassword = async () => {
-    if (!nueva || !confirmar) return toast.error("Todos los campos son requeridos")
-    if (nueva !== confirmar) return toast.error("Las contraseñas no coinciden")
-    if (fortaleza < 3) return toast.error("La contraseña es demasiado débil")
+    console.log("🔄 Iniciando cambio de contraseña...")
+    console.log("Correo:", correo)
+    console.log("Nueva contraseña length:", nueva.length)
+    console.log("Fortaleza:", fortaleza)
+    console.log("Validado:", validado)
+
+    // Validaciones más estrictas
+    if (!correo || typeof correo !== "string" || correo.trim() === "") {
+      toast.error("Error: Correo no válido")
+      console.error("Correo inválido:", correo)
+      return
+    }
+
+    if (!nueva || typeof nueva !== "string" || nueva.trim() === "") {
+      toast.error("La nueva contraseña es requerida")
+      return
+    }
+
+    if (!confirmar || typeof confirmar !== "string" || confirmar.trim() === "") {
+      toast.error("Confirmar contraseña es requerido")
+      return
+    }
+
+    if (nueva !== confirmar) {
+      toast.error("Las contraseñas no coinciden")
+      return
+    }
+
+    if (fortaleza < 3) {
+      toast.error("La contraseña debe ser más fuerte")
+      return
+    }
+
+    if (!validado) {
+      toast.error("Debes verificar tu identidad primero")
+      return
+    }
 
     setCargando(true)
     try {
+      console.log("📤 Enviando cambio de contraseña...")
+      const payload = {
+        correo: correo.trim(),
+        nuevaContrasenia: nueva.trim(),
+      }
+      console.log("Payload:", payload)
+
+      // Usar el endpoint correcto que existe en el backend
       const res = await fetch("https://www.cuentas.devcorebits.com/cuenta/cambiar-password", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ correo, contrasenia: nueva }),
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(payload),
       })
 
       const data = await res.json()
-      if (!res.ok) throw new Error(data?.message || "Ocurrió un error inesperado")
+      console.log("📥 Respuesta cambio contraseña:", data)
 
-      toast.success("Contraseña actualizada exitosamente")
+      if (!res.ok) {
+        throw new Error(data.message || "Error al cambiar la contraseña")
+      }
+
+      // Confirmación adicional más visible
+      toast("🔐 ¡Contraseña cambiada con éxito!", {
+        duration: 5000,
+        position: "top-center",
+        style: {
+          background: "#10B981",
+          color: "white",
+          fontWeight: "bold",
+          fontSize: "16px",
+          padding: "16px 24px",
+          borderRadius: "12px",
+          boxShadow: "0 10px 25px rgba(0,0,0,0.1)",
+        },
+        icon: "🔐",
+      })
+
+      console.log("🔐 CONFIRMACIÓN: Contraseña cambiada exitosamente")
+
+      // Resetear formulario
       setOtp("")
       setNueva("")
       setConfirmar("")
       setValidado(false)
-    } catch (e: unknown) {
-      if (e instanceof Error) {
-        toast.error(e.message)
-      } else {
-        toast.error("Error desconocido")
+      setOtpEnviado(false)
+      setFortaleza(0)
+    } catch (error) {
+      console.error("❌ Error cambiando contraseña:", error)
+
+      // Mejorar el manejo de errores para mostrar mensajes específicos
+      let errorMessage = "Error al cambiar la contraseña"
+
+      if (error instanceof Error) {
+        errorMessage = error.message
       }
+
+      // Mostrar el error de forma prominente
+      toast.error(errorMessage, {
+        duration: 6000,
+        position: "top-center",
+        style: {
+          background: "#EF4444",
+          color: "white",
+          fontWeight: "bold",
+          fontSize: "16px",
+          padding: "16px 24px",
+          borderRadius: "12px",
+          boxShadow: "0 10px 25px rgba(0,0,0,0.1)",
+        },
+      })
+
+      console.error("❌ ERROR MOSTRADO:", errorMessage)
     } finally {
       setCargando(false)
     }
@@ -101,6 +251,17 @@ export default function SeccionPassword({ correo }: Props) {
 
     setFortaleza(puntaje)
     return puntaje
+  }
+
+  const resetearFormulario = () => {
+    console.log("🔄 Reseteando formulario de contraseña...")
+    setOtp("")
+    setValidado(false)
+    setOtpEnviado(false)
+    setNueva("")
+    setConfirmar("")
+    setFortaleza(0)
+    toast.success("Formulario reseteado")
   }
 
   return (
@@ -125,7 +286,7 @@ export default function SeccionPassword({ correo }: Props) {
               </div>
               <input
                 type="email"
-                value={correo}
+                value={correo || ""}
                 disabled
                 className="w-full pl-10 pr-4 py-2.5 rounded-lg bg-gray-50 border border-gray-200"
               />
@@ -133,94 +294,105 @@ export default function SeccionPassword({ correo }: Props) {
             <p className="text-xs text-gray-500 mt-1">Enviaremos un código de verificación a este correo</p>
           </div>
 
-          <div className="flex justify-center pt-2">
-            <button
-              onClick={handleEnviarOtp}
-              disabled={cargando}
-              className="px-6 py-2.5 bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-lg shadow-md hover:shadow-lg transition-all duration-200 flex items-center gap-2 disabled:opacity-70"
+          {!otpEnviado ? (
+            <div className="flex justify-center pt-2">
+              <button
+                onClick={() => {
+                  console.log("🔘 Botón 'Enviar código OTP' clickeado")
+                  handleEnviarOtp()
+                }}
+                disabled={cargando || !correo}
+                className="px-6 py-2.5 bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-lg shadow-md hover:shadow-lg transition-all duration-200 flex items-center gap-2 disabled:opacity-70"
+              >
+                {cargando ? (
+                  <>
+                    <div className="h-4 w-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                    <span>Enviando...</span>
+                  </>
+                ) : (
+                  <>
+                    <Mail className="w-4 h-4" />
+                    <span>Enviar código OTP</span>
+                  </>
+                )}
+              </button>
+            </div>
+          ) : (
+            <motion.div
+              initial={{ opacity: 0, height: 0 }}
+              animate={{
+                opacity: otp.length > 0 || otpEnviado ? 1 : 0,
+                height: otp.length > 0 || otpEnviado ? "auto" : 0,
+              }}
+              className="overflow-hidden"
             >
-              {cargando ? (
-                <>
-                  <div className="h-4 w-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                  <span>Enviando...</span>
-                </>
-              ) : (
-                <>
-                  <Mail className="w-4 h-4" />
-                  <span>Enviar código OTP</span>
-                </>
-              )}
-            </button>
-          </div>
+              <div className="mt-6 p-5 bg-white border border-blue-100 rounded-xl shadow-sm">
+                <h3 className="font-medium text-gray-800 mb-3 flex items-center gap-2">
+                  <KeyRound className="w-5 h-5 text-blue-500" />
+                  <span>Verificar código</span>
+                </h3>
 
-          <motion.div
-            initial={{ opacity: 0, height: 0 }}
-            animate={{
-              opacity: otp.length > 0 ? 1 : 0,
-              height: otp.length > 0 ? "auto" : 0,
-            }}
-            className="overflow-hidden"
-          >
-            <div className="mt-6 p-5 bg-white border border-blue-100 rounded-xl shadow-sm">
-              <h3 className="font-medium text-gray-800 mb-3 flex items-center gap-2">
-                <KeyRound className="w-5 h-5 text-blue-500" />
-                <span>Verificar código</span>
-              </h3>
+                <div className="space-y-4">
+                  <div className="flex gap-2 justify-center">
+                    {[0, 1, 2, 3, 4, 5].map((i) => (
+                      <input
+                        key={i}
+                        type="text"
+                        maxLength={1}
+                        value={otp[i] || ""}
+                        onChange={(e) => {
+                          const newOtp = otp.split("")
+                          newOtp[i] = e.target.value
+                          setOtp(newOtp.join(""))
 
-              <div className="space-y-4">
-                <div className="flex gap-2 justify-center">
-                  {[0, 1, 2, 3, 4, 5].map((i) => (
-                    <input
-                      key={i}
-                      type="text"
-                      maxLength={1}
-                      value={otp[i] || ""}
-                      onChange={(e) => {
-                        const newOtp = otp.split("")
-                        newOtp[i] = e.target.value
-                        setOtp(newOtp.join(""))
+                          // Auto-focus next input
+                          if (e.target.value && i < 5) {
+                            const nextInput = e.target.parentElement?.nextElementSibling?.querySelector("input")
+                            if (nextInput) nextInput.focus()
+                          }
+                        }}
+                        className="w-10 h-12 text-center border border-gray-300 rounded-lg focus:border-blue-500 focus:ring-2 focus:ring-blue-200"
+                      />
+                    ))}
+                  </div>
 
-                        // Auto-focus next input
-                        if (e.target.value && i < 5) {
-                          const nextInput = e.target.parentElement?.nextElementSibling?.querySelector("input")
-                          if (nextInput) nextInput.focus()
-                        }
+                  <div className="flex justify-between items-center">
+                    <button
+                      onClick={() => {
+                        console.log("🔘 Botón 'Reenviar código' clickeado")
+                        handleEnviarOtp()
                       }}
-                      className="w-10 h-12 text-center border border-gray-300 rounded-lg focus:border-blue-500 focus:ring-2 focus:ring-blue-200"
-                    />
-                  ))}
-                </div>
+                      disabled={cargando}
+                      className="text-sm text-blue-600 hover:text-blue-800 disabled:opacity-50"
+                    >
+                      Reenviar código
+                    </button>
 
-                <div className="flex justify-between items-center">
-                  <button
-                    onClick={handleEnviarOtp}
-                    disabled={cargando}
-                    className="text-sm text-blue-600 hover:text-blue-800"
-                  >
-                    Reenviar código
-                  </button>
-
-                  <button
-                    onClick={handleVerificarOtp}
-                    disabled={cargando || otp.length !== 6}
-                    className="px-5 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 flex items-center gap-2"
-                  >
-                    {cargando ? (
-                      <>
-                        <div className="h-4 w-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                        <span>Verificando...</span>
-                      </>
-                    ) : (
-                      <>
-                        <CheckCircle className="w-4 h-4" />
-                        <span>Verificar</span>
-                      </>
-                    )}
-                  </button>
+                    <button
+                      onClick={() => {
+                        console.log("🔘 Botón 'Verificar' clickeado")
+                        handleVerificarOtp()
+                      }}
+                      disabled={cargando || otp.length !== 6}
+                      className="px-5 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 flex items-center gap-2"
+                    >
+                      {cargando ? (
+                        <>
+                          <div className="h-4 w-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                          <span>Verificando...</span>
+                        </>
+                      ) : (
+                        <>
+                          <CheckCircle className="w-4 h-4" />
+                          <span>Verificar</span>
+                        </>
+                      )}
+                    </button>
+                  </div>
                 </div>
               </div>
-            </div>
-          </motion.div>
+            </motion.div>
+          )}
         </motion.div>
       ) : (
         <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="space-y-6">
@@ -248,6 +420,7 @@ export default function SeccionPassword({ correo }: Props) {
                   evaluarFortaleza(e.target.value)
                 }}
                 className="w-full pl-10 pr-12 py-2.5 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-200 focus:border-blue-500"
+                placeholder="Ingresa tu nueva contraseña"
               />
               <button
                 type="button"
@@ -336,6 +509,7 @@ export default function SeccionPassword({ correo }: Props) {
                     ? "border-red-300 focus:ring-red-200 focus:border-red-500"
                     : "border-gray-300 focus:ring-blue-200 focus:border-blue-500"
                 }`}
+                placeholder="Confirma tu nueva contraseña"
               />
               <button
                 type="button"
@@ -350,10 +524,23 @@ export default function SeccionPassword({ correo }: Props) {
             )}
           </div>
 
-          <div className="flex justify-center pt-4">
+          <div className="flex justify-between items-center pt-4">
             <button
-              onClick={handleCambiarPassword}
-              disabled={cargando || !nueva || !confirmar || nueva !== confirmar || fortaleza < 3}
+              onClick={() => {
+                console.log("🔘 Botón 'Cancelar' clickeado")
+                resetearFormulario()
+              }}
+              className="px-4 py-2 text-gray-600 hover:text-gray-800 transition-colors"
+            >
+              Cancelar
+            </button>
+
+            <button
+              onClick={() => {
+                console.log("🔘 Botón 'Cambiar contraseña' clickeado")
+                handleCambiarPassword()
+              }}
+              disabled={cargando || !nueva || !confirmar || nueva !== confirmar || fortaleza < 3 || !correo}
               className="px-6 py-2.5 bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-lg shadow-md hover:shadow-lg transition-all duration-200 flex items-center gap-2 disabled:opacity-70"
             >
               {cargando ? (
