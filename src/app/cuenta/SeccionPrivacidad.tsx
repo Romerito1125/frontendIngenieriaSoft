@@ -50,7 +50,16 @@ export default function SeccionPrivacidad({ correo }: Props) {
       setOtpEnviado(true)
     } catch (error) {
       console.error("❌ Error enviando OTP:", error)
-      toast.error(error instanceof Error ? error.message : "No se pudo enviar el código OTP")
+
+      let errorMessage = "No se pudo enviar el código OTP"
+      if (error instanceof Error) {
+        errorMessage = error.message
+      }
+
+      toast.error(errorMessage, {
+        duration: 5000,
+        position: "top-center",
+      })
     } finally {
       setCargando(false)
     }
@@ -87,7 +96,16 @@ export default function SeccionPrivacidad({ correo }: Props) {
       setOtpEnviado(false)
     } catch (error) {
       console.error("❌ Error verificando OTP:", error)
-      toast.error(error instanceof Error ? error.message : "Error al verificar el código")
+
+      let errorMessage = "Error al verificar el código"
+      if (error instanceof Error) {
+        errorMessage = error.message
+      }
+
+      toast.error(errorMessage, {
+        duration: 5000,
+        position: "top-center",
+      })
     } finally {
       setCargando(false)
     }
@@ -165,18 +183,51 @@ export default function SeccionPrivacidad({ correo }: Props) {
 
       if (!res.ok) throw new Error(data?.message || "Ocurrió un error inesperado")
 
-      toast.success("✅ Cuenta eliminada exitosamente")
+      // Confirmación adicional más visible
+      toast("🗑️ ¡Cuenta eliminada! Redirigiendo...", {
+        duration: 4000,
+        position: "top-center",
+        style: {
+          background: "#EF4444",
+          color: "white",
+          fontWeight: "bold",
+          fontSize: "16px",
+          padding: "16px 24px",
+          borderRadius: "12px",
+          boxShadow: "0 10px 25px rgba(0,0,0,0.1)",
+        },
+        icon: "🗑️",
+      })
+
+      console.log("🗑️ CONFIRMACIÓN: Cuenta eliminada exitosamente")
 
       // Limpiar cookies y redirigir
       document.cookie = "token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;"
-      setTimeout(() => (window.location.href = "/auth/login"), 2000)
+      setTimeout(() => (window.location.href = "/auth/login"), 4000)
     } catch (e: unknown) {
       console.error("❌ Error eliminando cuenta:", e)
+
+      let errorMessage = "Error desconocido"
       if (e instanceof Error) {
-        toast.error(e.message)
-      } else {
-        toast.error("Error desconocido")
+        errorMessage = e.message
       }
+
+      // Mostrar error de forma prominente
+      toast.error(errorMessage, {
+        duration: 6000,
+        position: "top-center",
+        style: {
+          background: "#EF4444",
+          color: "white",
+          fontWeight: "bold",
+          fontSize: "16px",
+          padding: "16px 24px",
+          borderRadius: "12px",
+          boxShadow: "0 10px 25px rgba(0,0,0,0.1)",
+        },
+      })
+
+      console.error("❌ ERROR MOSTRADO:", errorMessage)
     } finally {
       setCargando(false)
     }

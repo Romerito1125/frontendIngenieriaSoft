@@ -54,7 +54,16 @@ export default function SeccionPassword({ correo }: Props) {
       setOtpEnviado(true)
     } catch (error) {
       console.error("❌ Error enviando OTP:", error)
-      toast.error(error instanceof Error ? error.message : "No se pudo enviar el código OTP")
+
+      let errorMessage = "No se pudo enviar el código OTP"
+      if (error instanceof Error) {
+        errorMessage = error.message
+      }
+
+      toast.error(errorMessage, {
+        duration: 5000,
+        position: "top-center",
+      })
     } finally {
       setCargando(false)
     }
@@ -96,7 +105,16 @@ export default function SeccionPassword({ correo }: Props) {
       setOtpEnviado(false)
     } catch (error) {
       console.error("❌ Error verificando OTP:", error)
-      toast.error(error instanceof Error ? error.message : "Error al verificar el código")
+
+      let errorMessage = "Error al verificar el código"
+      if (error instanceof Error) {
+        errorMessage = error.message
+      }
+
+      toast.error(errorMessage, {
+        duration: 5000,
+        position: "top-center",
+      })
     } finally {
       setCargando(false)
     }
@@ -166,7 +184,23 @@ export default function SeccionPassword({ correo }: Props) {
         throw new Error(data.message || "Error al cambiar la contraseña")
       }
 
-      toast.success("✅ Contraseña actualizada exitosamente")
+      // Confirmación adicional más visible
+      toast("🔐 ¡Contraseña cambiada con éxito!", {
+        duration: 5000,
+        position: "top-center",
+        style: {
+          background: "#10B981",
+          color: "white",
+          fontWeight: "bold",
+          fontSize: "16px",
+          padding: "16px 24px",
+          borderRadius: "12px",
+          boxShadow: "0 10px 25px rgba(0,0,0,0.1)",
+        },
+        icon: "🔐",
+      })
+
+      console.log("🔐 CONFIRMACIÓN: Contraseña cambiada exitosamente")
 
       // Resetear formulario
       setOtp("")
@@ -177,7 +211,30 @@ export default function SeccionPassword({ correo }: Props) {
       setFortaleza(0)
     } catch (error) {
       console.error("❌ Error cambiando contraseña:", error)
-      toast.error(error instanceof Error ? error.message : "Error al cambiar la contraseña")
+
+      // Mejorar el manejo de errores para mostrar mensajes específicos
+      let errorMessage = "Error al cambiar la contraseña"
+
+      if (error instanceof Error) {
+        errorMessage = error.message
+      }
+
+      // Mostrar el error de forma prominente
+      toast.error(errorMessage, {
+        duration: 6000,
+        position: "top-center",
+        style: {
+          background: "#EF4444",
+          color: "white",
+          fontWeight: "bold",
+          fontSize: "16px",
+          padding: "16px 24px",
+          borderRadius: "12px",
+          boxShadow: "0 10px 25px rgba(0,0,0,0.1)",
+        },
+      })
+
+      console.error("❌ ERROR MOSTRADO:", errorMessage)
     } finally {
       setCargando(false)
     }

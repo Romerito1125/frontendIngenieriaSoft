@@ -94,7 +94,16 @@ export default function SeccionCuenta({ correo, id }: Props) {
       setMostrarOtp(true)
     } catch (error) {
       console.error("❌ Error enviando OTP:", error)
-      toast.error(error instanceof Error ? error.message : "Error al enviar OTP")
+
+      let errorMessage = "Error al enviar OTP"
+      if (error instanceof Error) {
+        errorMessage = error.message
+      }
+
+      toast.error(errorMessage, {
+        duration: 5000,
+        position: "top-center",
+      })
     } finally {
       setCargando(false)
     }
@@ -132,21 +141,26 @@ export default function SeccionCuenta({ correo, id }: Props) {
       // Mantener el OTP para la actualización posterior
     } catch (error: unknown) {
       console.error("❌ Error verificando OTP:", error)
+
+      let errorMessage = "OTP inválido"
       if (error instanceof Error) {
-        toast.error(error.message || "OTP inválido")
-      } else {
-        toast.error("Error desconocido")
+        errorMessage = error.message || "OTP inválido"
       }
+
+      toast.error(errorMessage, {
+        duration: 5000,
+        position: "top-center",
+      })
     } finally {
       setCargando(false)
     }
   }
 
-    const handleActualizar = async () => {
+  const handleActualizar = async () => {
     console.log("🔄 Iniciando actualización de cuenta...")
     console.log("Datos actuales:", cuenta)
     console.log("Datos originales:", cuentaOriginal)
-    console.log("OTP ingresado:", otp)
+    console.log("Verificado:", verificado)
 
     if (!cuenta.nombre || !cuenta.apellido || !cuenta.correo) {
       toast.error("Todos los campos son obligatorios")
@@ -158,13 +172,9 @@ export default function SeccionCuenta({ correo, id }: Props) {
       return
     }
 
-    if (!otp || otp.length !== 6) {
-      toast.error("Código OTP requerido para actualizar")
-      return
-    }
-
-    const hayCambios =
-      cuenta.nombre !== cuentaOriginal.nombre || cuenta.apellido !== cuentaOriginal.apellido
+    // Verificar si hay cambios
+    const hayCambios = cuenta.nombre !== cuentaOriginal.nombre || cuenta.apellido !== cuentaOriginal.apellido
+    console.log("¿Hay cambios?", hayCambios)
 
     if (!hayCambios) {
       toast.success("No hay cambios para guardar")
@@ -173,15 +183,14 @@ export default function SeccionCuenta({ correo, id }: Props) {
 
     setCargando(true)
     try {
-        const payload = {
-          correo,
-          otp,
-          nombre: cuenta.nombre,
-          apellido: cuenta.apellido,
-        }
-
-
-      console.log("📤 Payload enviado al backend:", payload)
+      console.log("📤 Enviando actualización...")
+      const payload = {
+        correo,
+        otp, // Usar el OTP que ya fue verificado
+        nombre: cuenta.nombre,
+        apellido: cuenta.apellido,
+      }
+      console.log("Payload:", payload)
 
       const res = await fetch("https://www.cuentas.devcorebits.com/cuenta/actualizar-con-otp", {
         method: "PATCH",
@@ -189,33 +198,44 @@ export default function SeccionCuenta({ correo, id }: Props) {
         body: JSON.stringify(payload),
       })
 
-      const rawText = await res.text()
-      console.log("📥 Texto crudo recibido:", rawText)
-
-      let data
-      try {
-        data = JSON.parse(rawText)
-      } catch (err) {
-        console.error("❌ JSON inválido desde el servidor:", rawText)
-        throw new Error("Respuesta del servidor no es válida. Contacta soporte.")
-      }
+      const data = await res.json()
+      console.log("📥 Respuesta actualización:", data)
 
       if (!res.ok) {
-        if (data.message?.toLowerCase().includes("otp")) {
-          toast.error("El código OTP ha expirado o ya fue usado.")
+        // Si el OTP expiró, pedir nueva verificación
+        if (data.message && data.message.includes("OTP")) {
+          toast.error("El código OTP ha expirado. Solicita uno nuevo.")
           setVerificado(false)
           setOtp("")
           return
         }
-        throw new Error(data.message || "Error desconocido al actualizar")
+        throw new Error(data.message || "Error al actualizar la información")
       }
 
-      toast.success("✅ Información actualizada correctamente")
+      // Mostrar confirmación visual prominente
+      toast("🎉 ¡Datos guardados exitosamente!", {
+        duration: 5000,
+        position: "top-center",
+        style: {
+          background: "#10B981",
+          color: "white",
+          fontWeight: "bold",
+          fontSize: "16px",
+          padding: "16px 24px",
+          borderRadius: "12px",
+          boxShadow: "0 10px 25px rgba(0,0,0,0.1)",
+        },
+        icon: "✅",
+      })
 
-      // Refrescar datos desde el servidor
+      console.log("🎉 CONFIRMACIÓN: Datos actualizados exitosamente")
+
+      // Recargar los datos desde el servidor para confirmar la actualización
+      console.log("🔄 Recargando datos desde el servidor...")
       const reloadRes = await fetch(`https://www.cuentas.devcorebits.com/cuenta/getCuenta/${id}`)
       if (reloadRes.ok) {
         const reloadData = await reloadRes.json()
+        console.log("📥 Datos recargados:", reloadData)
         const nuevaCuentaData = {
           nombre: reloadData.nombre,
           apellido: reloadData.apellido,
@@ -225,22 +245,37 @@ export default function SeccionCuenta({ correo, id }: Props) {
         setCuentaOriginal(nuevaCuentaData)
       }
 
-      // Reset
+      // Resetear verificación para futuras actualizaciones
       setVerificado(false)
       setOtp("")
-      setMostrarOtp(false)
     } catch (error: unknown) {
-      console.error("❌ Error actualizando datos:", error)
+      console.error("❌ Error actualizando:", error)
+
+      let errorMessage = "Error al actualizar"
       if (error instanceof Error) {
-        toast.error(error.message)
-      } else {
-        toast.error("Error desconocido")
+        errorMessage = error.message
       }
+
+      // Mostrar error de forma prominente
+      toast.error(errorMessage, {
+        duration: 6000,
+        position: "top-center",
+        style: {
+          background: "#EF4444",
+          color: "white",
+          fontWeight: "bold",
+          fontSize: "16px",
+          padding: "16px 24px",
+          borderRadius: "12px",
+          boxShadow: "0 10px 25px rgba(0,0,0,0.1)",
+        },
+      })
+
+      console.error("❌ ERROR MOSTRADO:", errorMessage)
     } finally {
       setCargando(false)
     }
   }
-
 
   const resetearCambios = () => {
     console.log("🔄 Reseteando cambios...")
