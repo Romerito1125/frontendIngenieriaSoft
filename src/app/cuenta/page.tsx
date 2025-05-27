@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react"
 import Cookies from "js-cookie"
 import { jwtDecode } from "jwt-decode"
-import toast from "react-hot-toast"
+import toast, { Toaster } from "react-hot-toast"
 import { useRouter } from "next/navigation"
 import SeccionCuenta from "./SeccionCuenta"
 import SeccionPassword from "./SeccionPassword"
@@ -79,6 +79,29 @@ export default function CuentaPage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-white">
+      <Toaster
+        position="top-center"
+        toastOptions={{
+          duration: 4000,
+          style: {
+            background: "#363636",
+            color: "#fff",
+            fontSize: "14px",
+            borderRadius: "8px",
+            padding: "12px 16px",
+          },
+          success: {
+            style: {
+              background: "#10B981",
+            },
+          },
+          error: {
+            style: {
+              background: "#EF4444",
+            },
+          },
+        }}
+      />
       <div className="container mx-auto py-8 px-4 md:px-0">
         <div className="flex flex-col md:flex-row gap-8 max-w-7xl mx-auto">
           {/* Sidebar */}

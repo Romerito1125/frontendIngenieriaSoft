@@ -1,3 +1,5 @@
+// src/app/layout.tsx
+
 import type React from "react"
 import type { Metadata } from "next"
 import { Geist, Geist_Mono, Lobster } from "next/font/google"

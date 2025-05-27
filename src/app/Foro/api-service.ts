@@ -63,6 +63,21 @@ export async function obtenerForo(id: string) {
   }
 }
 
+export async function obtenerForosUsuario(idUsuario: string) {
+  try {
+    const res = await fetch(`${BASE_URL}/foro/listarForoCuenta/${idUsuario}`)
+    if (!res.ok) {
+      const errorData = await res.json().catch(() => ({}))
+      console.error("Error al obtener foros del usuario:", errorData)
+      throw new Error("Error al obtener foros del usuario")
+    }
+    return res.json()
+  } catch (error) {
+    console.error(`Error en obtenerForosUsuario(${idUsuario}):`, error)
+    throw error
+  }
+}
+
 export async function crearForo(data: {
   titulo: string
   descripcion: string
@@ -244,28 +259,27 @@ export async function eliminarRespuesta(id: string) {
 }
 
 export async function obtenerCantidadRespuestas(idForo: string) {
-  const res = await fetch(`${BASE_URL}/foro/cantidadRespuestas/${idForo}`);
-  if (!res.ok) throw new Error("Error al contar respuestas");
-  const data = await res.json();
+  const res = await fetch(`${BASE_URL}/foro/cantidadRespuestas/${idForo}`)
+  if (!res.ok) throw new Error("Error al contar respuestas")
+  const data = await res.json()
 
   // Si data es array, devuelve su longitud
   if (Array.isArray(data)) {
-    return data.length;
+    return data.length
   }
 
   // Si data tiene 'count', úsalo
-  if (typeof data.count === 'number') {
-    return data.count;
+  if (typeof data.count === "number") {
+    return data.count
   }
 
   // Si data es un objeto con keys, cuenta las keys
-  if (data && typeof data === 'object') {
-    return Object.keys(data).length;
+  if (data && typeof data === "object") {
+    return Object.keys(data).length
   }
 
   // Si nada coincide, retorna 0 por defecto
-  return 0;
+  return 0
 }
-
 
 //#endregion
