@@ -43,7 +43,7 @@ export default function NoticiaCard({ idnoticia, titulo, descripcion, fecha, aut
           </div>
 
           <Link
-            href={`/noticias/${idnoticia}`}
+            href={`/noticias/noticias/${idnoticia}`}
             className="text-sm text-blue-600 font-medium hover:text-blue-800 transition-colors flex items-center gap-1 group"
           >
             Ver más
