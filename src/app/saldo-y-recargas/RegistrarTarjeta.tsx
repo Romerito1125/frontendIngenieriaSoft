@@ -220,7 +220,7 @@ const RegistrarTarjeta: React.FC<Props> = ({ isOpen, onClose, onSuccess, cuentaI
                     <CreditCard className="w-6 h-6" />
                   </div>
                   <div>
-                    <h2 className="text-xl font-bold">Nueva Tarjeta MIO</h2>
+                    <h2 className="text-xl font-bold">Nueva Tarjeta TUYO</h2>
                     <p className="text-blue-100 text-sm font-normal">
                       Paso {step} de 3 - {step === 1 ? "Datos" : step === 2 ? "Verificar" : "Completado"}
                     </p>
@@ -435,7 +435,7 @@ const RegistrarTarjeta: React.FC<Props> = ({ isOpen, onClose, onSuccess, cuentaI
                     transition={{ delay: 0.6 }}
                     className="text-gray-600"
                   >
-                    Tu tarjeta MIO está lista para usar
+                    Tu tarjeta TUYO está lista para usar
                   </motion.p>
                   <motion.div
                     initial={{ opacity: 0, scale: 0.8 }}

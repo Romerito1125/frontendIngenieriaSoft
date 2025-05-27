@@ -4,7 +4,7 @@
 import { supabase } from "../api-service"
 import { useState, useEffect } from "react"
 import { useParams, useRouter } from "next/navigation"
-import { obtenerForo, listarRespuestas } from "../api-service"
+import { obtenerForo, listarRespuestasArbol } from "../api-service"
 import { isAuthenticated, isOwner, getCurrentUser } from "../auth-service"
 import ForoDetail from "../foro-detail"
 import RespuestasList from "../respuestas-list"
@@ -14,12 +14,24 @@ import { motion } from "framer-motion"
 import { Loader2, ArrowLeft, LogIn } from "lucide-react"
 import { Button } from "@/components/ui/button"
 
+// Función para contar todas las respuestas en el árbol
+function contarRespuestasEnArbol(nodos: any[]): number {
+  let total = 0
+  for (const nodo of nodos) {
+    total += 1 // Contar el nodo actual
+    if (nodo.hijos && nodo.hijos.length > 0) {
+      total += contarRespuestasEnArbol(nodo.hijos) // Contar recursivamente los hijos
+    }
+  }
+  return total
+}
+
 export default function ForoDetailPage() {
   const params = useParams()
   const id = params?.id as string
   const router = useRouter()
   const [foro, setForo] = useState<any>(null)
-  const [respuestas, setRespuestas] = useState<any[]>([])
+  const [respuestasArbol, setRespuestasArbol] = useState<any[]>([])
   const [cantidadRespuestas, setCantidadRespuestas] = useState(0)
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -36,18 +48,21 @@ export default function ForoDetailPage() {
       try {
         const foroData = await obtenerForo(id)
 
-        // Obtener la cantidad de respuestas
-        const respuestasData = await listarRespuestas(id)
+        // Obtener el árbol de respuestas
+        const arbolData = await listarRespuestasArbol(id)
+
+        // Contar todas las respuestas en el árbol
+        const totalRespuestas = contarRespuestasEnArbol(arbolData)
 
         // Actualizar el foro con la cantidad de respuestas
         const foroConRespuestas = {
           ...foroData,
-          cantidadRespuestas: respuestasData.length,
+          cantidadRespuestas: totalRespuestas,
         }
 
         setForo(foroConRespuestas)
-        setRespuestas(respuestasData)
-        setCantidadRespuestas(respuestasData.length)
+        setRespuestasArbol(arbolData)
+        setCantidadRespuestas(totalRespuestas)
       } catch (err) {
         console.error(err)
         setError("No se pudo cargar el foro. Intenta de nuevo más tarde.")
@@ -67,14 +82,11 @@ export default function ForoDetailPage() {
 
         if (!respuesta) return
 
-        if (tipo === "nueva-respuesta" && respuesta.idforo === id) {
+        if ((tipo === "nueva-respuesta" || tipo === "nueva-replica") && respuesta.idforo === id) {
           const fechaValida = respuesta.fecha ?? new Date().toISOString()
 
-          // Mejorar la obtención del nombre de usuario
           let nombreValido = respuesta.nombreUsuario
-
           if (!nombreValido) {
-            // Si no viene el nombre del backend, intentar obtenerlo del usuario actual
             const usuarioActual = getCurrentUser()
             if (usuarioActual && String(usuarioActual.idcuenta) === String(respuesta.idcuenta)) {
               nombreValido = usuarioActual.nombre || usuarioActual.email?.split("@")[0]
@@ -89,35 +101,64 @@ export default function ForoDetailPage() {
             nombreUsuario: nombreValido,
           }
 
-          setRespuestas((prev) => [...prev, nuevaRespuesta])
-          setCantidadRespuestas((prev) => prev + 1)
+          // Para las nuevas respuestas/réplicas, necesitamos reconstruir el árbol
+          // Por simplicidad, vamos a recargar el árbol completo
+          const recargarArbol = async () => {
+            try {
+              const arbolActualizado = await listarRespuestasArbol(id)
+              const totalRespuestas = contarRespuestasEnArbol(arbolActualizado)
 
-          // Actualizar también el contador en el objeto foro
-          if (foro) {
-            setForo({
-              ...foro,
-              cantidadRespuestas: (foro.cantidadRespuestas || 0) + 1,
-            })
+              setRespuestasArbol(arbolActualizado)
+              setCantidadRespuestas(totalRespuestas)
+
+              if (foro) {
+                setForo({
+                  ...foro,
+                  cantidadRespuestas: totalRespuestas,
+                })
+              }
+            } catch (error) {
+              console.error("Error al recargar árbol:", error)
+            }
           }
+
+          recargarArbol()
         }
 
         if (tipo === "respuesta-editada") {
-          setRespuestas((prev) =>
-            prev.map((r) => (r.idrespuesta === respuesta.idrespuesta ? { ...r, ...respuesta } : r)),
-          )
+          // Para ediciones, también recargamos el árbol para mantener consistencia
+          const recargarArbol = async () => {
+            try {
+              const arbolActualizado = await listarRespuestasArbol(id)
+              setRespuestasArbol(arbolActualizado)
+            } catch (error) {
+              console.error("Error al recargar árbol:", error)
+            }
+          }
+          recargarArbol()
         }
 
         if (tipo === "respuesta-eliminada") {
-          setRespuestas((prev) => prev.filter((r) => r.idrespuesta !== respuesta.idrespuesta))
-          setCantidadRespuestas((prev) => Math.max(0, prev - 1))
+          // Para eliminaciones, recargamos el árbol y actualizamos contadores
+          const recargarArbol = async () => {
+            try {
+              const arbolActualizado = await listarRespuestasArbol(id)
+              const totalRespuestas = contarRespuestasEnArbol(arbolActualizado)
 
-          // Actualizar también el contador en el objeto foro
-          if (foro) {
-            setForo({
-              ...foro,
-              cantidadRespuestas: Math.max(0, (foro.cantidadRespuestas || 0) - 1),
-            })
+              setRespuestasArbol(arbolActualizado)
+              setCantidadRespuestas(totalRespuestas)
+
+              if (foro) {
+                setForo({
+                  ...foro,
+                  cantidadRespuestas: totalRespuestas,
+                })
+              }
+            } catch (error) {
+              console.error("Error al recargar árbol:", error)
+            }
           }
+          recargarArbol()
         }
       })
       .subscribe()
@@ -127,41 +168,73 @@ export default function ForoDetailPage() {
     }
   }, [id, foro])
 
-  const handleRespuestaCreada = (nuevaRespuesta: any) => {
-    // Asegurar que la nueva respuesta tenga el nombre correcto
-    const usuarioActual = getCurrentUser()
-    if (!nuevaRespuesta.nombreUsuario && usuarioActual) {
-      nuevaRespuesta.nombreUsuario = usuarioActual.nombre || usuarioActual.email?.split("@")[0]
-    }
+  const handleRespuestaCreada = async (nuevaRespuesta: any) => {
+    // Recargar el árbol completo para mantener la estructura correcta
+    try {
+      const arbolActualizado = await listarRespuestasArbol(id)
+      const totalRespuestas = contarRespuestasEnArbol(arbolActualizado)
 
-    setRespuestas([...respuestas, nuevaRespuesta])
-    setCantidadRespuestas((prev) => prev + 1)
+      setRespuestasArbol(arbolActualizado)
+      setCantidadRespuestas(totalRespuestas)
 
-    // Actualizar también el contador en el objeto foro
-    if (foro) {
-      setForo({
-        ...foro,
-        cantidadRespuestas: (foro.cantidadRespuestas || 0) + 1,
-      })
+      if (foro) {
+        setForo({
+          ...foro,
+          cantidadRespuestas: totalRespuestas,
+        })
+      }
+    } catch (error) {
+      console.error("Error al recargar árbol después de crear respuesta:", error)
     }
   }
 
-  const handleRespuestaActualizada = (respuestaActualizada: any) => {
-    setRespuestas(
-      respuestas.map((r) => (r.idrespuesta === respuestaActualizada.idrespuesta ? respuestaActualizada : r)),
-    )
+  const handleRespuestaActualizada = async (respuestaActualizada: any) => {
+    // Recargar el árbol para mantener consistencia
+    try {
+      const arbolActualizado = await listarRespuestasArbol(id)
+      setRespuestasArbol(arbolActualizado)
+    } catch (error) {
+      console.error("Error al recargar árbol después de actualizar:", error)
+    }
   }
 
-  const handleRespuestaEliminada = (id: string) => {
-    setRespuestas(respuestas.filter((r) => r.idrespuesta !== id))
-    setCantidadRespuestas((prev) => Math.max(0, prev - 1))
+  const handleRespuestaEliminada = async (idRespuesta: string) => {
+    // Recargar el árbol y actualizar contadores
+    try {
+      const arbolActualizado = await listarRespuestasArbol(id)
+      const totalRespuestas = contarRespuestasEnArbol(arbolActualizado)
 
-    // Actualizar también el contador en el objeto foro
-    if (foro) {
-      setForo({
-        ...foro,
-        cantidadRespuestas: Math.max(0, (foro.cantidadRespuestas || 0) - 1),
-      })
+      setRespuestasArbol(arbolActualizado)
+      setCantidadRespuestas(totalRespuestas)
+
+      if (foro) {
+        setForo({
+          ...foro,
+          cantidadRespuestas: totalRespuestas,
+        })
+      }
+    } catch (error) {
+      console.error("Error al recargar árbol después de eliminar:", error)
+    }
+  }
+
+  const handleReplicaCreada = async (nuevaReplica: any) => {
+    // Recargar el árbol completo para incluir la nueva réplica
+    try {
+      const arbolActualizado = await listarRespuestasArbol(id)
+      const totalRespuestas = contarRespuestasEnArbol(arbolActualizado)
+
+      setRespuestasArbol(arbolActualizado)
+      setCantidadRespuestas(totalRespuestas)
+
+      if (foro) {
+        setForo({
+          ...foro,
+          cantidadRespuestas: totalRespuestas,
+        })
+      }
+    } catch (error) {
+      console.error("Error al recargar árbol después de crear réplica:", error)
     }
   }
 
@@ -244,9 +317,11 @@ export default function ForoDetailPage() {
         </h2>
 
         <RespuestasList
-          respuestas={respuestas}
+          respuestas={respuestasArbol}
           onRespuestaActualizada={handleRespuestaActualizada}
           onRespuestaEliminada={handleRespuestaEliminada}
+          onReplicaCreada={handleReplicaCreada}
+          idForo={id} // Agregar esta línea
         />
 
         <div className="mt-8 bg-blue-50 p-6 rounded-lg border border-blue-100">

@@ -123,7 +123,7 @@ export default function TarjetasPage() {
             <Lock className="w-10 h-10" />
           </div>
           <h1 className="text-3xl font-bold text-gray-900 mb-4">Acceso Restringido</h1>
-          <p className="text-gray-600 mb-8">Debes iniciar sesión para acceder al sistema de tarjetas MIO</p>
+          <p className="text-gray-600 mb-8">Debes iniciar sesión para acceder al sistema de tarjetas TUYO</p>
           <Button
             onClick={() => (window.location.href = "/auth/login")}
             className="bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white px-8 py-3 rounded-xl font-semibold shadow-lg hover:shadow-xl transition-all duration-300"
@@ -154,7 +154,7 @@ export default function TarjetasPage() {
         {/* Header */}
         <motion.div initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }} className="text-center mb-12">
           <h1 className="text-5xl font-bold bg-gradient-to-r from-blue-600 to-blue-800 bg-clip-text text-transparent mb-3">
-            Mis Tarjetas MIO
+            Mis Tarjetas TUYO
           </h1>
           <p className="text-blue-600 text-lg">Bienvenido, querido usuario, aquí podrá registrar sus tarjetas físicas</p>
           <div className="mt-4 inline-flex items-center gap-2 px-4 py-2 bg-blue-100 rounded-full text-blue-700 text-sm font-medium">
@@ -187,7 +187,7 @@ export default function TarjetasPage() {
               </div>
               <h3 className="text-2xl font-bold text-blue-800 mb-4">No tienes tarjetas registradas</h3>
               <p className="text-blue-600 text-lg">
-                Registra tu primera tarjeta MIO para comenzar a gestionar tu transporte
+                Registra tu primera tarjeta TUYO para comenzar a gestionar tu transporte
               </p>
             </motion.div>
           ) : (
@@ -219,7 +219,7 @@ export default function TarjetasPage() {
                             <CreditCard className="w-7 h-7" />
                           </div>
                           <div>
-                            <span className="text-xl font-bold">Tarjeta MIO</span>
+                            <span className="text-xl font-bold">Tarjeta TUYO</span>
                             <div className="text-blue-100 text-sm font-normal">Sistema Integrado</div>
                           </div>
                         </div>

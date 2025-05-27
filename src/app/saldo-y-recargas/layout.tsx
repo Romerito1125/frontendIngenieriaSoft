@@ -10,8 +10,8 @@ const inter = Inter({
 })
 
 export const metadata: Metadata = {
-  title: "Saldo y Recargas - MIO",
-  description: "Gestiona tus tarjetas MIO, consulta saldo y realiza recargas",
+  title: "Saldo y Recargas - TUYO",
+  description: "Gestiona tus tarjetas TUYO, consulta saldo y realiza recargas",
 }
 
 export default function RootLayout({

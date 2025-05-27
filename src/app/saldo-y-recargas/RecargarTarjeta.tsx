@@ -225,7 +225,7 @@ const RecargarTarjeta: React.FC<Props> = ({ isOpen, onClose, onSuccess, tarjetaI
                   </div>
                   <div>
                     <h2 className="text-xl font-bold">Recargar Tarjeta</h2>
-                    <p className="text-green-100 text-sm font-normal">Agrega saldo a tu tarjeta MIO</p>
+                    <p className="text-green-100 text-sm font-normal">Agrega saldo a tu tarjeta TUYO</p>
                   </div>
                 </div>
                 <Button
