@@ -184,13 +184,7 @@ export default function LoginPage() {
       <div className="hidden lg:block lg:w-1/2 bg-blue-700 relative overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-br from-blue-600/90 to-blue-900/90 z-10"></div>
         <div className="absolute inset-0 z-0">
-          <Image
-            src="/placeholder.svg?height=1080&width=1920"
-            alt="Login background"
-            fill
-            className="object-cover"
-            priority
-          />
+
         </div>
         <div className="relative z-20 h-full flex flex-col items-center justify-center p-12 text-white">
           <div className="max-w-md text-center">

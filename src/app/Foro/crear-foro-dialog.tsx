@@ -1,6 +1,3 @@
-//Zuluaga
-
-
 "use client"
 
 import type React from "react"
@@ -18,7 +15,6 @@ import { Label } from "@/components/ui/label"
 import { Button } from "@/components/ui/button"
 import { Textarea } from "@/components/ui/textarea"
 import { useState } from "react"
-import { crearForo } from "./api-service"
 import { getCurrentUserId } from "./auth-service"
 import { MessageSquare } from "lucide-react"
 
@@ -52,11 +48,6 @@ export function CrearForoDialog({ open, setOpen, onCreate }: CrearForoDialogProp
     setError(null)
 
     try {
-      await crearForo({
-        titulo,
-        descripcion,
-        idcuenta: userId,
-      })
       await onCreate(titulo, descripcion)
       setOpen(false)
       setTitulo("")
