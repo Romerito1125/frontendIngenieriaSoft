@@ -1,5 +1,6 @@
 "use client"
 import { motion } from "framer-motion"
+import { useIsAdmin } from "../../hooks/isAdmin"
 
 type AlertaProps = {
   mensaje: string

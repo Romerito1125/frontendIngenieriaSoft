@@ -7,7 +7,9 @@ import { jwtDecode } from "jwt-decode"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { HistorialDenuncias } from "./historial-denuncias"
 import { CrearDenuncia } from "./crear-denuncia"
-import { AlertCircle, FileText, PlusCircle } from "lucide-react"
+import { AdminDenuncias } from "./admin-denuncias"
+import { useIsAdmin } from "../hooks/isAdmin"
+import { AlertCircle, FileText, PlusCircle, Shield } from "lucide-react"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { Button } from "@/components/ui/button"
 
@@ -21,6 +23,7 @@ export default function Denuncias() {
   const [userId, setUserId] = useState<number | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [activeTab, setActiveTab] = useState("crear")
+  const isAdmin = useIsAdmin()
 
   useEffect(() => {
     const token = Cookies.get("token")
@@ -85,8 +88,8 @@ export default function Denuncias() {
               Ayúdanos a mejorar reportando incidentes o problemas
             </p>
 
-            <Tabs value={activeTab} onValueChange={handleTabChange} className="w-full max-w-3xl mx-auto">
-              <TabsList className="grid w-full grid-cols-2 bg-blue-50 rounded-xl p-1">
+            <Tabs value={activeTab} onValueChange={handleTabChange} className="w-full max-w-4xl mx-auto">
+              <TabsList className={`grid w-full ${isAdmin ? "grid-cols-3" : "grid-cols-2"} bg-blue-50 rounded-xl p-1`}>
                 <TabsTrigger
                   value="crear"
                   className="rounded-lg data-[state=active]:bg-blue-600 data-[state=active]:text-white"
@@ -101,6 +104,15 @@ export default function Denuncias() {
                   <FileText className="h-4 w-4 mr-2" />
                   Mi Historial
                 </TabsTrigger>
+                {isAdmin && (
+                  <TabsTrigger
+                    value="admin"
+                    className="rounded-lg data-[state=active]:bg-blue-600 data-[state=active]:text-white"
+                  >
+                    <Shield className="h-4 w-4 mr-2" />
+                    Administración
+                  </TabsTrigger>
+                )}
               </TabsList>
 
               <div className="bg-white rounded-xl shadow-lg p-6 border border-blue-100 mt-4">
@@ -110,6 +122,11 @@ export default function Denuncias() {
                 <TabsContent value="historial" className="mt-0">
                   <HistorialDenuncias userId={userId} onCreateClick={() => handleTabChange("crear")} />
                 </TabsContent>
+                {isAdmin && (
+                  <TabsContent value="admin" className="mt-0">
+                    <AdminDenuncias userId={userId} />
+                  </TabsContent>
+                )}
               </div>
             </Tabs>
           </div>
