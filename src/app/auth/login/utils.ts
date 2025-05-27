@@ -17,12 +17,7 @@ export async function loginUsuario(data: LoginPayload) {
   const responseText = await res.text()
 
   if (!res.ok) {
-    try {
-      const json = JSON.parse(responseText)
-      throw new Error(json.message || "Credenciales inválidas")
-    } catch {
-      throw new Error("Respuesta inesperada del servidor")
-    }
+      throw new Error("Credenciales inválidas")
   }
 
   return JSON.parse(responseText) // { token }
