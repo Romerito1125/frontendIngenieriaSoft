@@ -21,11 +21,27 @@ export default function RegisterPage() {
   const [showPassword, setShowPassword] = useState(false)
   const [loading, setLoading] = useState(false)
   const [correoRepetido, setCorreoRepetido] = useState(false)
+  const [fortaleza, setFortaleza] = useState(0)
 
   const isValidEmail = (email: string) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)
 
+  const evaluarFortaleza = (password: string) => {
+    let puntaje = 0
+    if (password.length >= 8) puntaje++
+    if (/[A-Z]/.test(password)) puntaje++
+    if (/[a-z]/.test(password)) puntaje++
+    if (/[0-9]/.test(password)) puntaje++
+    if (/[^A-Za-z0-9]/.test(password)) puntaje++
+    setFortaleza(puntaje)
+    return puntaje
+  }
+
   const isValid =
-    nombre.trim().length >= 2 && apellido.trim().length >= 2 && isValidEmail(correo) && contrasenia.trim().length >= 6
+    nombre.trim().length >= 2 &&
+    apellido.trim().length >= 2 &&
+    isValidEmail(correo) &&
+    contrasenia.trim().length >= 8 &&
+    fortaleza >= 3
 
   useEffect(() => {
     const token = Cookies.get("token")
@@ -206,12 +222,15 @@ export default function RegisterPage() {
                   </div>
                   <input
                     type={showPassword ? "text" : "password"}
-                    placeholder="Mínimo 6 caracteres"
+                    placeholder="Mínimo 8 caracteres"
                     value={contrasenia}
-                    onChange={(e) => setContrasenia(e.target.value)}
+                    onChange={(e) => {
+                      setContrasenia(e.target.value)
+                      evaluarFortaleza(e.target.value)
+                    }}
                     className="pl-10 w-full border border-gray-300 rounded-lg px-3 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
                     required
-                    minLength={6}
+                    minLength={8}
                   />
                   <button
                     type="button"
@@ -245,7 +264,70 @@ export default function RegisterPage() {
                     )}
                   </button>
                 </div>
-                {contrasenia && contrasenia.length < 6 && <p className="text-sm text-red-600">Mínimo 6 caracteres</p>}
+                <div className="mt-2">
+                  <div className="flex justify-between mb-1">
+                    <span className="text-xs text-gray-500">Fortaleza de la contraseña:</span>
+                    <span className="text-xs font-medium">
+                      {fortaleza === 0 && "Muy débil"}
+                      {fortaleza === 1 && "Débil"}
+                      {fortaleza === 2 && "Moderada"}
+                      {fortaleza === 3 && "Buena"}
+                      {fortaleza === 4 && "Fuerte"}
+                      {fortaleza === 5 && "Muy fuerte"}
+                    </span>
+                  </div>
+                  <div className="w-full h-1.5 bg-gray-200 rounded-full overflow-hidden">
+                    <div
+                      className={`h-full transition-all duration-300 ${
+                        fortaleza <= 1
+                          ? "bg-red-500"
+                          : fortaleza <= 2
+                            ? "bg-orange-500"
+                            : fortaleza <= 3
+                              ? "bg-yellow-500"
+                              : fortaleza <= 4
+                                ? "bg-green-500"
+                                : "bg-emerald-500"
+                      }`}
+                      style={{ width: `${(fortaleza / 5) * 100}%` }}
+                    ></div>
+                  </div>
+                  <ul className="mt-2 grid grid-cols-2 gap-x-4 gap-y-1 text-xs text-gray-500">
+                    <li className={`flex items-center gap-1 ${/[A-Z]/.test(contrasenia) ? "text-green-600" : ""}`}>
+                      <div
+                        className={`w-1.5 h-1.5 rounded-full ${/[A-Z]/.test(contrasenia) ? "bg-green-500" : "bg-gray-300"}`}
+                      ></div>
+                      <span>Mayúsculas</span>
+                    </li>
+                    <li className={`flex items-center gap-1 ${/[a-z]/.test(contrasenia) ? "text-green-600" : ""}`}>
+                      <div
+                        className={`w-1.5 h-1.5 rounded-full ${/[a-z]/.test(contrasenia) ? "bg-green-500" : "bg-gray-300"}`}
+                      ></div>
+                      <span>Minúsculas</span>
+                    </li>
+                    <li className={`flex items-center gap-1 ${/[0-9]/.test(contrasenia) ? "text-green-600" : ""}`}>
+                      <div
+                        className={`w-1.5 h-1.5 rounded-full ${/[0-9]/.test(contrasenia) ? "bg-green-500" : "bg-gray-300"}`}
+                      ></div>
+                      <span>Números</span>
+                    </li>
+                    <li
+                      className={`flex items-center gap-1 ${/[^A-Za-z0-9]/.test(contrasenia) ? "text-green-600" : ""}`}
+                    >
+                      <div
+                        className={`w-1.5 h-1.5 rounded-full ${/[^A-Za-z0-9]/.test(contrasenia) ? "bg-green-500" : "bg-gray-300"}`}
+                      ></div>
+                      <span>Símbolos</span>
+                    </li>
+                    <li className={`flex items-center gap-1 ${contrasenia.length >= 8 ? "text-green-600" : ""}`}>
+                      <div
+                        className={`w-1.5 h-1.5 rounded-full ${contrasenia.length >= 8 ? "bg-green-500" : "bg-gray-300"}`}
+                      ></div>
+                      <span>Mínimo 8 caracteres</span>
+                    </li>
+                  </ul>
+                </div>
+                {contrasenia && contrasenia.length < 8 && <p className="text-sm text-red-600">Mínimo 8 caracteres</p>}
               </div>
 
               <button

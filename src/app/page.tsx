@@ -128,42 +128,6 @@ export default function Home() {
             </motion.div>
           ))}
         </motion.div>
-
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5, delay: 0.5 }}
-          className="mt-12 p-6 bg-blue-600 text-white rounded-xl shadow-lg max-w-3xl w-full"
-        >
-          <div className="flex flex-col md:flex-row items-center gap-6">
-            <div className="flex-shrink-0 bg-white p-3 rounded-full">
-              <Image src="/Logo.png" alt="Logo" width={60} height={60} className="object-contain" />
-            </div>
-
-            <div className="flex-1">
-              <h3 className="text-xl font-bold mb-2">¿Necesitas ayuda?</h3>
-              <p className="text-blue-100 mb-4">
-                Descarga nuestra aplicación móvil para acceder a todas las funcionalidades incluso sin conexión.
-              </p>
-              <div className="flex flex-wrap gap-3">
-                <button className="bg-white text-blue-700 px-4 py-2 rounded-lg font-medium hover:bg-blue-50 transition-colors flex items-center gap-2">
-                  <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="currentColor" viewBox="0 0 24 24">
-                    <path d="M17.9 2.318A5.364 5.364 0 0 1 21.593 6.6 48.184 48.184 0 0 1 12 6.6a48.184 48.184 0 0 1-9.593 0A5.364 5.364 0 0 1 6.1 2.318a39.21 39.21 0 0 1 11.8 0ZM12 2.4a38.357 38.357 0 0 0-5.9.462 4.548 4.548 0 0 0-3.253 3.253A47.322 47.322 0 0 0 12 7.384a47.322 47.322 0 0 0 9.153-1.27 4.548 4.548 0 0 0-3.253-3.252A38.357 38.357 0 0 0 12 2.4Z" />
-                    <path d="M21.593 7.4c-3.198.328-6.4.492-9.593.492-3.193 0-6.395-.164-9.593-.492v9.2A5.364 5.364 0 0 0 6.1 21.682a39.21 39.21 0 0 0 11.8 0 5.364 5.364 0 0 0 3.693-4.282v-10ZM20.8 16.8a4.548 4.548 0 0 1-3.253 3.253 38.357 38.357 0 0 1-11.094 0A4.548 4.548 0 0 1 3.2 16.8v-8.616a48.322 48.322 0 0 0 8.8.416 48.322 48.322 0 0 0 8.8-.416V16.8Z" />
-                  </svg>
-                  App Store
-                </button>
-                <button className="bg-white text-blue-700 px-4 py-2 rounded-lg font-medium hover:bg-blue-50 transition-colors flex items-center gap-2">
-                  <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="currentColor" viewBox="0 0 24 24">
-                    <path d="M20.9 10.566a2.654 2.654 0 0 0-2.48-1.454 3.797 3.797 0 0 0-1.327.242 3.569 3.569 0 0 0-1.092.69 3.276 3.276 0 0 0-.75 1.03 3.215 3.215 0 0 0-.275 1.332c0 .472.092.91.275 1.314.183.404.434.758.75 1.06.317.303.69.54 1.119.713.428.173.89.26 1.386.26.52 0 .996-.095 1.428-.285a3.403 3.403 0 0 0 1.144-.788l-1.144-1.144a1.558 1.558 0 0 1-.527.397 1.778 1.778 0 0 1-.713.145 1.893 1.893 0 0 1-.713-.139 1.83 1.83 0 0 1-.593-.388 1.83 1.83 0 0 1-.4-.593 1.893 1.893 0 0 1-.145-.713c0-.26.048-.502.145-.726a1.83 1.83 0 0 1 1.005-.994c.224-.97.466-.145.726-.145.26 0 .5.048.726.145.226.097.423.23.593.4l1.156-1.156a3.215 3.215 0 0 0-1.144-.775 3.797 3.797 0 0 0-1.428-.285c-.52 0-.996.095-1.428.285a3.403 3.403 0 0 0-1.144.775 3.569 3.569 0 0 0-.763 1.156 3.797 3.797 0 0 0-.275 1.453c0 .52.092.996.275 1.428.183.432.434.81.75 1.131.317.322.69.573 1.119.751.428.178.89.267 1.386.267.52 0 .996-.095 1.428-.285a3.403 3.403 0 0 0 1.144-.775 3.569 3.569 0 0 0 .763-1.156 3.797 3.797 0 0 0 .275-1.453 3.215 3.215 0 0 0-.275-1.332 3.276 3.276 0 0 0-.75-1.03Z" />
-                    <path d="M3.1 3.4v17.2L14.5 12 3.1 3.4Z" />
-                  </svg>
-                  Google Play
-                </button>
-              </div>
-            </div>
-          </div>
-        </motion.div>
       </main>
     </div>
   )
