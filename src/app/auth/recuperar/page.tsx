@@ -13,6 +13,9 @@ export default function RecuperarPasswordPage() {
   const [confirmar, setConfirmar] = useState("")
   const [fase, setFase] = useState<"inicio" | "verificacion" | "recuperacion">("inicio")
   const [loading, setLoading] = useState(false)
+  const [fortaleza, setFortaleza] = useState(0)
+  const [mostrarNueva, setMostrarNueva] = useState(false)
+  const [mostrarConfirmar, setMostrarConfirmar] = useState(false)
 
   const handleEnviarOtp = async () => {
     if (!correo.trim()) {
@@ -69,8 +72,12 @@ export default function RecuperarPasswordPage() {
       return toast.error("Las contraseñas no coinciden")
     }
 
-    if (nueva.length < 6) {
-      return toast.error("La contraseña debe tener al menos 6 caracteres")
+    if (nueva.length < 8) {
+      return toast.error("La contraseña debe tener al menos 8 caracteres")
+    }
+
+    if (fortaleza < 3) {
+      return toast.error("La contraseña debe ser más fuerte")
     }
 
     setLoading(true)
@@ -95,6 +102,17 @@ export default function RecuperarPasswordPage() {
     } finally {
       setLoading(false)
     }
+  }
+
+  const evaluarFortaleza = (password: string) => {
+    let puntaje = 0
+    if (password.length >= 8) puntaje++
+    if (/[A-Z]/.test(password)) puntaje++
+    if (/[a-z]/.test(password)) puntaje++
+    if (/[0-9]/.test(password)) puntaje++
+    if (/[^A-Za-z0-9]/.test(password)) puntaje++
+    setFortaleza(puntaje)
+    return puntaje
   }
 
   // Función para renderizar el paso actual
@@ -198,12 +216,107 @@ export default function RecuperarPasswordPage() {
                 <Lock className="h-5 w-5 text-blue-500" />
               </div>
               <input
-                type="password"
+                type={mostrarNueva ? "text" : "password"}
                 placeholder="Nueva contraseña"
                 value={nueva}
-                onChange={(e) => setNueva(e.target.value)}
-                className="pl-10 w-full border border-gray-300 rounded-lg px-3 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                onChange={(e) => {
+                  setNueva(e.target.value)
+                  evaluarFortaleza(e.target.value)
+                }}
+                className="pl-10 pr-12 w-full border border-gray-300 rounded-lg px-3 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
               />
+              <button
+                type="button"
+                onClick={() => setMostrarNueva(!mostrarNueva)}
+                className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-600"
+              >
+                {mostrarNueva ? (
+                  <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21"
+                    />
+                  </svg>
+                ) : (
+                  <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
+                    />
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
+                    />
+                  </svg>
+                )}
+              </button>
+            </div>
+            <div className="mt-2">
+              <div className="flex justify-between mb-1">
+                <span className="text-xs text-gray-500">Fortaleza de la contraseña:</span>
+                <span className="text-xs font-medium">
+                  {fortaleza === 0 && "Muy débil"}
+                  {fortaleza === 1 && "Débil"}
+                  {fortaleza === 2 && "Moderada"}
+                  {fortaleza === 3 && "Buena"}
+                  {fortaleza === 4 && "Fuerte"}
+                  {fortaleza === 5 && "Muy fuerte"}
+                </span>
+              </div>
+              <div className="w-full h-1.5 bg-gray-200 rounded-full overflow-hidden">
+                <div
+                  className={`h-full transition-all duration-300 ${
+                    fortaleza <= 1
+                      ? "bg-red-500"
+                      : fortaleza <= 2
+                        ? "bg-orange-500"
+                        : fortaleza <= 3
+                          ? "bg-yellow-500"
+                          : fortaleza <= 4
+                            ? "bg-green-500"
+                            : "bg-emerald-500"
+                  }`}
+                  style={{ width: `${(fortaleza / 5) * 100}%` }}
+                ></div>
+              </div>
+              <ul className="mt-2 grid grid-cols-2 gap-x-4 gap-y-1 text-xs text-gray-500">
+                <li className={`flex items-center gap-1 ${/[A-Z]/.test(nueva) ? "text-green-600" : ""}`}>
+                  <div
+                    className={`w-1.5 h-1.5 rounded-full ${/[A-Z]/.test(nueva) ? "bg-green-500" : "bg-gray-300"}`}
+                  ></div>
+                  <span>Mayúsculas</span>
+                </li>
+                <li className={`flex items-center gap-1 ${/[a-z]/.test(nueva) ? "text-green-600" : ""}`}>
+                  <div
+                    className={`w-1.5 h-1.5 rounded-full ${/[a-z]/.test(nueva) ? "bg-green-500" : "bg-gray-300"}`}
+                  ></div>
+                  <span>Minúsculas</span>
+                </li>
+                <li className={`flex items-center gap-1 ${/[0-9]/.test(nueva) ? "text-green-600" : ""}`}>
+                  <div
+                    className={`w-1.5 h-1.5 rounded-full ${/[0-9]/.test(nueva) ? "bg-green-500" : "bg-gray-300"}`}
+                  ></div>
+                  <span>Números</span>
+                </li>
+                <li className={`flex items-center gap-1 ${/[^A-Za-z0-9]/.test(nueva) ? "text-green-600" : ""}`}>
+                  <div
+                    className={`w-1.5 h-1.5 rounded-full ${/[^A-Za-z0-9]/.test(nueva) ? "bg-green-500" : "bg-gray-300"}`}
+                  ></div>
+                  <span>Símbolos</span>
+                </li>
+                <li className={`flex items-center gap-1 ${nueva.length >= 8 ? "text-green-600" : ""}`}>
+                  <div
+                    className={`w-1.5 h-1.5 rounded-full ${nueva.length >= 8 ? "bg-green-500" : "bg-gray-300"}`}
+                  ></div>
+                  <span>Mínimo 8 caracteres</span>
+                </li>
+              </ul>
             </div>
 
             <div className="relative">
@@ -211,17 +324,55 @@ export default function RecuperarPasswordPage() {
                 <Lock className="h-5 w-5 text-blue-500" />
               </div>
               <input
-                type="password"
+                type={mostrarConfirmar ? "text" : "password"}
                 placeholder="Confirmar nueva contraseña"
                 value={confirmar}
                 onChange={(e) => setConfirmar(e.target.value)}
-                className="pl-10 w-full border border-gray-300 rounded-lg px-3 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                className={`pl-10 pr-12 w-full border ${
+                  confirmar && nueva !== confirmar
+                    ? "border-red-300 focus:ring-red-200 focus:border-red-500"
+                    : "border-gray-300 focus:ring-blue-200 focus:border-blue-500"
+                } rounded-lg px-3 py-3 focus:outline-none focus:ring-2 transition-all`}
               />
+              <button
+                type="button"
+                onClick={() => setMostrarConfirmar(!mostrarConfirmar)}
+                className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-600"
+              >
+                {mostrarConfirmar ? (
+                  <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21"
+                    />
+                  </svg>
+                ) : (
+                  <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
+                    />
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
+                    />
+                  </svg>
+                )}
+              </button>
             </div>
+            {confirmar && nueva !== confirmar && (
+              <p className="text-xs text-red-500 mt-1">Las contraseñas no coinciden</p>
+            )}
 
             <button
               onClick={handleResetPassword}
-              disabled={loading}
+              disabled={loading || !nueva || !confirmar || nueva !== confirmar || fortaleza < 3}
               className={`w-full flex items-center justify-center bg-blue-700 text-white py-3 px-4 rounded-lg hover:bg-blue-800 transition-all transform hover:scale-[1.02] ${
                 loading ? "opacity-70 cursor-not-allowed" : ""
               }`}
