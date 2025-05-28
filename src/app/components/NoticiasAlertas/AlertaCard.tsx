@@ -31,10 +31,10 @@ export default function AlertaCard({ mensaje, hora, tipo, idestacion, idruta, pr
         }
       default:
         return {
-          border: "border-yellow-500",
-          bg: "from-yellow-50 to-white",
-          badge: "bg-yellow-500",
-          icon: "text-yellow-600",
+          border: "border-green-500",
+          bg: "from-green-50 to-white",
+          badge: "bg-green-500",
+          icon: "text-green-600",
         }
     }
   }
