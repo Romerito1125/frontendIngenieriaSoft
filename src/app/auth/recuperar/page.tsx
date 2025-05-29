@@ -5,6 +5,7 @@ import toast, { Toaster } from "react-hot-toast"
 import Link from "next/link"
 import Image from "next/image"
 import { ArrowLeft, Mail, Key, Lock, RefreshCw, CheckCircle } from "lucide-react"
+import { enviarOtp, verificarOtp, resetPassword, evaluarFortaleza } from "./utils"
 
 export default function RecuperarPasswordPage() {
   const [correo, setCorreo] = useState("")
@@ -24,16 +25,10 @@ export default function RecuperarPasswordPage() {
 
     setLoading(true)
     try {
-      const res = await fetch("https://www.cuentas.devcorebits.com/cuenta/send-otp", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ correo, tipo: "recuperacion" }),
-      })
-
-      if (!res.ok) throw new Error()
+      await enviarOtp({ correo, tipo: "recuperacion" })
       toast.success("Código OTP enviado al correo")
       setFase("verificacion")
-    } catch {
+    } catch (error) {
       toast.error("Error al enviar OTP")
     } finally {
       setLoading(false)
@@ -47,13 +42,7 @@ export default function RecuperarPasswordPage() {
 
     setLoading(true)
     try {
-      const res = await fetch("https://www.cuentas.devcorebits.com/cuenta/verify-otp", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ correo, otp }),
-      })
-
-      if (!res.ok) throw new Error("OTP inválido o expirado")
+      await verificarOtp({ correo, otp })
       toast.success("OTP verificado")
       setFase("recuperacion")
     } catch (e: unknown) {
@@ -82,15 +71,7 @@ export default function RecuperarPasswordPage() {
 
     setLoading(true)
     try {
-      const res = await fetch("https://www.cuentas.devcorebits.com/cuenta/reset-password", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ correo, nuevaContrasenia: nueva }),
-      })
-
-      const data = await res.json()
-      if (!res.ok) throw new Error(data.message || "Error al cambiar contraseña")
-
+      await resetPassword({ correo, nuevaContrasenia: nueva })
       toast.success("Contraseña restablecida con éxito")
       setTimeout(() => (window.location.href = "/auth/login"), 2000)
     } catch (e: unknown) {
@@ -104,13 +85,8 @@ export default function RecuperarPasswordPage() {
     }
   }
 
-  const evaluarFortaleza = (password: string) => {
-    let puntaje = 0
-    if (password.length >= 8) puntaje++
-    if (/[A-Z]/.test(password)) puntaje++
-    if (/[a-z]/.test(password)) puntaje++
-    if (/[0-9]/.test(password)) puntaje++
-    if (/[^A-Za-z0-9]/.test(password)) puntaje++
+  const actualizarFortaleza = (password: string) => {
+    const puntaje = evaluarFortaleza(password)
     setFortaleza(puntaje)
     return puntaje
   }
@@ -216,12 +192,13 @@ export default function RecuperarPasswordPage() {
                 <Lock className="h-5 w-5 text-blue-500" />
               </div>
               <input
+                data-testid = 'inputcito'
                 type={mostrarNueva ? "text" : "password"}
                 placeholder="Nueva contraseña"
                 value={nueva}
                 onChange={(e) => {
                   setNueva(e.target.value)
-                  evaluarFortaleza(e.target.value)
+                  actualizarFortaleza(e.target.value)
                 }}
                 className="pl-10 pr-12 w-full border border-gray-300 rounded-lg px-3 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
               />

@@ -12,6 +12,17 @@
 
 # testing
 /coverage
+**/__tests__/
+**/*.test.*
+**/*.spec.*
+*.snap
+jest.config.*
+jest.setup.*
+vitest.config.*
+playwright.config.*
+cypress/
+tests/
+test/
 
 # next.js
 /.next/

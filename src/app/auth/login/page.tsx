@@ -10,7 +10,7 @@ import { loginUsuario } from "./utils"
 import { Eye, EyeOff, LogIn, Mail, Lock } from "lucide-react"
 import Image from "next/image"
 import Link from "next/link"
-
+const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 export default function LoginPage() {
   const router = useRouter()
   const [correo, setCorreo] = useState("")
@@ -27,6 +27,22 @@ export default function LoginPage() {
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault()
+    if (correo.trim() === "" && contrasenia.trim() === "") {
+      toast.error("Completa todos los campos")
+      return
+    }
+    if (!emailRegex.test(correo)) {
+      toast.error("Ingresa un correo electrónico válido")
+      return
+    }
+    if (contrasenia.trim() === "") {
+      toast.error("La contraseña no puede estar vacía")
+      return
+    }
+    if (contrasenia.length < 6) {
+      toast.error("La contraseña debe tener al menos 6 caracteres")
+      return
+    }
     setLoading(true)
     try {
       const { token } = await loginUsuario({ correo, contrasenia })
@@ -72,12 +88,11 @@ export default function LoginPage() {
                     <Mail className="h-5 w-5 text-blue-500" />
                   </div>
                   <input
-                    type="email"
+                    type="text"
                     value={correo}
                     onChange={(e) => setCorreo(e.target.value)}
                     className="pl-10 w-full border border-gray-300 rounded-lg px-3 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
                     placeholder="correo@ejemplo.com"
-                    required
                   />
                 </div>
               </div>
@@ -99,8 +114,6 @@ export default function LoginPage() {
                     onChange={(e) => setContrasenia(e.target.value)}
                     className="pl-10 w-full border border-gray-300 rounded-lg px-3 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
                     placeholder="••••••••"
-                    required
-                    minLength={6}
                   />
                   <button
                     type="button"
@@ -118,7 +131,6 @@ export default function LoginPage() {
 
               <button
                 type="submit"
-                disabled={!isFormValid || loading}
                 className={`w-full flex items-center justify-center bg-blue-700 text-white py-3 px-4 rounded-lg hover:bg-blue-800 transition-all transform hover:scale-[1.02] ${
                   loading ? "opacity-70 cursor-not-allowed" : ""
                 }`}

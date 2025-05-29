@@ -101,8 +101,7 @@ export default function ForoDetailPage() {
             nombreUsuario: nombreValido,
           }
 
-          // Para las nuevas respuestas/réplicas, necesitamos reconstruir el árbol
-          // Por simplicidad, vamos a recargar el árbol completo
+
           const recargarArbol = async () => {
             try {
               const arbolActualizado = await listarRespuestasArbol(id)

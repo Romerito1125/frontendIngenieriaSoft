@@ -83,7 +83,6 @@ export default function RegisterPage() {
 
   return (
     <div className="flex min-h-screen bg-gradient-to-br from-blue-50 to-blue-100">
-      {/* Left Column - Image */}
       <div className="hidden lg:block lg:w-1/2 bg-blue-700 relative overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-br from-blue-600/90 to-blue-900/90 z-10"></div>
         <div className="absolute inset-0 z-0">
@@ -132,7 +131,6 @@ export default function RegisterPage() {
         </div>
       </div>
 
-      {/* Right Column - Register Form */}
       <div className="w-full lg:w-1/2 flex items-center justify-center p-8">
         <div className="w-full max-w-md">
           <Toaster position="top-center" />
@@ -221,6 +219,7 @@ export default function RegisterPage() {
                     <Lock className="h-5 w-5 text-blue-500" />
                   </div>
                   <input
+                    data-testid="contrasenia"
                     type={showPassword ? "text" : "password"}
                     placeholder="Mínimo 8 caracteres"
                     value={contrasenia}
@@ -233,6 +232,7 @@ export default function RegisterPage() {
                     minLength={8}
                   />
                   <button
+                    data-testid = "ojito"
                     type="button"
                     onClick={() => setShowPassword(!showPassword)}
                     className="absolute inset-y-0 right-0 pr-3 flex items-center"
