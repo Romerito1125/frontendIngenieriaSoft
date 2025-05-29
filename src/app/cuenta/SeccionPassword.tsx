@@ -32,7 +32,7 @@ export default function SeccionPassword({ correo }: Props) {
     setCargando(true)
     try {
       console.log("📤 Enviando solicitud OTP...")
-      const res = await fetch("https://www.cuentas.devcorebits.com/cuenta/send-otp", {
+      const res = await fetch("https://www.api.devcorebits.com/cuentasGateway/cuenta/send-otp", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ correo: correo.trim(), tipo: "cambio" }),
@@ -87,7 +87,7 @@ export default function SeccionPassword({ correo }: Props) {
     setCargando(true)
     try {
       console.log("📤 Enviando verificación OTP...")
-      const res = await fetch("https://www.cuentas.devcorebits.com/cuenta/verify-otp", {
+      const res = await fetch("https://www.api.devcorebits.com/cuentasGateway/cuenta/verify-otp", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ correo: correo.trim(), otp }),
@@ -169,7 +169,7 @@ export default function SeccionPassword({ correo }: Props) {
       console.log("Payload:", payload)
 
       // Usar el endpoint correcto que existe en el backend
-      const res = await fetch("https://www.cuentas.devcorebits.com/cuenta/cambiar-password", {
+      const res = await fetch("https://www.api.devcorebits.com/cuentasGateway/cuenta/cambiar-password", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

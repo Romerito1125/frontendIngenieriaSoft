@@ -37,7 +37,7 @@ export default function SeccionCuenta({ correo, id }: Props) {
     if (!id) return
 
     setCargandoDatos(true)
-    fetch(`https://www.cuentas.devcorebits.com/cuenta/getCuenta/${id}`)
+    fetch(`https://www.api.devcorebits.com/cuentasGateway/cuenta/getCuenta/${id}`)
       .then((res) => {
         if (!res.ok) {
           throw new Error("Error al cargar la cuenta")
@@ -77,7 +77,7 @@ export default function SeccionCuenta({ correo, id }: Props) {
     setCargando(true)
     try {
       console.log("📤 Enviando solicitud OTP...")
-      const res = await fetch("https://www.cuentas.devcorebits.com/cuenta/send-otp", {
+      const res = await fetch("https://www.api.devcorebits.com/cuentasGateway/cuenta/send-otp", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ correo, tipo: "actualizacion" }),
@@ -122,7 +122,7 @@ export default function SeccionCuenta({ correo, id }: Props) {
     setCargando(true)
     try {
       console.log("📤 Enviando verificación OTP...")
-      const res = await fetch("https://www.cuentas.devcorebits.com/cuenta/verify-otp", {
+      const res = await fetch("https://www.api.devcorebits.com/cuentasGateway/cuenta/verify-otp", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ correo, otp }),
@@ -192,7 +192,7 @@ export default function SeccionCuenta({ correo, id }: Props) {
       }
       console.log("Payload:", payload)
 
-      const res = await fetch("https://www.cuentas.devcorebits.com/cuenta/actualizar-con-otp", {
+      const res = await fetch("https://www.api.devcorebits.com/cuentasGateway/cuenta/actualizar-con-otp", {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),
@@ -232,7 +232,7 @@ export default function SeccionCuenta({ correo, id }: Props) {
 
       // Recargar los datos desde el servidor para confirmar la actualización
       console.log("🔄 Recargando datos desde el servidor...")
-      const reloadRes = await fetch(`https://www.cuentas.devcorebits.com/cuenta/getCuenta/${id}`)
+      const reloadRes = await fetch(`https://www.api.devcorebits.com/cuentasGateway/cuenta/getCuenta/${id}`)
       if (reloadRes.ok) {
         const reloadData = await reloadRes.json()
         console.log("📥 Datos recargados:", reloadData)

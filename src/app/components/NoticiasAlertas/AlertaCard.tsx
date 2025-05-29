@@ -1,18 +1,17 @@
 "use client"
 import { motion } from "framer-motion"
-import { useIsAdmin } from "../../hooks/isAdmin"
 
 type AlertaProps = {
   mensaje: string
   hora: string
   tipo: string
-  idestacion: string
+  nombreEstacion: string
   idruta: string
   prioridad: string
+  icono: string
 }
 
-export default function AlertaCard({ mensaje, hora, tipo, idestacion, idruta, prioridad }: AlertaProps) {
-  // Determinar el color de fondo y borde según la prioridad
+export default function AlertaCard({ mensaje, hora, tipo, nombreEstacion, idruta, prioridad, icono }: AlertaProps) {
   const getPriorityStyles = () => {
     switch (prioridad.toLowerCase()) {
       case "alta":
@@ -50,21 +49,8 @@ export default function AlertaCard({ mensaje, hora, tipo, idestacion, idruta, pr
       className={`border-l-4 ${styles.border} bg-gradient-to-br ${styles.bg} rounded-lg p-5 shadow-sm hover:shadow-md transition-all duration-300`}
     >
       <div className="flex items-start gap-3">
-        <div className={`${styles.icon} mt-1`}>
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            className="h-5 w-5"
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke="currentColor"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
-            />
-          </svg>
+        <div className={`${styles.icon} text-lg mt-1`}>
+          {icono}
         </div>
 
         <div className="flex-1 space-y-2">
@@ -87,7 +73,7 @@ export default function AlertaCard({ mensaje, hora, tipo, idestacion, idruta, pr
               <span className="font-medium">Ruta:</span>
               <span className="bg-blue-100 text-blue-800 px-2 py-0.5 rounded">{idruta}</span>
               <span className="font-medium ml-2">Estación:</span>
-              <span className="bg-blue-100 text-blue-800 px-2 py-0.5 rounded">{idestacion}</span>
+              <span className="bg-blue-100 text-blue-800 px-2 py-0.5 rounded">{nombreEstacion}</span>
             </div>
 
             <p className="text-gray-400">

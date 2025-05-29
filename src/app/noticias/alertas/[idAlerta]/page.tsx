@@ -23,7 +23,7 @@ export default function AlertaDetalle() {
   useEffect(() => {
     const fetchAlerta = async () => {
       try {
-        const res = await fetch(`https://www.alertas.devcorebits.com/alertas/alertaEspecifica/${idAlerta}`);
+        const res = await fetch(`https://www.api.devcorebits.com/alertasGateway/alertas/alertaEspecifica/${idAlerta}`);
         const data: Alerta = await res.json();
         setAlerta(data);
       } catch (error) {

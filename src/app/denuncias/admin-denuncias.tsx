@@ -55,7 +55,7 @@ export function AdminDenuncias({ userId }: AdminDenunciasProps) {
   const [responses, setResponses] = useState<{ [key: number]: string }>({})
   const [submittingResponse, setSubmittingResponse] = useState<number | null>(null)
 
-  const API_BASE_URL = "https://serviciodenuncias.onrender.com/denuncias"
+  const API_BASE_URL = "https://www.api.devcorebits.com/denunciasGateway/denuncias"
 
   const fetchAllDenuncias = async () => {
     try {

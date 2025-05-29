@@ -1,108 +1,124 @@
 //Zuluaga
 
+"use client";
 
-"use client"
+import type React from "react";
 
-import type React from "react"
-
-import { useState } from "react"
-import axios from "axios"
-import toast, { Toaster } from "react-hot-toast"
-import { Button } from "@/components/ui/button"
-import { Label } from "@/components/ui/label"
-import { Textarea } from "@/components/ui/textarea"
-import { AlertCircle, CheckCircle, Loader2, User, MessageSquare, Building, Send, Check } from "lucide-react"
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
-import { motion } from "framer-motion"
+import { useState } from "react";
+import axios from "axios";
+import toast, { Toaster } from "react-hot-toast";
+import { Button } from "@/components/ui/button";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import {
+  AlertCircle,
+  CheckCircle,
+  Loader2,
+  User,
+  MessageSquare,
+  Building,
+  Send,
+  Check,
+} from "lucide-react";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { motion } from "framer-motion";
 
 interface CrearDenunciaProps {
-  userId: number
+  userId: number;
 }
 
 export function CrearDenuncia({ userId }: CrearDenunciaProps) {
-  const [isSubmitting, setIsSubmitting] = useState(false)
-  const [error, setError] = useState<string | null>(null)
-  const [success, setSuccess] = useState(false)
-  const [charCount, setCharCount] = useState(0)
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [success, setSuccess] = useState(false);
+  const [charCount, setCharCount] = useState(0);
 
-  // URL base del API correcta
-  const API_BASE_URL = "https://serviciodenuncias.onrender.com/denuncias"
+  const API_BASE_URL =
+    "https://www.api.devcorebits.com/denunciasGateway/denuncias";
 
   const [formData, setFormData] = useState({
     idcuenta: userId,
     mensaje: "",
     tipo: "servicio", // Valor por defecto
-  })
+  });
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-    const { name, value } = e.target
-    setFormData((prev) => ({ ...prev, [name]: value }))
+  const handleChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+  ) => {
+    const { name, value } = e.target;
+    setFormData((prev) => ({ ...prev, [name]: value }));
 
     if (name === "mensaje") {
-      setCharCount(value.length)
+      setCharCount(value.length);
     }
-  }
+  };
 
   const handleCardClick = (tipo: string) => {
-    setFormData((prev) => ({ ...prev, tipo }))
-  }
+    setFormData((prev) => ({ ...prev, tipo }));
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
+    e.preventDefault();
 
     if (!formData.mensaje.trim()) {
-      setError("Por favor, describe el problema o incidente")
-      return
+      setError("Por favor, describe el problema o incidente");
+      return;
     }
 
     if (!userId) {
-      setError("No se pudo identificar al usuario. Por favor, inicia sesión nuevamente.")
-      return
+      setError(
+        "No se pudo identificar al usuario. Por favor, inicia sesión nuevamente."
+      );
+      return;
     }
 
     try {
-      setIsSubmitting(true)
-      setError(null)
+      setIsSubmitting(true);
+      setError(null);
 
       // Usar la ruta exacta según el router proporcionado
-      const apiUrl = `${API_BASE_URL}/crearDenuncia`
-      console.log(`Creando denuncia para el usuario ID: ${userId}`)
+      const apiUrl = `${API_BASE_URL}/crearDenuncia`;
+      console.log(`Creando denuncia para el usuario ID: ${userId}`);
 
       const response = await axios.post(apiUrl, {
         ...formData,
         idcuenta: userId,
-      })
+      });
 
-      setSuccess(true)
+      setSuccess(true);
       setFormData({
         idcuenta: userId,
         mensaje: "",
         tipo: "servicio",
-      })
-      setCharCount(0)
+      });
+      setCharCount(0);
 
-      toast.success("Tu denuncia ha sido registrada correctamente")
+      toast.success("Tu denuncia ha sido registrada correctamente");
 
       // Resetear el estado de éxito después de 3 segundos
       setTimeout(() => {
-        setSuccess(false)
-      }, 3000)
+        setSuccess(false);
+      }, 3000);
     } catch (err: any) {
-      console.error("Error al crear denuncia:", err)
+      console.error("Error al crear denuncia:", err);
 
       if (err.response) {
-        setError(`Error del servidor: ${err.response.status}. Por favor, intenta nuevamente más tarde.`)
+        setError(
+          `Error del servidor: ${err.response.status}. Por favor, intenta nuevamente más tarde.`
+        );
       } else if (err.request) {
-        setError("No se pudo conectar con el servidor. Verifica tu conexión a internet.")
+        setError(
+          "No se pudo conectar con el servidor. Verifica tu conexión a internet."
+        );
       } else {
-        setError(`Error: ${err.message}`)
+        setError(`Error: ${err.message}`);
       }
 
-      toast.error("Error al enviar la denuncia")
+      toast.error("Error al enviar la denuncia");
     } finally {
-      setIsSubmitting(false)
+      setIsSubmitting(false);
     }
-  }
+  };
 
   return (
     <motion.div
@@ -137,9 +153,12 @@ export function CrearDenuncia({ userId }: CrearDenunciaProps) {
       />
 
       <div className="mb-8">
-        <h2 className="text-2xl font-bold text-blue-600">Reportar un problema</h2>
+        <h2 className="text-2xl font-bold text-blue-600">
+          Reportar un problema
+        </h2>
         <p className="text-gray-500 mt-2">
-          Ayúdanos a mejorar nuestro servicio reportando cualquier incidente o problema que hayas experimentado.
+          Ayúdanos a mejorar nuestro servicio reportando cualquier incidente o
+          problema que hayas experimentado.
         </p>
       </div>
 
@@ -149,7 +168,10 @@ export function CrearDenuncia({ userId }: CrearDenunciaProps) {
           animate={{ opacity: 1, height: "auto" }}
           exit={{ opacity: 0, height: 0 }}
         >
-          <Alert variant="destructive" className="mb-6 border-l-4 border-l-red-600 shadow-md">
+          <Alert
+            variant="destructive"
+            className="mb-6 border-l-4 border-l-red-600 shadow-md"
+          >
             <AlertCircle className="h-5 w-5" />
             <AlertTitle className="font-semibold">Error</AlertTitle>
             <AlertDescription>{error}</AlertDescription>
@@ -165,9 +187,12 @@ export function CrearDenuncia({ userId }: CrearDenunciaProps) {
         >
           <Alert className="mb-6 bg-green-50 border border-green-200 border-l-4 border-l-green-500 shadow-md">
             <CheckCircle className="h-5 w-5 text-green-500" />
-            <AlertTitle className="text-green-700 font-semibold">¡Denuncia enviada!</AlertTitle>
+            <AlertTitle className="text-green-700 font-semibold">
+              ¡Denuncia enviada!
+            </AlertTitle>
             <AlertDescription className="text-green-600">
-              Tu denuncia ha sido registrada correctamente. Será revisada por nuestro equipo lo antes posible.
+              Tu denuncia ha sido registrada correctamente. Será revisada por
+              nuestro equipo lo antes posible.
             </AlertDescription>
           </Alert>
         </motion.div>
@@ -177,16 +202,22 @@ export function CrearDenuncia({ userId }: CrearDenunciaProps) {
         <div className="bg-white border border-gray-200 shadow-md hover:shadow-lg transition-all duration-300 rounded-xl overflow-hidden">
           {/* Encabezado con fondo azul completo */}
           <div className="bg-blue-50 p-6">
-            <h3 className="text-xl font-semibold text-blue-600">Nueva denuncia</h3>
+            <h3 className="text-xl font-semibold text-blue-600">
+              Nueva denuncia
+            </h3>
             <p className="text-gray-600 mt-1">
-              Completa el formulario con los detalles del problema que deseas reportar
+              Completa el formulario con los detalles del problema que deseas
+              reportar
             </p>
           </div>
 
           <div className="p-6">
             <div className="space-y-8">
               <div className="space-y-4">
-                <Label htmlFor="tipo-denuncia" className="text-blue-600 font-medium text-base">
+                <Label
+                  htmlFor="tipo-denuncia"
+                  className="text-blue-600 font-medium text-base"
+                >
                   Tipo de denuncia
                 </Label>
 
@@ -204,10 +235,18 @@ export function CrearDenuncia({ userId }: CrearDenunciaProps) {
                     <div className="p-4 flex flex-col items-center text-center h-full">
                       <div
                         className={`w-16 h-16 rounded-full flex items-center justify-center mb-3 mt-2 
-                          ${formData.tipo === "servicio" ? "bg-green-100" : "bg-gray-100"}`}
+                          ${
+                            formData.tipo === "servicio"
+                              ? "bg-green-100"
+                              : "bg-gray-100"
+                          }`}
                       >
                         <MessageSquare
-                          className={`h-7 w-7 ${formData.tipo === "servicio" ? "text-green-500" : "text-gray-500"}`}
+                          className={`h-7 w-7 ${
+                            formData.tipo === "servicio"
+                              ? "text-green-500"
+                              : "text-gray-500"
+                          }`}
                         />
                       </div>
                       <div className="flex items-center mb-2">
@@ -219,11 +258,15 @@ export function CrearDenuncia({ userId }: CrearDenunciaProps) {
                                 : "border-gray-300 bg-white"
                             }`}
                         >
-                          {formData.tipo === "servicio" && <Check className="h-3 w-3 text-white" />}
+                          {formData.tipo === "servicio" && (
+                            <Check className="h-3 w-3 text-white" />
+                          )}
                         </div>
                         <span className="font-medium">Servicio</span>
                       </div>
-                      <p className="text-xs text-gray-500">Problemas con horarios, rutas o servicio general</p>
+                      <p className="text-xs text-gray-500">
+                        Problemas con horarios, rutas o servicio general
+                      </p>
                     </div>
                   </div>
 
@@ -240,24 +283,38 @@ export function CrearDenuncia({ userId }: CrearDenunciaProps) {
                     <div className="p-4 flex flex-col items-center text-center h-full">
                       <div
                         className={`w-16 h-16 rounded-full flex items-center justify-center mb-3 mt-2 
-                          ${formData.tipo === "conductor" ? "bg-blue-100" : "bg-gray-100"}`}
+                          ${
+                            formData.tipo === "conductor"
+                              ? "bg-blue-100"
+                              : "bg-gray-100"
+                          }`}
                       >
                         <User
-                          className={`h-7 w-7 ${formData.tipo === "conductor" ? "text-blue-500" : "text-gray-500"}`}
+                          className={`h-7 w-7 ${
+                            formData.tipo === "conductor"
+                              ? "text-blue-500"
+                              : "text-gray-500"
+                          }`}
                         />
                       </div>
                       <div className="flex items-center mb-2">
                         <div
                           className={`w-5 h-5 rounded-full border flex items-center justify-center mr-2 
                             ${
-                              formData.tipo === "conductor" ? "border-blue-500 bg-blue-500" : "border-gray-300 bg-white"
+                              formData.tipo === "conductor"
+                                ? "border-blue-500 bg-blue-500"
+                                : "border-gray-300 bg-white"
                             }`}
                         >
-                          {formData.tipo === "conductor" && <Check className="h-3 w-3 text-white" />}
+                          {formData.tipo === "conductor" && (
+                            <Check className="h-3 w-3 text-white" />
+                          )}
                         </div>
                         <span className="font-medium">Conductor</span>
                       </div>
-                      <p className="text-xs text-gray-500">Comportamiento inadecuado o problemas con conductores</p>
+                      <p className="text-xs text-gray-500">
+                        Comportamiento inadecuado o problemas con conductores
+                      </p>
                     </div>
                   </div>
 
@@ -274,10 +331,18 @@ export function CrearDenuncia({ userId }: CrearDenunciaProps) {
                     <div className="p-4 flex flex-col items-center text-center h-full">
                       <div
                         className={`w-16 h-16 rounded-full flex items-center justify-center mb-3 mt-2 
-                          ${formData.tipo === "estacion" ? "bg-purple-100" : "bg-gray-100"}`}
+                          ${
+                            formData.tipo === "estacion"
+                              ? "bg-purple-100"
+                              : "bg-gray-100"
+                          }`}
                       >
                         <Building
-                          className={`h-7 w-7 ${formData.tipo === "estacion" ? "text-purple-500" : "text-gray-500"}`}
+                          className={`h-7 w-7 ${
+                            formData.tipo === "estacion"
+                              ? "text-purple-500"
+                              : "text-gray-500"
+                          }`}
                         />
                       </div>
                       <div className="flex items-center mb-2">
@@ -289,11 +354,15 @@ export function CrearDenuncia({ userId }: CrearDenunciaProps) {
                                 : "border-gray-300 bg-white"
                             }`}
                         >
-                          {formData.tipo === "estacion" && <Check className="h-3 w-3 text-white" />}
+                          {formData.tipo === "estacion" && (
+                            <Check className="h-3 w-3 text-white" />
+                          )}
                         </div>
                         <span className="font-medium">Estación</span>
                       </div>
-                      <p className="text-xs text-gray-500">Problemas con instalaciones, limpieza o seguridad</p>
+                      <p className="text-xs text-gray-500">
+                        Problemas con instalaciones, limpieza o seguridad
+                      </p>
                     </div>
                   </div>
                 </div>
@@ -301,10 +370,17 @@ export function CrearDenuncia({ userId }: CrearDenunciaProps) {
 
               <div className="space-y-3">
                 <div className="flex justify-between items-center">
-                  <Label htmlFor="mensaje" className="text-blue-600 font-medium text-base">
+                  <Label
+                    htmlFor="mensaje"
+                    className="text-blue-600 font-medium text-base"
+                  >
                     Descripción del problema
                   </Label>
-                  <span className={`text-xs ${charCount > 500 ? "text-red-500" : "text-gray-500"}`}>
+                  <span
+                    className={`text-xs ${
+                      charCount > 500 ? "text-red-500" : "text-gray-500"
+                    }`}
+                  >
                     {charCount}/500 caracteres
                   </span>
                 </div>
@@ -319,7 +395,8 @@ export function CrearDenuncia({ userId }: CrearDenunciaProps) {
                   required
                 />
                 <p className="text-xs text-gray-500 italic">
-                  Por favor, incluye detalles como fecha, hora, ubicación y cualquier otra información relevante.
+                  Por favor, incluye detalles como fecha, hora, ubicación y
+                  cualquier otra información relevante.
                 </p>
               </div>
 
@@ -345,5 +422,5 @@ export function CrearDenuncia({ userId }: CrearDenunciaProps) {
         </div>
       </form>
     </motion.div>
-  )
+  );
 }

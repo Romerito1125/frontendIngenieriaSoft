@@ -5,7 +5,7 @@ type RegisterPayload = {
   contrasenia: string
 }
 
-const API_URL = "https://www.cuentas.devcorebits.com/cuenta"
+const API_URL = "https://www.api.devcorebits.com/cuentasGateway/cuenta"
 
 export async function registerUsuario(data: RegisterPayload) {
   const res = await fetch(`${API_URL}/register`, {

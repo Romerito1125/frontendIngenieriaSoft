@@ -28,7 +28,7 @@ export default function SeccionPrivacidad({ correo }: Props) {
     setCargando(true)
     try {
       console.log("📤 Enviando solicitud OTP...")
-      const res = await fetch("https://www.cuentas.devcorebits.com/cuenta/send-otp", {
+      const res = await fetch("https://www.api.devcorebits.com/cuentasGateway/cuenta/send-otp", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ correo: correo.trim(), tipo: "eliminacion" }),
@@ -78,7 +78,7 @@ export default function SeccionPrivacidad({ correo }: Props) {
     setCargando(true)
     try {
       console.log("📤 Enviando verificación OTP...")
-      const res = await fetch("https://www.cuentas.devcorebits.com/cuenta/verify-otp", {
+      const res = await fetch("https://www.api.devcorebits.com/cuentasGateway/cuenta/verify-otp", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ correo: correo.trim(), otp }),
@@ -131,7 +131,7 @@ export default function SeccionPrivacidad({ correo }: Props) {
     try {
       console.log("📤 Buscando cuenta por correo...")
       // Primero buscar la cuenta por correo para obtener el ID
-      const buscarRes = await fetch(`https://www.cuentas.devcorebits.com/cuenta/buscar-por-correo`, {
+      const buscarRes = await fetch(`https://www.api.devcorebits.com/cuentasGateway/cuenta/buscar-por-correo`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ correo: correo.trim() }),
@@ -173,7 +173,7 @@ export default function SeccionPrivacidad({ correo }: Props) {
 
       console.log("📤 Eliminando cuenta con ID:", cuentaId)
       // Ahora eliminar usando el ID
-      const res = await fetch(`https://www.cuentas.devcorebits.com/cuenta/eliminar/${cuentaId}`, {
+      const res = await fetch(`https://www.api.devcorebits.com/cuentasGateway/cuenta/eliminar/${cuentaId}`, {
         method: "DELETE",
         headers: { "Content-Type": "application/json" },
       })

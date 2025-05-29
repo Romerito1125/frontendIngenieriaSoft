@@ -81,7 +81,7 @@ const RegistrarTarjeta: React.FC<Props> = ({ isOpen, onClose, onSuccess, cuentaI
 
     setLoading(true)
     try {
-      const res = await fetch("https://www.cuentas.devcorebits.com/cuenta/send-otp", {
+      const res = await fetch("https://www.api.devcorebits.com/cuentasGateway/cuenta/send-otp", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ correo, tipo: "registro_tarjeta" }),
@@ -110,7 +110,7 @@ const RegistrarTarjeta: React.FC<Props> = ({ isOpen, onClose, onSuccess, cuentaI
     setLoading(true)
     try {
       // Verificar OTP
-      const resOtp = await fetch("https://www.cuentas.devcorebits.com/cuenta/verify-otp", {
+      const resOtp = await fetch("https://www.api.devcorebits.com/cuentasGateway/cuenta/verify-otp", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ correo, otp }),
@@ -128,14 +128,14 @@ const RegistrarTarjeta: React.FC<Props> = ({ isOpen, onClose, onSuccess, cuentaI
 
       // Debug: Log what we're sending to the backend
       console.log("Sending to backend:", {
-        url: `https://serviciotarjetas.onrender.com/tarjetas/crearTarjeta/${cuentaId}`,
+        url: `https://www.api.devcorebits.com/tarjetasGateway/tarjetas/crearTarjeta/${cuentaId}`,
         body: { numeroTarjeta },
         cuentaId,
         numeroTarjeta,
       })
 
       // Registrar tarjeta
-      const resTarjeta = await fetch(`https://serviciotarjetas.onrender.com/tarjetas/crearTarjeta/${cuentaId}`, {
+      const resTarjeta = await fetch(`https://www.api.devcorebits.com/tarjetasGateway/tarjetas/crearTarjeta/${cuentaId}`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ numeroTarjeta }),

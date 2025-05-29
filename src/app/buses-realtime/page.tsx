@@ -67,7 +67,7 @@ export default function MapaMIO() {
 
   const iniciarSimulacion = async () => {
     try {
-      await axios.post("https://www.tiemporeal.devcorebits.com/sim/inicio", { idruta });
+      await axios.post("https://www.api.devcorebits.com/tiemporealGateway/sim/inicio", { idruta });
       setRutaActiva(idruta);
       obtenerEstaciones(idruta);
     } catch (err) {
@@ -78,7 +78,7 @@ export default function MapaMIO() {
   const obtenerEstaciones = async (ruta: string) => {
     try {
       const { data } = await axios.get(
-        `https://www.tiemporeal.devcorebits.com/sim/recorrido/${ruta}`
+        `https://www.api.devcorebits.com/tiemporealGateway/sim/recorrido/${ruta}`
       );
       setEstaciones(data);
     } catch (err) {
@@ -90,7 +90,7 @@ export default function MapaMIO() {
     if (!rutaActiva) return;
     try {
       const { data } = await axios.get(
-        `https://www.tiemporeal.devcorebits.com/sim/buses/${rutaActiva}`
+        `https://www.api.devcorebits.com/tiemporealGateway/sim/buses/${rutaActiva}`
       );
       setBuses(data);
     } catch (err) {
@@ -101,7 +101,7 @@ export default function MapaMIO() {
   const obtenerTiempoEstacion = async (idestacion: number) => {
     try {
       const { data } = await axios.get(
-        `https://www.tiemporeal.devcorebits.com/sim/tiempo-llegada/${idestacion}`
+        `https://www.api.devcorebits.com/tiemporealGateway/sim/tiempo-llegada/${idestacion}`
       );
       setTiempoEstacion(data);
     } catch (error) {
@@ -129,7 +129,7 @@ export default function MapaMIO() {
   useEffect(() => {
     const fetchRutas = async () => {
       try {
-        const { data }: { data: Ruta[] } = await axios.get("https://www.tiemporeal.devcorebits.com/rutas");
+        const { data }: { data: Ruta[] } = await axios.get("https://www.api.devcorebits.com/tiemporealGateway/rutas");
         setRutasDisponibles(data.map((ruta) => ruta.idruta));
       } catch (error) {
         console.error("Error al cargar rutas:", error);

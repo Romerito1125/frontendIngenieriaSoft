@@ -21,7 +21,7 @@ export default function CrearAlertaForm() {
     const fetchRutas = async () => {
       try {
         const response = await fetch(
-          "https://www.tiemporeal.devcorebits.com/rutas"
+          "https://www.api.devcorebits.com/tiemporealGateway/rutas"
         );
         const data = await response.json();
         setRutas(data);
@@ -36,7 +36,7 @@ export default function CrearAlertaForm() {
     const fetchEstaciones = async () => {
       try {
         const response = await fetch(
-          "https://www.tiemporeal.devcorebits.com/estaciones"
+          "https://www.api.devcorebits.com/tiemporealGateway/estaciones"
         );
         const data = await response.json();
         setEstaciones(data);
@@ -72,7 +72,7 @@ export default function CrearAlertaForm() {
 
     try {
       const response = await fetch(
-        "https://www.alertas.devcorebits.com/alertas/crearAlerta",
+        "https://www.api.devcorebits.com/alertasGateway/alertas/crearAlerta",
         {
           method: "POST",
           headers: {
@@ -124,7 +124,7 @@ export default function CrearAlertaForm() {
               onChange={handleChange}
               required
               className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-red-500 focus:ring-4 focus:ring-red-500/20 transition-all duration-300 bg-gradient-to-r from-white to-gray-50 hover:from-gray-50 hover:to-white"
-              placeholder="Ej: Retraso, Accidente, Mantenimiento..."
+              placeholder="Demora, cierre, accidente."
             />
           </div>
 
@@ -152,7 +152,6 @@ export default function CrearAlertaForm() {
                 name="idruta"
                 value={formData.idruta}
                 onChange={handleChange}
-                required
                 className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-red-500 focus:ring-4 focus:ring-red-500/20 transition-all duration-300 bg-gradient-to-r from-white to-gray-50 hover:from-gray-50 hover:to-white"
               >
                 <option value="">Selecciona una ruta</option>
@@ -166,7 +165,7 @@ export default function CrearAlertaForm() {
 
             <div className="group">
               <label className="block text-sm font-semibold text-gray-700 mb-2">
-                ID Estación
+                Estación
               </label>
               <select
                 name="idestacion"

@@ -16,7 +16,6 @@ interface Noticia {
   fecha: string
 }
 
-// Componente Modal de Confirmación
 const DeleteConfirmationModal = ({
   isOpen,
   onClose,
@@ -128,7 +127,7 @@ export default function NoticiaDetalle() {
   useEffect(() => {
     const fetchNoticia = async () => {
       try {
-        const res = await fetch(`https://servicionoticias.onrender.com/noticias/getNoticiaId/${idNoticia}`)
+        const res = await fetch(`https://www.api.devcorebits.com/noticiasGateway/noticias/getNoticiaId/${idNoticia}`)
 
         if (!res.ok) {
           throw new Error(`Error del servidor: ${res.status}`)
@@ -178,7 +177,7 @@ export default function NoticiaDetalle() {
     if (!noticia) return
     setSaving(true)
     try {
-      const res = await fetch(`https://servicionoticias.onrender.com/noticias/editarNoticia/${noticia.idnoticia}`, {
+      const res = await fetch(`https://www.api.devcorebits.com/noticiasGateway/noticias/editarNoticia/${noticia.idnoticia}`, {
         method: "PATCH",
         headers: {
           "Content-Type": "application/json",
@@ -210,7 +209,7 @@ export default function NoticiaDetalle() {
     if (!noticia) return
     setDeleting(true)
     try {
-      const res = await fetch(`https://servicionoticias.onrender.com/noticias/eliminarNoticia/${noticia.idnoticia}`, {
+      const res = await fetch(`https://www.api.devcorebits.com/noticiasGateway/noticias/eliminarNoticia/${noticia.idnoticia}`, {
         method: "DELETE",
       })
 

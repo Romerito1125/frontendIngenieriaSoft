@@ -95,7 +95,7 @@ export default function EstacionesPage() {
     const obtenerEstaciones = async () => {
       try {
         setIsLoading(true)
-        const res = await fetch("https://www.tiemporeal.devcorebits.com/estaciones")
+        const res = await fetch("https://https://www.api.devcorebits.com/tiemporealGateway/estaciones")
         const data = await res.json()
         setEstaciones(data)
 
@@ -127,7 +127,7 @@ export default function EstacionesPage() {
       setRutaResultado(null)
       setRutasConTipo([])
 
-      const res = await fetch("https://www.tiemporeal.devcorebits.com/viajes/planear", {
+      const res = await fetch("https://https://www.api.devcorebits.com/tiemporealGateway/viajes/planear", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ tipo: "viaje_normal", origen, destino }),
@@ -140,7 +140,7 @@ export default function EstacionesPage() {
 
         const tipos = await Promise.all(
           data.rutas.map(async (idruta: string) => {
-            const resRuta = await fetch(`https://www.tiemporeal.devcorebits.com/rutas/${idruta}`)
+            const resRuta = await fetch(`https://https://www.api.devcorebits.com/tiemporealGateway/rutas/${idruta}`)
             const dataRuta = await resRuta.json()
             return { id: idruta, tipo: dataRuta?.tipo || "desconocido" }
           }),

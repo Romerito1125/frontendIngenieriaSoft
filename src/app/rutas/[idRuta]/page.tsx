@@ -28,18 +28,18 @@ export default function RutaDetallePage() {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const rutaRes = await fetch(`https://www.tiemporeal.devcorebits.com/rutas/${idRuta}`);
+        const rutaRes = await fetch(`https://https://www.api.devcorebits.com/tiemporealGateway/rutas/${idRuta}`);
         if (!rutaRes.ok) throw new Error("Error ruta");
         const rutaData: Ruta = await rutaRes.json();
         setRuta(rutaData);
 
-        const estacionesRes = await fetch(`https://www.tiemporeal.devcorebits.com/sim/recorrido/${idRuta}`);
+        const estacionesRes = await fetch(`https://https://www.api.devcorebits.com/tiemporealGateway/sim/recorrido/${idRuta}`);
         if (!estacionesRes.ok) throw new Error("Error estaciones");
         const estacionesData: { idestacion: number; nombre: string }[] = await estacionesRes.json();
 
         const estacionesConZona: Estacion[] = await Promise.all(
           estacionesData.map(async (estacion) => {
-            const res = await fetch(`https://www.tiemporeal.devcorebits.com/estaciones/${estacion.idestacion}`);
+            const res = await fetch(`https://https://www.api.devcorebits.com/tiemporealGateway/estaciones/${estacion.idestacion}`);
             const data = await res.json();
             return { ...estacion, zona: data.zona };
           })

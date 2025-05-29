@@ -48,7 +48,7 @@ export default function TarjetasPage() {
   const fetchTarjetas = async (cuentaId: string) => {
     try {
       setLoading(true)
-      const res = await fetch(`https://serviciotarjetas.onrender.com/tarjetas/cuenta/${cuentaId}`)
+      const res = await fetch(`https://www.api.devcorebits.com/tarjetasGateway/tarjetas/cuenta/${cuentaId}`)
       if (res.ok) {
         const data = await res.json()
         console.log("Tarjetas data:", data)

@@ -9,7 +9,10 @@
 !.yarn/plugins
 !.yarn/releases
 !.yarn/versions
-
+/cypress
+cypress.config.ts
+jest.config.ts
+jest.setup.ts
 # testing
 /coverage
 
