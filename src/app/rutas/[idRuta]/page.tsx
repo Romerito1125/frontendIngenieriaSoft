@@ -3,21 +3,13 @@
 import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import Link from "next/link";
-
-// Tipos explícitos
-type Ruta = {
-  idruta: string;
-  LugarInicio: string;
-  LugarFin: string;
-  horariolunvier: string;
-  horariofinsem: string;
-};
-
-type Estacion = {
-  idestacion: number;
-  nombre: string;
-  zona: string;
-};
+import {
+  obtenerRuta,
+  obtenerRecorrido,
+  obtenerZonaEstacion,
+  Ruta,
+  Estacion,
+} from "./utils";
 
 export default function RutaDetallePage() {
   const { idRuta } = useParams();
@@ -28,20 +20,15 @@ export default function RutaDetallePage() {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const rutaRes = await fetch(`https://www.api.devcorebits.com/tiemporealGateway/rutas/${idRuta}`);
-        if (!rutaRes.ok) throw new Error("Error ruta");
-        const rutaData: Ruta = await rutaRes.json();
+        const rutaData = await obtenerRuta(idRuta as string);
         setRuta(rutaData);
 
-        const estacionesRes = await fetch(`https://www.api.devcorebits.com/tiemporealGateway/sim/recorrido/${idRuta}`);
-        if (!estacionesRes.ok) throw new Error("Error estaciones");
-        const estacionesData: { idestacion: number; nombre: string }[] = await estacionesRes.json();
+        const estacionesData = await obtenerRecorrido(idRuta as string);
 
         const estacionesConZona: Estacion[] = await Promise.all(
           estacionesData.map(async (estacion) => {
-            const res = await fetch(`https://www.api.devcorebits.com/tiemporealGateway/estaciones/${estacion.idestacion}`);
-            const data = await res.json();
-            return { ...estacion, zona: data.zona };
+            const zona = await obtenerZonaEstacion(estacion.idestacion);
+            return { ...estacion, zona };
           })
         );
 
@@ -57,20 +44,37 @@ export default function RutaDetallePage() {
 
   const getColorByZona = (zona: string) => {
     switch (zona) {
-      case "0": return "bg-orange-500";
-      case "1": return "bg-blue-500";
-      case "2": return "bg-fuchsia-400";
-      case "3": return "bg-amber-400";
-      case "4": return "bg-purple-500";
-      case "5": return "bg-sky-600";
-      case "6": return "bg-cyan-500";
-      case "7": return "bg-lime-400";
-      default: return "bg-gray-400";
+      case "0":
+        return "bg-orange-500";
+      case "1":
+        return "bg-blue-500";
+      case "2":
+        return "bg-fuchsia-400";
+      case "3":
+        return "bg-amber-400";
+      case "4":
+        return "bg-purple-500";
+      case "5":
+        return "bg-sky-600";
+      case "6":
+        return "bg-cyan-500";
+      case "7":
+        return "bg-lime-400";
+      default:
+        return "bg-gray-400";
     }
   };
 
-  if (error) return <div className="text-center text-red-500 mt-10">Error al cargar la ruta</div>;
-  if (!ruta) return <div className="text-center mt-10 text-gray-600">Cargando ruta...</div>;
+  if (error)
+    return (
+      <div className="text-center text-red-500 mt-10">
+        Error al cargar la ruta
+      </div>
+    );
+  if (!ruta)
+    return (
+      <div className="text-center mt-10 text-gray-600">Cargando ruta...</div>
+    );
 
   return (
     <div className="p-6 space-y-6 max-w-4xl mx-auto">
@@ -104,7 +108,7 @@ export default function RutaDetallePage() {
         </Link>
       </div>
 
-      {/* Estaciones con animación de carga */}
+      {/* Estaciones */}
       <div className="bg-white p-4 border rounded-lg shadow">
         <h2 className="text-xl font-bold mb-4 text-blue-700">Estaciones</h2>
         <div className="relative pl-6">
@@ -112,7 +116,9 @@ export default function RutaDetallePage() {
             {estaciones.length === 0 ? (
               <div className="flex items-center justify-center py-10">
                 <div className="w-6 h-6 border-4 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
-                <span className="ml-2 text-sm text-gray-600">Cargando estaciones...</span>
+                <span className="ml-2 text-sm text-gray-600">
+                  Cargando estaciones...
+                </span>
               </div>
             ) : (
               estaciones.map((estacion, index) => {
@@ -120,16 +126,23 @@ export default function RutaDetallePage() {
                 const isFirst = index === 0;
                 const isLast = index === estaciones.length - 1;
 
-                const borderRadius = `${isFirst ? "rounded-t-full" : ""} ${isLast ? "rounded-b-full" : ""}`;
+                const borderRadius = `${isFirst ? "rounded-t-full" : ""} ${
+                  isLast ? "rounded-b-full" : ""
+                }`;
 
                 return (
                   <div key={index} className="flex items-start gap-3">
                     <div
                       className={`w-2 h-6 ${color} ${borderRadius}`}
-                      style={{ marginTop: "-1px", marginBottom: "-1px" }}
+                      style={{
+                        marginTop: "-1px",
+                        marginBottom: "-1px",
+                      }}
                       title={`Zona ${estacion.zona}`}
                     ></div>
-                    <span className="text-gray-800">{index + 1}. {estacion.nombre}</span>
+                    <span className="text-gray-800">
+                      {index + 1}. {estacion.nombre}
+                    </span>
                   </div>
                 );
               })
