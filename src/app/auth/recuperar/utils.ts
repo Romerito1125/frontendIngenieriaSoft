@@ -1,4 +1,4 @@
-const API_URL = "https://www.cuentas.devcorebits.com/cuenta"
+const API_URL = "https://www.cuentas.devcorebits.com/cuenta" //log
 
 type EnviarOtpPayload = {
   correo: string
