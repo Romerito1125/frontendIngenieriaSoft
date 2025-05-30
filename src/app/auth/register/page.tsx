@@ -50,36 +50,45 @@ export default function RegisterPage() {
     }
   }, [router])
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setLoading(true)
-    setCorreoRepetido(false)
-    try {
-      const { token } = await registerUsuario({
-        nombre,
-        apellido,
-        correo,
-        contrasenia,
-      })
+const handleSubmit = async (e: React.FormEvent) => {
+  e.preventDefault()
+  setLoading(true)
+  setCorreoRepetido(false)
+  try {
+    const { token } = await registerUsuario({
+      nombre,
+      apellido,
+      correo,
+      contrasenia,
+    })
 
-      Cookies.set("token", token, {
-        expires: 1,
-        sameSite: "strict",
-      })
+    Cookies.set("token", token, {
+      expires: 1,
+      sameSite: "strict",
+    })
 
-      toast.success("¡Registro exitoso!")
+    toast.success("¡Registro exitoso!", {
+      duration: 4000, 
+    })
+
+    setTimeout(() => {
       window.location.href = "/"
-    } catch (error: unknown) {
-      const message = error instanceof Error ? error.message : "Error al registrar"
-      if (message.toLowerCase().includes("correo") && message.toLowerCase().includes("registrado")) {
-        setCorreoRepetido(true)
-      } else {
-        toast.error(message)
-      }
-    } finally {
-      setLoading(false)
+    }, 4000)
+  } catch (error: unknown) {
+    const message = error instanceof Error ? error.message : "Error al registrar"
+
+    if (message.toLowerCase().includes("correo") && message.toLowerCase().includes("registrado")) {
+      setCorreoRepetido(true)
+    } else {
+      toast.error(message, {
+        duration: 5000,
+      })
     }
+  } finally {
+    setLoading(false)
   }
+}
+
 
   return (
     <div className="flex min-h-screen bg-gradient-to-br from-blue-50 to-blue-100">
