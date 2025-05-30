@@ -30,7 +30,6 @@ export function useIsAdmin() {
     if (token) {
       try {
         const decoded = decodeToken<DecodedToken>(token);
-        console.log("Decoded Token:", decoded);
         setIsAdmin(decoded.isAdmin);
       } catch (error) {
         console.error("Error al decodificar el token:", error);

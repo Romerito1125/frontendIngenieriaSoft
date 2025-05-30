@@ -59,7 +59,7 @@ export default function Page() {
             let nombreEstacion = "Sin estación"
             try {
               if (a.idestacion) {
-                const estRes = await fetchWithRetry(`https://www.api.devcorebits.com/estacionesGateway/estaciones/${a.idestacion}`)
+                const estRes = await fetchWithRetry(`https://www.api.devcorebits.com/tiemporealGateway/estaciones/${a.idestacion}`)
                 nombreEstacion = estRes?.nombre || nombreEstacion
               }
             } catch (e) {

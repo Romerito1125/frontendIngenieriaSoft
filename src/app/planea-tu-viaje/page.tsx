@@ -1,65 +1,79 @@
-"use client"
+"use client";
 
-import { useEffect, useState, useRef } from "react"
-import { MapPin, ChevronRight, Search, Loader2, MapPinned, Route, Bus } from "lucide-react"
-import toast, { Toaster } from "react-hot-toast"
-import { motion, AnimatePresence } from "framer-motion"
-import { Input } from "@/components/ui/input"
-import { Button } from "@/components/ui/button"
-import { Badge } from "@/components/ui/badge"
-import { Card, CardContent } from "@/components/ui/card"
-import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { useEffect, useState, useRef } from "react";
+import {
+  MapPin,
+  ChevronRight,
+  Search,
+  Loader2,
+  MapPinned,
+  Route,
+  Bus,
+} from "lucide-react";
+import toast, { Toaster } from "react-hot-toast";
+import { motion, AnimatePresence } from "framer-motion";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Card, CardContent } from "@/components/ui/card";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 type Estacion = {
-  idestacion: number
-  nombre: string
-  ubicacion: string
-  Zona: string
-}
+  idestacion: number;
+  nombre: string;
+  ubicacion: string;
+  Zona: string;
+};
+type RutaResultado = {
+  rutas: string[];
+  transbordo: boolean;
+  estacionTransbordo?: number;
+  nombreEstacionTransbordo?: string;
+};
 
 type AgrupadasPorZona = {
-  [zona: string]: Estacion[]
-}
+  [zona: string]: Estacion[];
+};
 
 const getColorByType = (tipo: string) => {
   switch (tipo.toLowerCase()) {
     case "troncal":
-      return "bg-gradient-to-r from-red-600 to-red-500 border-red-700"
+      return "bg-gradient-to-r from-red-600 to-red-500 border-red-700";
     case "pretroncal":
-      return "bg-gradient-to-r from-blue-600 to-blue-500 border-blue-700"
+      return "bg-gradient-to-r from-blue-600 to-blue-500 border-blue-700";
     case "expreso":
-      return "bg-gradient-to-r from-yellow-500 to-yellow-400 text-black border-yellow-600"
+      return "bg-gradient-to-r from-yellow-500 to-yellow-400 text-black border-yellow-600";
     case "alimentador":
-      return "bg-gradient-to-r from-green-600 to-green-500 border-green-700"
+      return "bg-gradient-to-r from-green-600 to-green-500 border-green-700";
     default:
-      return "bg-gradient-to-r from-gray-600 to-gray-500 border-gray-700"
+      return "bg-gradient-to-r from-gray-600 to-gray-500 border-gray-700";
   }
-}
+};
 
 const getNombreZona = (zona: string) => {
   switch (zona) {
     case "0":
-      return "Zona 0 - Centro"
+      return "Zona 0 - Centro";
     case "1":
-      return "Zona 1 - Universidades"
+      return "Zona 1 - Universidades";
     case "2":
-      return "Zona 2 - Menga"
+      return "Zona 2 - Menga";
     case "3":
-      return "Zona 3 - Paso del Comercio"
+      return "Zona 3 - Paso del Comercio";
     case "4":
-      return "Zona 4 - Andrés Sanín"
+      return "Zona 4 - Andrés Sanín";
     case "5":
-      return "Zona 5 - Aguablanca"
+      return "Zona 5 - Aguablanca";
     case "6":
-      return "Zona 6 - Simón Bolívar"
+      return "Zona 6 - Simón Bolívar";
     case "7":
-      return "Zona 7 - Cañaveralejo"
+      return "Zona 7 - Cañaveralejo";
     case "8":
-      return "Zona 8 - Calipso"
+      return "Zona 8 - Calipso";
     default:
-      return `Zona ${zona}`
+      return `Zona ${zona}`;
   }
-}
+};
 
 const getZonaColor = (zona: string) => {
   const colors = [
@@ -72,156 +86,191 @@ const getZonaColor = (zona: string) => {
     "from-indigo-600 to-indigo-400",
     "from-teal-600 to-teal-400",
     "from-orange-600 to-orange-400",
-  ]
+  ];
 
-  const index = Number.parseInt(zona) % colors.length
-  return colors[index] || colors[0]
-}
+  const index = Number.parseInt(zona) % colors.length;
+  return colors[index] || colors[0];
+};
 
 export default function EstacionesPage() {
-  const [estaciones, setEstaciones] = useState<Estacion[]>([])
-  const [agrupadas, setAgrupadas] = useState<AgrupadasPorZona>({})
-  const [origen, setOrigen] = useState<number | null>(null)
-  const [destino, setDestino] = useState<number | null>(null)
-  const [rutaResultado, setRutaResultado] = useState<string[] | null>(null)
-  const [rutasConTipo, setRutasConTipo] = useState<{ id: string; tipo: string }[]>([])
-  const [isLoading, setIsLoading] = useState(true)
-  const [isCalculating, setIsCalculating] = useState(false)
-  const [searchTerm, setSearchTerm] = useState("")
-  const [activeTab, setActiveTab] = useState("todas")
-  const resultadoRef = useRef<HTMLDivElement | null>(null)
+  const [estaciones, setEstaciones] = useState<Estacion[]>([]);
+  const [agrupadas, setAgrupadas] = useState<AgrupadasPorZona>({});
+  const [origen, setOrigen] = useState<number | null>(null);
+  const [destino, setDestino] = useState<number | null>(null);
+  const [rutaResultado, setRutaResultado] = useState<RutaResultado | null>(
+    null
+  );
+  const [rutasConTipo, setRutasConTipo] = useState<
+    { id: string; tipo: string }[]
+  >([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [isCalculating, setIsCalculating] = useState(false);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [activeTab, setActiveTab] = useState("todas");
+  const resultadoRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
     const obtenerEstaciones = async () => {
       try {
-        setIsLoading(true)
-        const res = await fetch("https://https://www.api.devcorebits.com/tiemporealGateway/estaciones")
-        const data = await res.json()
-        setEstaciones(data)
+        setIsLoading(true);
+        const res = await fetch(
+          "https://www.api.devcorebits.com/tiemporealGateway/estaciones"
+        );
+        const data = await res.json();
+        setEstaciones(data);
 
-        const agrupado: AgrupadasPorZona = {}
+        const agrupado: AgrupadasPorZona = {};
         data.forEach((estacion: Estacion) => {
-          if (!agrupado[estacion.Zona]) agrupado[estacion.Zona] = []
-          agrupado[estacion.Zona].push(estacion)
-        })
-        setAgrupadas(agrupado)
+          if (!agrupado[estacion.Zona]) agrupado[estacion.Zona] = [];
+          agrupado[estacion.Zona].push(estacion);
+        });
+        setAgrupadas(agrupado);
       } catch (error) {
-        toast.error("Error al cargar las estaciones")
-        console.error("Error al cargar estaciones:", error)
+        toast.error("Error al cargar las estaciones");
+        console.error("Error al cargar estaciones:", error);
       } finally {
-        setIsLoading(false)
+        setIsLoading(false);
       }
-    }
+    };
 
-    obtenerEstaciones()
-  }, [])
+    obtenerEstaciones();
+  }, []);
 
   const calcularRuta = async () => {
     if (!origen || !destino) {
-      toast.error("Selecciona origen y destino")
-      return
+      toast.error("Selecciona origen y destino");
+      return;
     }
 
     try {
-      setIsCalculating(true)
-      setRutaResultado(null)
-      setRutasConTipo([])
+      setIsCalculating(true);
+      setRutaResultado(null);
+      setRutasConTipo([]);
 
-      const res = await fetch("https://https://www.api.devcorebits.com/tiemporealGateway/viajes/planear", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ tipo: "viaje_normal", origen, destino }),
-      })
+      const res = await fetch(
+        "https://www.api.devcorebits.com/tiemporealGateway/viajes/planear",
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ tipo: "viaje_normal", origen, destino }),
+        }
+      );
 
-      const data = await res.json()
+      const data = await res.json();
 
       if (data.rutas && data.rutas.length > 0) {
-        setRutaResultado(data.rutas)
+        let nombreEstacionTransbordo: string | undefined = undefined;
 
+        if (data.transbordo && data.estacionTransbordo) {
+          console.log(data.transbordo, data.estacionTransbordo, typeof data.estacionTransbordo);
+          const resNombre = await fetch(
+            `https://www.api.devcorebits.com/tiemporealGateway/estaciones/${data.estacionTransbordo}`
+          );
+          const dataNombre = await resNombre.json();
+          nombreEstacionTransbordo =
+            dataNombre?.nombre || "Estación desconocida";
+        }
+
+        setRutaResultado({
+          rutas: data.rutas,
+          transbordo: data.transbordo,
+          estacionTransbordo: data.estacionTransbordo,
+          nombreEstacionTransbordo,
+        });
+
+        // Obtiene tipo de cada ruta
         const tipos = await Promise.all(
           data.rutas.map(async (idruta: string) => {
-            const resRuta = await fetch(`https://https://www.api.devcorebits.com/tiemporealGateway/rutas/${idruta}`)
-            const dataRuta = await resRuta.json()
-            return { id: idruta, tipo: dataRuta?.tipo || "desconocido" }
-          }),
-        )
+            const resRuta = await fetch(
+              `https://www.api.devcorebits.com/tiemporealGateway/rutas/${idruta}`
+            );
+            const dataRuta = await resRuta.json();
+            return {
+              id: idruta,
+              tipo: dataRuta?.tipo || "desconocido",
+            };
+          })
+        );
 
-        setRutasConTipo(tipos)
+        setRutasConTipo(tipos);
 
         setTimeout(() => {
-          resultadoRef.current?.scrollIntoView({ behavior: "smooth" })
-        }, 100)
+          resultadoRef.current?.scrollIntoView({ behavior: "smooth" });
+        }, 100);
 
-        toast.success("Ruta calculada con éxito")
+        toast.success("Ruta calculada con éxito");
       } else {
-        toast.error("No se pudo calcular la ruta. Intenta con otras estaciones.")
+        toast.error(
+          "No se pudo calcular la ruta. Intenta con otras estaciones."
+        );
       }
     } catch (error) {
-      toast.error("Error al conectarse con el servidor.")
+      console.error(error);
+      toast.error("Error al conectarse con el servidor.");
     } finally {
-      setIsCalculating(false)
+      setIsCalculating(false);
     }
-  }
+  };
 
   const handleSeleccion = (idestacion: number) => {
     // Si la estación ya está seleccionada como origen, la deseleccionamos
     if (origen === idestacion) {
-      setOrigen(null)
-      toast.success("Origen deseleccionado")
-      return
+      setOrigen(null);
+      toast.success("Origen deseleccionado");
+      return;
     }
 
     // Si la estación ya está seleccionada como destino, la deseleccionamos
     if (destino === idestacion) {
-      setDestino(null)
-      toast.success("Destino deseleccionado")
-      return
+      setDestino(null);
+      toast.success("Destino deseleccionado");
+      return;
     }
 
     // Si no hay origen seleccionado, esta estación se convierte en origen
     if (origen === null) {
-      setOrigen(idestacion)
-      toast.success("Origen seleccionado")
-      return
+      setOrigen(idestacion);
+      toast.success("Origen seleccionado");
+      return;
     }
 
     // Si hay origen pero no destino, esta estación se convierte en destino
     if (destino === null) {
-      setDestino(idestacion)
-      toast.success("Destino seleccionado")
-      return
+      setDestino(idestacion);
+      toast.success("Destino seleccionado");
+      return;
     }
 
     // Si ya hay origen y destino, reemplazamos el origen con esta nueva selección
-    setOrigen(idestacion)
-    setDestino(null)
-    setRutaResultado(null)
-    toast.success("Nueva selección iniciada")
-  }
+    setOrigen(idestacion);
+    setDestino(null);
+    setRutaResultado(null);
+    toast.success("Nueva selección iniciada");
+  };
 
   const resetSeleccion = () => {
-    setOrigen(null)
-    setDestino(null)
-    setRutaResultado(null)
-    setRutasConTipo([])
-    toast.success("Selección reiniciada")
-  }
+    setOrigen(null);
+    setDestino(null);
+    setRutaResultado(null);
+    setRutasConTipo([]);
+    toast.success("Selección reiniciada");
+  };
 
   const filteredEstaciones = searchTerm
     ? estaciones.filter(
         (e) =>
           e.nombre.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          e.ubicacion.toLowerCase().includes(searchTerm.toLowerCase()),
+          e.ubicacion.toLowerCase().includes(searchTerm.toLowerCase())
       )
-    : []
+    : [];
 
   const getEstacionesForActiveTab = () => {
     if (activeTab === "todas") {
-      return Object.entries(agrupadas)
+      return Object.entries(agrupadas);
     } else {
-      return Object.entries(agrupadas).filter(([zona]) => zona === activeTab)
+      return Object.entries(agrupadas).filter(([zona]) => zona === activeTab);
     }
-  }
+  };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-blue-50 p-4 md:p-6">
@@ -271,7 +320,8 @@ export default function EstacionesPage() {
                 Planificador de Rutas
               </h1>
               <p className="text-blue-600 text-center opacity-80 max-w-2xl">
-                Selecciona tu estación de origen y destino para calcular la mejor ruta disponible
+                Selecciona tu estación de origen y destino para calcular la
+                mejor ruta disponible
               </p>
             </div>
 
@@ -285,42 +335,62 @@ export default function EstacionesPage() {
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                 <div className="flex flex-col">
                   <div className="flex items-center gap-2 mb-2">
-                    <Badge variant="outline" className="bg-blue-100 text-blue-700 border-blue-300 px-2 py-1">
+                    <Badge
+                      variant="outline"
+                      className="bg-blue-100 text-blue-700 border-blue-300 px-2 py-1"
+                    >
                       Origen
                     </Badge>
-                    <span className="text-sm text-blue-600">Estación de partida</span>
+                    <span className="text-sm text-blue-600">
+                      Estación de partida
+                    </span>
                   </div>
                   <div className="bg-white rounded-lg border border-blue-200 p-3 h-16 flex items-center shadow-sm">
                     {origen ? (
                       <div className="flex items-center gap-2 w-full">
                         <MapPin className="h-5 w-5 text-blue-600 flex-shrink-0" />
                         <span className="font-medium text-gray-800 truncate">
-                          {estaciones.find((e) => e.idestacion === origen)?.nombre}
+                          {
+                            estaciones.find((e) => e.idestacion === origen)
+                              ?.nombre
+                          }
                         </span>
                       </div>
                     ) : (
-                      <span className="text-gray-400 italic">No seleccionado</span>
+                      <span className="text-gray-400 italic">
+                        No seleccionado
+                      </span>
                     )}
                   </div>
                 </div>
 
                 <div className="flex flex-col">
                   <div className="flex items-center gap-2 mb-2">
-                    <Badge variant="outline" className="bg-green-100 text-green-700 border-green-300 px-2 py-1">
+                    <Badge
+                      variant="outline"
+                      className="bg-green-100 text-green-700 border-green-300 px-2 py-1"
+                    >
                       Destino
                     </Badge>
-                    <span className="text-sm text-green-600">Estación de llegada</span>
+                    <span className="text-sm text-green-600">
+                      Estación de llegada
+                    </span>
                   </div>
                   <div className="bg-white rounded-lg border border-green-200 p-3 h-16 flex items-center shadow-sm">
                     {destino ? (
                       <div className="flex items-center gap-2 w-full">
                         <MapPinned className="h-5 w-5 text-green-600 flex-shrink-0" />
                         <span className="font-medium text-gray-800 truncate">
-                          {estaciones.find((e) => e.idestacion === destino)?.nombre}
+                          {
+                            estaciones.find((e) => e.idestacion === destino)
+                              ?.nombre
+                          }
                         </span>
                       </div>
                     ) : (
-                      <span className="text-gray-400 italic">No seleccionado</span>
+                      <span className="text-gray-400 italic">
+                        No seleccionado
+                      </span>
                     )}
                   </div>
                 </div>
@@ -368,7 +438,10 @@ export default function EstacionesPage() {
                 className="pl-10 border-blue-200 focus:border-blue-400 focus:ring-blue-400"
               />
               {searchTerm && (
-                <button onClick={() => setSearchTerm("")} className="absolute inset-y-0 right-0 pr-3 flex items-center">
+                <button
+                  onClick={() => setSearchTerm("")}
+                  className="absolute inset-y-0 right-0 pr-3 flex items-center"
+                >
                   <span className="text-gray-400 hover:text-gray-600">✕</span>
                 </button>
               )}
@@ -383,8 +456,8 @@ export default function EstacionesPage() {
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 max-h-60 overflow-y-auto p-1">
                   <AnimatePresence>
                     {filteredEstaciones.map((estacion) => {
-                      const isOrigen = estacion.idestacion === origen
-                      const isDestino = estacion.idestacion === destino
+                      const isOrigen = estacion.idestacion === origen;
+                      const isDestino = estacion.idestacion === destino;
 
                       return (
                         <motion.div
@@ -401,8 +474,8 @@ export default function EstacionesPage() {
                               isOrigen
                                 ? "ring-2 ring-blue-400 shadow-lg shadow-blue-100"
                                 : isDestino
-                                  ? "ring-2 ring-green-400 shadow-lg shadow-green-100"
-                                  : "hover:ring-1 hover:ring-blue-200 hover:shadow-md"
+                                ? "ring-2 ring-green-400 shadow-lg shadow-green-100"
+                                : "hover:ring-1 hover:ring-blue-200 hover:shadow-md"
                             }`}
                             onClick={() => handleSeleccion(estacion.idestacion)}
                           >
@@ -411,8 +484,10 @@ export default function EstacionesPage() {
                                 isOrigen
                                   ? "bg-gradient-to-r from-blue-500 to-blue-600"
                                   : isDestino
-                                    ? "bg-gradient-to-r from-green-500 to-green-600"
-                                    : `bg-gradient-to-r ${getZonaColor(estacion.Zona)}`
+                                  ? "bg-gradient-to-r from-green-500 to-green-600"
+                                  : `bg-gradient-to-r ${getZonaColor(
+                                      estacion.Zona
+                                    )}`
                               }`}
                             ></div>
 
@@ -437,19 +512,27 @@ export default function EstacionesPage() {
                                     isOrigen
                                       ? "text-blue-700"
                                       : isDestino
-                                        ? "text-green-700"
-                                        : "text-gray-800 group-hover:text-blue-700"
+                                      ? "text-green-700"
+                                      : "text-gray-800 group-hover:text-blue-700"
                                   }`}
                                 >
                                   {estacion.nombre}
                                 </h3>
-                                <p className="text-xs text-gray-500">{estacion.ubicacion}</p>
+                                <p className="text-xs text-gray-500">
+                                  {estacion.ubicacion}
+                                </p>
 
                                 <div className="flex items-center justify-between mt-2">
                                   <Badge
-                                    className={`text-xs bg-gradient-to-r ${getZonaColor(estacion.Zona)} text-white`}
+                                    className={`text-xs bg-gradient-to-r ${getZonaColor(
+                                      estacion.Zona
+                                    )} text-white`}
                                   >
-                                    {getNombreZona(estacion.Zona).split(" - ")[0]}
+                                    {
+                                      getNombreZona(estacion.Zona).split(
+                                        " - "
+                                      )[0]
+                                    }
                                   </Badge>
 
                                   {(isOrigen || isDestino) && (
@@ -468,7 +551,7 @@ export default function EstacionesPage() {
                             </CardContent>
                           </Card>
                         </motion.div>
-                      )
+                      );
                     })}
                   </AnimatePresence>
                 </div>
@@ -524,7 +607,9 @@ export default function EstacionesPage() {
                         className="flex items-center"
                       >
                         <div
-                          className={`px-4 py-2 rounded-lg shadow-md text-white font-medium border ${getColorByType(ruta.tipo)}`}
+                          className={`px-4 py-2 rounded-lg shadow-md text-white font-medium border ${getColorByType(
+                            ruta.tipo
+                          )}`}
                           style={{ minWidth: "60px", textAlign: "center" }}
                         >
                           <div className="flex items-center justify-center gap-1">
@@ -533,11 +618,30 @@ export default function EstacionesPage() {
                           </div>
                         </div>
 
-                        {index < rutasConTipo.length - 1 && (
-                          <div className="mx-1">
-                            <ChevronRight className="w-5 h-5 text-gray-500" />
-                          </div>
+                        {/* Mostrar flecha y transbordo si hay más rutas */}
+                        {rutaResultado.transbordo && index === 0 && (
+                          <>
+                            <div className="mx-1">
+                              <ChevronRight className="w-5 h-5 text-gray-500" />
+                            </div>
+                            <div className="flex flex-col items-center text-sm text-gray-600">
+                              <span>Transbordo en</span>
+                              <span className="font-medium text-gray-700">
+                                {rutaResultado.nombreEstacionTransbordo}
+                              </span>
+                            </div>
+                            <div className="mx-1">
+                              <ChevronRight className="w-5 h-5 text-gray-500" />
+                            </div>
+                          </>
                         )}
+
+                        {!rutaResultado.transbordo &&
+                          index < rutasConTipo.length - 1 && (
+                            <div className="mx-1">
+                              <ChevronRight className="w-5 h-5 text-gray-500" />
+                            </div>
+                          )}
                       </motion.div>
                     </div>
                   ))}
@@ -553,7 +657,11 @@ export default function EstacionesPage() {
 
         {/* Tabs para zonas */}
         <div className="mb-6">
-          <Tabs defaultValue="todas" value={activeTab} onValueChange={setActiveTab}>
+          <Tabs
+            defaultValue="todas"
+            value={activeTab}
+            onValueChange={setActiveTab}
+          >
             <TabsList className="bg-white border border-blue-100 p-1 rounded-lg shadow-sm overflow-x-auto flex w-full">
               <TabsTrigger
                 value="todas"
@@ -567,7 +675,9 @@ export default function EstacionesPage() {
                   <TabsTrigger
                     key={zona}
                     value={zona}
-                    className={`data-[state=active]:bg-gradient-to-r data-[state=active]:${getZonaColor(zona)} data-[state=active]:text-white rounded-md`}
+                    className={`data-[state=active]:bg-gradient-to-r data-[state=active]:${getZonaColor(
+                      zona
+                    )} data-[state=active]:text-white rounded-md`}
                   >
                     {getNombreZona(zona).split(" - ")[0]}
                   </TabsTrigger>
@@ -585,8 +695,12 @@ export default function EstacionesPage() {
                 <Loader2 className="h-10 w-10 text-white animate-spin" />
               </div>
             </div>
-            <p className="mt-6 text-lg font-medium text-blue-700">Cargando estaciones...</p>
-            <p className="text-sm text-blue-500 animate-pulse">Esto puede tomar unos momentos</p>
+            <p className="mt-6 text-lg font-medium text-blue-700">
+              Cargando estaciones...
+            </p>
+            <p className="text-sm text-blue-500 animate-pulse">
+              Esto puede tomar unos momentos
+            </p>
           </div>
         ) : (
           <div className="space-y-8">
@@ -599,11 +713,17 @@ export default function EstacionesPage() {
                 className="bg-white rounded-xl shadow-md p-6 border border-gray-200"
               >
                 <div className="flex items-center gap-3 mb-4">
-                  <div className={`bg-gradient-to-r ${getZonaColor(zona)} p-2 rounded-full shadow-md`}>
+                  <div
+                    className={`bg-gradient-to-r ${getZonaColor(
+                      zona
+                    )} p-2 rounded-full shadow-md`}
+                  >
                     <MapPin className="h-5 w-5 text-white" />
                   </div>
                   <h2
-                    className={`text-xl font-bold bg-gradient-to-r ${getZonaColor(zona)} bg-clip-text text-transparent`}
+                    className={`text-xl font-bold bg-gradient-to-r ${getZonaColor(
+                      zona
+                    )} bg-clip-text text-transparent`}
                   >
                     {getNombreZona(zona)}
                   </h2>
@@ -615,8 +735,8 @@ export default function EstacionesPage() {
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
                   <AnimatePresence>
                     {estacionesZona.map((estacion, index) => {
-                      const isOrigen = estacion.idestacion === origen
-                      const isDestino = estacion.idestacion === destino
+                      const isOrigen = estacion.idestacion === origen;
+                      const isDestino = estacion.idestacion === destino;
 
                       return (
                         <motion.div
@@ -632,8 +752,8 @@ export default function EstacionesPage() {
                               isOrigen
                                 ? "ring-2 ring-blue-400 shadow-lg shadow-blue-100"
                                 : isDestino
-                                  ? "ring-2 ring-green-400 shadow-lg shadow-green-100"
-                                  : "hover:ring-1 hover:ring-blue-200 hover:shadow-md"
+                                ? "ring-2 ring-green-400 shadow-lg shadow-green-100"
+                                : "hover:ring-1 hover:ring-blue-200 hover:shadow-md"
                             }`}
                             onClick={() => handleSeleccion(estacion.idestacion)}
                           >
@@ -643,8 +763,8 @@ export default function EstacionesPage() {
                                 isOrigen
                                   ? "bg-gradient-to-r from-blue-500 to-blue-600"
                                   : isDestino
-                                    ? "bg-gradient-to-r from-green-500 to-green-600"
-                                    : `bg-gradient-to-r ${getZonaColor(zona)}`
+                                  ? "bg-gradient-to-r from-green-500 to-green-600"
+                                  : `bg-gradient-to-r ${getZonaColor(zona)}`
                               }`}
                             >
                               {(isOrigen || isDestino) && (
@@ -675,15 +795,17 @@ export default function EstacionesPage() {
                                     isOrigen
                                       ? "text-blue-700"
                                       : isDestino
-                                        ? "text-green-700"
-                                        : "text-gray-800 group-hover:text-blue-700"
+                                      ? "text-green-700"
+                                      : "text-gray-800 group-hover:text-blue-700"
                                   }`}
                                 >
                                   {estacion.nombre}
                                 </h3>
 
                                 {/* Ubicación */}
-                                <p className="text-sm text-gray-500 leading-relaxed">{estacion.ubicacion}</p>
+                                <p className="text-sm text-gray-500 leading-relaxed">
+                                  {estacion.ubicacion}
+                                </p>
 
                                 {/* Badge de estado */}
                                 {(isOrigen || isDestino) && (
@@ -718,8 +840,14 @@ export default function EstacionesPage() {
 
                                 {/* Indicador de zona */}
                                 <div className="flex items-center gap-2 mt-2">
-                                  <div className={`w-3 h-3 rounded-full bg-gradient-to-r ${getZonaColor(zona)}`}></div>
-                                  <span className="text-xs text-gray-400 font-medium">{getNombreZona(zona)}</span>
+                                  <div
+                                    className={`w-3 h-3 rounded-full bg-gradient-to-r ${getZonaColor(
+                                      zona
+                                    )}`}
+                                  ></div>
+                                  <span className="text-xs text-gray-400 font-medium">
+                                    {getNombreZona(zona)}
+                                  </span>
                                 </div>
                               </div>
 
@@ -733,13 +861,13 @@ export default function EstacionesPage() {
                                 isOrigen
                                   ? "shadow-[inset_0_0_0_1px_rgba(59,130,246,0.3)]"
                                   : isDestino
-                                    ? "shadow-[inset_0_0_0_1px_rgba(34,197,94,0.3)]"
-                                    : "shadow-[inset_0_0_0_1px_rgba(59,130,246,0.2)]"
+                                  ? "shadow-[inset_0_0_0_1px_rgba(34,197,94,0.3)]"
+                                  : "shadow-[inset_0_0_0_1px_rgba(59,130,246,0.2)]"
                               }`}
                             ></div>
                           </Card>
                         </motion.div>
-                      )
+                      );
                     })}
                   </AnimatePresence>
                 </div>
@@ -753,5 +881,5 @@ export default function EstacionesPage() {
       <div className="fixed top-0 right-0 -z-10 w-1/2 h-1/2 bg-blue-100 opacity-30 rounded-full blur-3xl transform translate-x-1/3 -translate-y-1/3"></div>
       <div className="fixed bottom-0 left-0 -z-10 w-1/2 h-1/2 bg-blue-200 opacity-20 rounded-full blur-3xl transform -translate-x-1/3 translate-y-1/3"></div>
     </div>
-  )
+  );
 }

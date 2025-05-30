@@ -22,7 +22,7 @@ export default function BusesPorEstacion() {
 
   const fetchLlegadas = async () => {
     try {
-      const res = await axios.get("https://https://www.api.devcorebits.com/tiemporealGateway/info/llegadas")
+      const res = await axios.get("https://www.api.devcorebits.com/tiemporealGateway/info/llegadas")
       setEstaciones(res.data)
       setIsLoading(false)
     } catch (err) {
