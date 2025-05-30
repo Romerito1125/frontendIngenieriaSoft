@@ -121,7 +121,7 @@ export default function MapaMIO() {
 
     const intervaloTiempo = setInterval(() => {
       obtenerTiempoEstacion(selectedEstacion.idestacion);
-    }, 1000);
+    }, 31000);
 
     return () => clearInterval(intervaloTiempo);
   }, [selectedEstacion]);
