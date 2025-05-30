@@ -112,7 +112,7 @@ export default function MapaMIO() {
   useEffect(() => {
     const interval = setInterval(() => {
       if (rutaActiva) obtenerBuses();
-    }, 60000);
+    }, 30000);
     return () => clearInterval(interval);
   }, [rutaActiva, obtenerBuses]);
 
