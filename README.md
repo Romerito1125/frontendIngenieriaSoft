@@ -36,3 +36,5 @@
 ---
 ## Link a Figma:
 https://www.figma.com/design/PPHXotMSRdrolIviacErL8/IngSoft2?node-id=0-1&t=79yRep7Tz3vlsQxq-1
+## Link a recursos usados:
+https://uao-my.sharepoint.com/:f:/g/personal/juan_d_munoz_o_uao_edu_co/EsHHODV0c89EuyjTM0Xn4ZMBNa6qCHDnyRh_w4d9osQbvQ?e=hiWeyY
