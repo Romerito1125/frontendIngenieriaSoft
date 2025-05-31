@@ -82,7 +82,7 @@ export default function RecuperarPasswordPage() {
 
     setLoading(true)
     try {
-      const res = await fetch("https://www.api.devcorebits.com/cuenta/reset-password", {
+      const res = await fetch("https://www.api.devcorebits.com/cuentasGateway/cuenta/reset-password", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ correo, nuevaContrasenia: nueva }),
