@@ -18,6 +18,8 @@
 
 - https://github.com/Juanjojhon2005/apigatewayIngenieria APIGateway Proyecto.
 
+- https://github.com/Romerito1125/pruebasCypress-Jest : Link Pruebas 
+
 ---
 
 ## 🎨 Integrantes.  
