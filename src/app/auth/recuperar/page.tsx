@@ -34,7 +34,7 @@ export default function RecuperarPasswordPage() {
       toast.success("Código OTP enviado al correo")
       setFase("verificacion")
     } catch {
-      toast.error("Error al enviar OTP")
+      toast.error("Error al enviar OTP - El correo no existe o hay un problema con el servidor")
     } finally {
       setLoading(false)
     }

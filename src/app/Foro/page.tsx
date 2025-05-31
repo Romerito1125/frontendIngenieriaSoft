@@ -1,7 +1,6 @@
 "use client"
-import { crearForo, supabase } from "./api-service"
+import { crearForo, listarForos, supabase } from "./api-service"
 import { useState, useEffect } from "react"
-import { listarForos } from "./api-service"
 import { isAuthenticated, getCurrentUser } from "./auth-service"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -13,7 +12,6 @@ import ForoCard from "./foro-card"
 import { CrearForoDialog } from "./crear-foro-dialog"
 import HistorialForos from "./historial-foros"
 
-// Tipado de foro
 type Foro = {
   idforo: string
   idcuenta: string | number
@@ -25,7 +23,6 @@ type Foro = {
   respuestas_foro?: Array<{ idrespuesta: string }>
 }
 
-// Tipado de usuario
 type Usuario = {
   idcuenta: string
   nombre: string
@@ -47,7 +44,6 @@ export default function ForoPage() {
 
   useEffect(() => {
     setIsAuth(isAuthenticated())
-
     const usuario = getCurrentUser()
     if (usuario) {
       setCurrentUser(usuario as Usuario)
@@ -73,24 +69,37 @@ export default function ForoPage() {
   useEffect(() => {
     const canalForos = supabase
       .channel("foros-realtime")
-      .on("broadcast", { event: "evento-foro" }, (payload) => {
-        const { tipo, foro } = payload.payload
-
-        if (tipo === "nuevo-foro") {
-          setForos((prev) => [foro, ...prev])
-          setFilteredForos((prev) => [foro, ...prev])
+      .on(
+        "postgres_changes",
+        { event: "INSERT", schema: "public", table: "foros" },
+        (payload) => {
+          const nuevoForo = payload.new as Foro
+          setForos((prev: Foro[]) => [nuevoForo, ...prev])
+          setFilteredForos((prev: Foro[]) => [nuevoForo, ...prev])
         }
-
-        if (tipo === "foro-actualizado") {
-          setForos((prev) => prev.map((f) => (f.idforo === foro.idforo ? { ...f, ...foro } : f)))
-          setFilteredForos((prev) => prev.map((f) => (f.idforo === foro.idforo ? { ...f, ...foro } : f)))
+      )
+      .on(
+        "postgres_changes",
+        { event: "UPDATE", schema: "public", table: "foros" },
+        (payload) => {
+          const foroActualizado = payload.new as Foro
+          setForos((prev: Foro[]) =>
+            prev.map((f) => (f.idforo === foroActualizado.idforo ? { ...f, ...foroActualizado } : f))
+          )
+          setFilteredForos((prev: Foro[]) =>
+            prev.map((f) => (f.idforo === foroActualizado.idforo ? { ...f, ...foroActualizado } : f))
+          )
         }
-
-        if (tipo === "foro-eliminado") {
-          setForos((prev) => prev.filter((f) => f.idforo !== foro.idforo))
-          setFilteredForos((prev) => prev.filter((f) => f.idforo !== foro.idforo))
+      )
+      .on(
+        "postgres_changes",
+        { event: "DELETE", schema: "public", table: "foros" },
+        (payload) => {
+          const foroEliminado = payload.old as Foro
+          setForos((prev: Foro[]) => prev.filter((f) => f.idforo !== foroEliminado.idforo))
+          setFilteredForos((prev: Foro[]) => prev.filter((f) => f.idforo !== foroEliminado.idforo))
         }
-      })
+      )
       .subscribe()
 
     return () => {
@@ -105,7 +114,7 @@ export default function ForoPage() {
       const filtered = foros.filter(
         (foro) =>
           foro.titulo.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          foro.descripcion.toLowerCase().includes(searchTerm.toLowerCase()),
+          foro.descripcion.toLowerCase().includes(searchTerm.toLowerCase())
       )
       setFilteredForos(filtered)
     }
@@ -118,7 +127,6 @@ export default function ForoPage() {
         descripcion,
         idcuenta: currentUser?.idcuenta || "unknown",
       })
-
       setForos([nuevoForo, ...foros])
       return nuevoForo
     } catch (error) {
@@ -139,7 +147,6 @@ export default function ForoPage() {
                 : "Inicia sesión para participar en las conversaciones."}
             </p>
           </div>
-
           {isAuth ? (
             <Button
               size="lg"
@@ -192,11 +199,11 @@ export default function ForoPage() {
                 className="pl-10 border-gray-300 focus:border-blue-500 focus:ring-blue-500"
               />
             </div>
-            <div className="flex items-center text-sm">
-              <div className="flex items-center text-gray-500">
-                <MessageSquare className="h-5 w-5 mr-1" />
-                <span>{searchTerm ? `${filteredForos.length} de ${foros.length}` : `${foros.length}`} foros</span>
-              </div>
+            <div className="flex items-center text-sm text-gray-500">
+              <MessageSquare className="h-5 w-5 mr-1" />
+              <span>
+                {searchTerm ? `${filteredForos.length} de ${foros.length}` : `${foros.length}`} foros
+              </span>
             </div>
           </div>
 

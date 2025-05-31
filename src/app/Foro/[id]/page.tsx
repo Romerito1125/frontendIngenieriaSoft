@@ -1,5 +1,3 @@
-// Zuluaga
-
 "use client"
 import { supabase } from "../api-service"
 import { useState, useEffect } from "react"
@@ -14,13 +12,12 @@ import { motion } from "framer-motion"
 import { Loader2, ArrowLeft, LogIn } from "lucide-react"
 import { Button } from "@/components/ui/button"
 
-// Función para contar todas las respuestas en el árbol
 function contarRespuestasEnArbol(nodos: any[]): number {
   let total = 0
   for (const nodo of nodos) {
-    total += 1 // Contar el nodo actual
+    total += 1
     if (nodo.hijos && nodo.hijos.length > 0) {
-      total += contarRespuestasEnArbol(nodo.hijos) // Contar recursivamente los hijos
+      total += contarRespuestasEnArbol(nodo.hijos)
     }
   }
   return total
@@ -47,24 +44,23 @@ export default function ForoDetailPage() {
 
       try {
         const foroData = await obtenerForo(id)
-
-        // Obtener el árbol de respuestas
         const arbolData = await listarRespuestasArbol(id)
 
-        // Contar todas las respuestas en el árbol
         const totalRespuestas = contarRespuestasEnArbol(arbolData)
 
-        // Actualizar el foro con la cantidad de respuestas
         const foroConRespuestas = {
           ...foroData,
           cantidadRespuestas: totalRespuestas,
         }
 
+        console.log("[FORO] Foro cargado:", foroConRespuestas)
+        console.log("[RESPUESTAS] Árbol cargado:", arbolData)
+
         setForo(foroConRespuestas)
         setRespuestasArbol(arbolData)
         setCantidadRespuestas(totalRespuestas)
       } catch (err) {
-        console.error(err)
+        console.error("[ERROR] No se pudo cargar el foro:", err)
         setError("No se pudo cargar el foro. Intenta de nuevo más tarde.")
       } finally {
         setIsLoading(false)
@@ -74,91 +70,34 @@ export default function ForoDetailPage() {
     fetchData()
   }, [id])
 
+  // Aquí va el nuevo useEffect con postgres_changes:
   useEffect(() => {
     const canalRespuestas = supabase
-      .channel("respuestas-realtime")
-      .on("broadcast", { event: "evento-respuesta" }, (payload) => {
-        const { tipo, respuesta } = payload.payload
+      .channel("public:respuestas_foro")
+      .on("postgres_changes", {
+        event: "*", // INSERT, UPDATE, DELETE
+        schema: "public",
+        table: "respuestas_foro",
+      }, async (payload) => {
+        console.log("[REALTIME] Cambio en respuestas:", payload)
 
-        if (!respuesta) return
+        try {
+          const arbolActualizado = await listarRespuestasArbol(id)
+          const totalRespuestas = contarRespuestasEnArbol(arbolActualizado)
 
-        if ((tipo === "nueva-respuesta" || tipo === "nueva-replica") && respuesta.idforo === id) {
-          const fechaValida = respuesta.fecha ?? new Date().toISOString()
+          console.log("[RELOAD] Árbol actualizado por cambio en respuestas:", arbolActualizado)
 
-          let nombreValido = respuesta.nombreUsuario
-          if (!nombreValido) {
-            const usuarioActual = getCurrentUser()
-            if (usuarioActual && String(usuarioActual.idcuenta) === String(respuesta.idcuenta)) {
-              nombreValido = usuarioActual.nombre || usuarioActual.email?.split("@")[0]
-            } else {
-              nombreValido = `Usuario ${String(respuesta.idcuenta).substring(0, 4)}`
-            }
+          setRespuestasArbol(arbolActualizado)
+          setCantidadRespuestas(totalRespuestas)
+
+          if (foro) {
+            setForo({
+              ...foro,
+              cantidadRespuestas: totalRespuestas,
+            })
           }
-
-          const nuevaRespuesta = {
-            ...respuesta,
-            fecha: fechaValida,
-            nombreUsuario: nombreValido,
-          }
-
-          // Para las nuevas respuestas/réplicas, necesitamos reconstruir el árbol
-          // Por simplicidad, vamos a recargar el árbol completo
-          const recargarArbol = async () => {
-            try {
-              const arbolActualizado = await listarRespuestasArbol(id)
-              const totalRespuestas = contarRespuestasEnArbol(arbolActualizado)
-
-              setRespuestasArbol(arbolActualizado)
-              setCantidadRespuestas(totalRespuestas)
-
-              if (foro) {
-                setForo({
-                  ...foro,
-                  cantidadRespuestas: totalRespuestas,
-                })
-              }
-            } catch (error) {
-              console.error("Error al recargar árbol:", error)
-            }
-          }
-
-          recargarArbol()
-        }
-
-        if (tipo === "respuesta-editada") {
-          // Para ediciones, también recargamos el árbol para mantener consistencia
-          const recargarArbol = async () => {
-            try {
-              const arbolActualizado = await listarRespuestasArbol(id)
-              setRespuestasArbol(arbolActualizado)
-            } catch (error) {
-              console.error("Error al recargar árbol:", error)
-            }
-          }
-          recargarArbol()
-        }
-
-        if (tipo === "respuesta-eliminada") {
-          // Para eliminaciones, recargamos el árbol y actualizamos contadores
-          const recargarArbol = async () => {
-            try {
-              const arbolActualizado = await listarRespuestasArbol(id)
-              const totalRespuestas = contarRespuestasEnArbol(arbolActualizado)
-
-              setRespuestasArbol(arbolActualizado)
-              setCantidadRespuestas(totalRespuestas)
-
-              if (foro) {
-                setForo({
-                  ...foro,
-                  cantidadRespuestas: totalRespuestas,
-                })
-              }
-            } catch (error) {
-              console.error("Error al recargar árbol:", error)
-            }
-          }
-          recargarArbol()
+        } catch (error) {
+          console.error("[ERROR] Al recargar árbol (postgres_changes):", error)
         }
       })
       .subscribe()
@@ -168,78 +107,55 @@ export default function ForoDetailPage() {
     }
   }, [id, foro])
 
-  const handleRespuestaCreada = async (nuevaRespuesta: any) => {
-    // Recargar el árbol completo para mantener la estructura correcta
+  const handleRespuestaCreada = async () => {
     try {
       const arbolActualizado = await listarRespuestasArbol(id)
       const totalRespuestas = contarRespuestasEnArbol(arbolActualizado)
+
+      console.log("[FORM] Árbol actualizado después de crear respuesta:", arbolActualizado)
 
       setRespuestasArbol(arbolActualizado)
       setCantidadRespuestas(totalRespuestas)
 
       if (foro) {
-        setForo({
-          ...foro,
-          cantidadRespuestas: totalRespuestas,
-        })
+        setForo({ ...foro, cantidadRespuestas: totalRespuestas })
       }
     } catch (error) {
-      console.error("Error al recargar árbol después de crear respuesta:", error)
+      console.error("[ERROR] Al crear respuesta:", error)
     }
   }
 
-  const handleRespuestaActualizada = async (respuestaActualizada: any) => {
-    // Recargar el árbol para mantener consistencia
+  const handleRespuestaActualizada = async () => {
     try {
       const arbolActualizado = await listarRespuestasArbol(id)
+      console.log("[FORM] Árbol actualizado después de editar respuesta:", arbolActualizado)
       setRespuestasArbol(arbolActualizado)
     } catch (error) {
-      console.error("Error al recargar árbol después de actualizar:", error)
+      console.error("[ERROR] Al actualizar respuesta:", error)
     }
   }
 
-  const handleRespuestaEliminada = async (idRespuesta: string) => {
-    // Recargar el árbol y actualizar contadores
+  const handleRespuestaEliminada = async () => {
     try {
       const arbolActualizado = await listarRespuestasArbol(id)
       const totalRespuestas = contarRespuestasEnArbol(arbolActualizado)
+
+      console.log("[FORM] Árbol actualizado después de eliminar respuesta:", arbolActualizado)
 
       setRespuestasArbol(arbolActualizado)
       setCantidadRespuestas(totalRespuestas)
 
       if (foro) {
-        setForo({
-          ...foro,
-          cantidadRespuestas: totalRespuestas,
-        })
+        setForo({ ...foro, cantidadRespuestas: totalRespuestas })
       }
     } catch (error) {
-      console.error("Error al recargar árbol después de eliminar:", error)
+      console.error("[ERROR] Al eliminar respuesta:", error)
     }
   }
 
-  const handleReplicaCreada = async (nuevaReplica: any) => {
-    // Recargar el árbol completo para incluir la nueva réplica
-    try {
-      const arbolActualizado = await listarRespuestasArbol(id)
-      const totalRespuestas = contarRespuestasEnArbol(arbolActualizado)
-
-      setRespuestasArbol(arbolActualizado)
-      setCantidadRespuestas(totalRespuestas)
-
-      if (foro) {
-        setForo({
-          ...foro,
-          cantidadRespuestas: totalRespuestas,
-        })
-      }
-    } catch (error) {
-      console.error("Error al recargar árbol después de crear réplica:", error)
-    }
-  }
+  const handleReplicaCreada = handleRespuestaCreada
 
   const handleForoActualizado = (foroActualizado: any) => {
-    // Mantener la cantidad de respuestas al actualizar el foro
     setForo({
       ...foroActualizado,
       cantidadRespuestas: foro.cantidadRespuestas,
@@ -247,7 +163,6 @@ export default function ForoDetailPage() {
   }
 
   const handleForoEliminado = () => {
-    // Redirigir a la página principal de foros
     router.push("/Foro")
   }
 
@@ -321,7 +236,7 @@ export default function ForoDetailPage() {
           onRespuestaActualizada={handleRespuestaActualizada}
           onRespuestaEliminada={handleRespuestaEliminada}
           onReplicaCreada={handleReplicaCreada}
-          idForo={id} // Agregar esta línea
+          idForo={id}
         />
 
         <div className="mt-8 bg-blue-50 p-6 rounded-lg border border-blue-100">
