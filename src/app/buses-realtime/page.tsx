@@ -127,7 +127,7 @@ export default function MapaMIO() {
   return (
     <div className="w-full px-4 md:px-8 py-6 bg-gray-50 min-h-screen">
       <h2 className="text-2xl font-extrabold text-center text-blue-900 mb-4">
-        Mapa de rutas en tiempo real del MIO
+        Mapa de rutas en tiempo real del TUYO
       </h2>
 
       <form
