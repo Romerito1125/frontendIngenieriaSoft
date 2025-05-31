@@ -54,7 +54,7 @@ export default function LoginPage() {
         sameSite: "strict",
       });
 
-      toast.success("!Inicio de sesión exitoso!", {
+      toast.success("¡Inicio de sesión exitoso!", {
         duration: 2000,
       });
 
