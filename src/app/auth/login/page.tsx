@@ -1,87 +1,92 @@
-"use client"
+"use client";
 
-import type React from "react"
+import type React from "react";
 
-import { useState, useEffect } from "react"
-import { useRouter } from "next/navigation"
-import Cookies from "js-cookie"
-import toast, { Toaster } from "react-hot-toast"
-import { loginUsuario } from "./utils"
-import { Eye, EyeOff, LogIn, Mail, Lock } from "lucide-react"
-import Link from "next/link"
-import { supabase } from "@/lib/supaClient"
+import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
+import Cookies from "js-cookie";
+import toast, { Toaster } from "react-hot-toast";
+import { loginUsuario } from "./utils";
+import { Eye, EyeOff, LogIn, Mail, Lock } from "lucide-react";
+import Link from "next/link";
+import { supabase } from "@/lib/supaClient";
 
 const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 export default function LoginPage() {
-  const router = useRouter()
-  const [correo, setCorreo] = useState("")
-  const [contrasenia, setContrasenia] = useState("")
-  const [loading, setLoading] = useState(false)
-  const [showPassword, setShowPassword] = useState(false)
+  const router = useRouter();
+  const [correo, setCorreo] = useState("");
+  const [contrasenia, setContrasenia] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
 
   useEffect(() => {
-    const token = Cookies.get("token")
+    const token = Cookies.get("token");
     if (token) {
-      router.push("/")
+      router.push("/");
     }
-  }, [router])
+  }, [router]);
 
   const handleLogin = async (e: React.FormEvent) => {
-    e.preventDefault()
+    e.preventDefault();
     if (correo.trim() === "" && contrasenia.trim() === "") {
-      toast.error("Completa todos los campos")
-      return
+      toast.error("Completa todos los campos");
+      return;
     }
     if (!emailRegex.test(correo)) {
-      toast.error("Ingresa un correo electrónico válido")
-      return
+      toast.error("Ingresa un correo electrónico válido");
+      return;
     }
     if (contrasenia.trim() === "") {
-      toast.error("La contraseña no puede estar vacía")
-      return
+      toast.error("La contraseña no puede estar vacía");
+      return;
     }
     if (contrasenia.length < 6) {
-      toast.error("La contraseña debe tener al menos 6 caracteres")
-      return
+      toast.error("La contraseña debe tener al menos 6 caracteres");
+      return;
     }
-    setLoading(true)
+    setLoading(true);
     try {
-      const { token } = await loginUsuario({ correo, contrasenia })
+      const { token } = await loginUsuario({ correo, contrasenia });
 
       Cookies.set("token", token, {
         expires: 1,
         sameSite: "strict",
-      })
+      });
 
-      toast.success("Bienvenido 👋")
-      window.location.href = "/"
+      toast.success("¡Registro exitoso!", {
+        duration: 2000,
+      });
+
+      setTimeout(() => {
+        window.location.href = "/";
+      }, 2000);
     } catch (error: unknown) {
       if (error instanceof Error) {
-        toast.error(error.message || "Error de autenticación")
+        toast.error(error.message || "Error de autenticación");
       } else {
-        toast.error("Error desconocido")
+        toast.error("Error desconocido");
       }
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  };
 
   const handleLoginGoogle = async () => {
     const { data, error } = await supabase.auth.signInWithOAuth({
-      provider: 'google',
+      provider: "google",
       options: {
         redirectTo: `${window.location.origin}/auth/callback`,
       },
-    })
+    });
 
     if (error) {
-      toast.error("Error al iniciar con Google")
-      console.error(error)
+      toast.error("Error al iniciar con Google");
+      console.error(error);
     } else {
-      toast.success("Redirigiendo a Google...")
+      toast.success("Redirigiendo a Google...");
     }
-  }
+  };
 
   return (
     <div className="flex min-h-screen bg-gradient-to-br from-blue-50 to-blue-100">
@@ -91,13 +96,17 @@ export default function LoginPage() {
 
           <div className="mb-8 text-center">
             <h1 className="text-3xl font-bold text-blue-800">Iniciar Sesión</h1>
-            <p className="text-blue-600 mt-2">Ingresa tus credenciales para continuar</p>
+            <p className="text-blue-600 mt-2">
+              Ingresa tus credenciales para continuar
+            </p>
           </div>
 
           <div className="bg-white rounded-xl shadow-xl p-8">
             <form onSubmit={handleLogin} className="space-y-5">
               <div className="space-y-2">
-                <label className="text-sm font-medium text-gray-700">Correo electrónico</label>
+                <label className="text-sm font-medium text-gray-700">
+                  Correo electrónico
+                </label>
                 <div className="relative">
                   <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                     <Mail className="h-5 w-5 text-blue-500" />
@@ -114,8 +123,13 @@ export default function LoginPage() {
 
               <div className="space-y-2">
                 <div className="flex items-center justify-between">
-                  <label className="text-sm font-medium text-gray-700">Contraseña</label>
-                  <Link href="/auth/recuperar" className="text-sm text-blue-600 hover:text-blue-800 hover:underline">
+                  <label className="text-sm font-medium text-gray-700">
+                    Contraseña
+                  </label>
+                  <Link
+                    href="/auth/recuperar"
+                    className="text-sm text-blue-600 hover:text-blue-800 hover:underline"
+                  >
                     ¿Olvidaste tu contraseña?
                   </Link>
                 </div>
@@ -167,7 +181,9 @@ export default function LoginPage() {
                   <div className="w-full border-t border-gray-300"></div>
                 </div>
                 <div className="relative flex justify-center text-sm">
-                  <span className="px-2 bg-white text-gray-500">O continúa con</span>
+                  <span className="px-2 bg-white text-gray-500">
+                    O continúa con
+                  </span>
                 </div>
               </div>
 
@@ -202,7 +218,10 @@ export default function LoginPage() {
 
             <div className="mt-6 text-center text-sm">
               ¿No tienes cuenta?{" "}
-              <Link href="/auth/register" className="text-blue-700 font-medium hover:text-blue-800 hover:underline">
+              <Link
+                href="/auth/register"
+                className="text-blue-700 font-medium hover:text-blue-800 hover:underline"
+              >
                 Regístrate
               </Link>
             </div>
@@ -218,11 +237,12 @@ export default function LoginPage() {
           <div className="max-w-md text-center">
             <h2 className="text-3xl font-bold mb-6">Bienvenido de nuevo</h2>
             <p className="text-lg text-blue-100 mb-8">
-              Accede a tu cuenta para gestionar tus proyectos y continuar con tu trabajo.
+              Accede a tu cuenta para gestionar tus proyectos y continuar con tu
+              trabajo.
             </p>
           </div>
         </div>
       </div>
     </div>
-  )
+  );
 }
