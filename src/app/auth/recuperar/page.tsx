@@ -24,7 +24,7 @@ export default function RecuperarPasswordPage() {
 
     setLoading(true)
     try {
-      const res = await fetch("https://www.api.devcorebits.com/cuenta/send-otp", {
+      const res = await fetch("https://www.api.devcorebits.com/cuentasGateway/cuenta/send-otp", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ correo, tipo: "recuperacion" }),
@@ -47,7 +47,7 @@ export default function RecuperarPasswordPage() {
 
     setLoading(true)
     try {
-      const res = await fetch("https://www.api.devcorebits.com/cuenta/verify-otp", {
+      const res = await fetch("https://www.api.devcorebits.com/cuentasGateway/cuenta/verify-otp", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ correo, otp }),
