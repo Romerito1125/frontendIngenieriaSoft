@@ -1,6 +1,6 @@
 ```md
 # 🚀 Frontend Ingeniería de Software 2  - Enlaces GIT
-- https://github.com/JuD4Mo/ServicioAlertas 
+- https://github.com/JuD4Mo/ServicioAlertas : Servicio Alertas
 
 - https://github.com/JuD4Mo/ServicioForo : Servicio Foro
 
