@@ -3,14 +3,15 @@
 import { useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
 import Cookies from "js-cookie"
+import { Lock, User } from "lucide-react"
+import { motion } from "framer-motion"
 import { jwtDecode } from "jwt-decode"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { HistorialDenuncias } from "./historial-denuncias"
 import { CrearDenuncia } from "./crear-denuncia"
 import { AdminDenuncias } from "./admin-denuncias"
 import { useIsAdmin } from "../hooks/isAdmin"
-import { AlertCircle, FileText, PlusCircle, Shield } from "lucide-react"
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
+import { FileText, PlusCircle, Shield } from "lucide-react"
 import { Button } from "@/components/ui/button"
 
 type TokenPayload = {
@@ -60,18 +61,21 @@ export default function Denuncias() {
   // Si no está autenticado, mostrar mensaje
   if (!userId) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-blue-50 p-6 flex flex-col items-center justify-center">
-        <Alert className="max-w-md">
-          <AlertCircle className="h-4 w-4" />
-          <AlertTitle>Acceso restringido</AlertTitle>
-          <AlertDescription>Debes iniciar sesión para acceder al sistema de denuncias.</AlertDescription>
-        </Alert>
-        <Button
-          className="mt-4 bg-gradient-to-r from-blue-600 to-blue-500 text-white"
-          onClick={() => router.push("/auth/login")}
-        >
-          Iniciar sesión
-        </Button>
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-blue-50 flex items-center justify-center p-4">
+        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="text-center max-w-md">
+          <div className="inline-flex items-center justify-center w-20 h-20 rounded-2xl bg-gradient-to-br from-red-100 to-red-200 text-red-600 mb-6 shadow-lg">
+            <Lock className="w-10 h-10" />
+          </div>
+          <h1 className="text-3xl font-bold text-gray-900 mb-4">Acceso Restringido</h1>
+          <p className="text-gray-600 mb-8">Debes iniciar sesión para acceder al sistema de denuncias TUYO.</p>
+          <Button
+            onClick={() => (window.location.href = "/auth/login")}
+            className="bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white px-8 py-3 rounded-xl font-semibold shadow-lg hover:shadow-xl transition-all duration-300"
+          >
+            <User className="w-5 h-5 mr-2" />
+            Iniciar Sesión
+          </Button>
+        </motion.div>
       </div>
     )
   }

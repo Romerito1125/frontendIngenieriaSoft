@@ -358,11 +358,11 @@ export function AdminDenuncias({ userId }: AdminDenunciasProps) {
           </div>
 
           <Select value={filterStatus} onValueChange={setFilterStatus}>
-            <SelectTrigger className="border-gray-200 focus:ring-blue-500">
+            <SelectTrigger className="border-gray-200 focus:ring-blue-500 bg-white">
               <Filter className="h-4 w-4 mr-2" />
               <SelectValue placeholder="Estado" />
             </SelectTrigger>
-            <SelectContent>
+            <SelectContent className="bg-white">
               <SelectItem value="todas">Todos los estados</SelectItem>
               <SelectItem value="pendiente">Pendiente</SelectItem>
               <SelectItem value="procesada">Procesada</SelectItem>
@@ -371,11 +371,11 @@ export function AdminDenuncias({ userId }: AdminDenunciasProps) {
           </Select>
 
           <Select value={filterType} onValueChange={setFilterType}>
-            <SelectTrigger className="border-gray-200 focus:ring-blue-500">
+            <SelectTrigger className="border-gray-200 focus:ring-blue-500 bg-white">
               <Tag className="h-4 w-4 mr-2" />
               <SelectValue placeholder="Tipo" />
             </SelectTrigger>
-            <SelectContent>
+            <SelectContent className="bg-white">
               <SelectItem value="todos">Todos los tipos</SelectItem>
               <SelectItem value="servicio">Servicio</SelectItem>
               <SelectItem value="conductor">Conductor</SelectItem>
