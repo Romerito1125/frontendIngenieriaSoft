@@ -9,7 +9,7 @@ import toast, { Toaster } from "react-hot-toast"
 import { loginUsuario } from "./utils"
 import { Eye, EyeOff, LogIn, Mail, Lock } from "lucide-react"
 import Link from "next/link"
-import { supabase } from "@/lib/supaClient"
+import {supabase} from "@/lib/supaClient"
 
 const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
