@@ -1,19 +1,30 @@
-"use client"
+"use client";
 
-import { useEffect, useState } from "react"
-import { useParams, useRouter } from "next/navigation"
-import { motion, AnimatePresence } from "framer-motion"
-import { useIsAdmin } from "../../../hooks/isAdmin"
-import { Edit, Trash2, Save, X, Calendar, User, ExternalLink, ArrowLeft, Loader2, AlertTriangle } from "lucide-react"
-import { toast } from "react-hot-toast"
+import { useEffect, useState } from "react";
+import { useParams, useRouter } from "next/navigation";
+import { motion, AnimatePresence } from "framer-motion";
+import { useIsAdmin } from "../../../hooks/isAdmin";
+import {
+  Edit,
+  Trash2,
+  Save,
+  X,
+  Calendar,
+  User,
+  ExternalLink,
+  ArrowLeft,
+  Loader2,
+  AlertTriangle,
+} from "lucide-react";
+import { toast } from "react-hot-toast";
 
 interface Noticia {
-  idnoticia: number
-  titulo: string
-  descripcion: string
-  link?: string
-  autor: string
-  fecha: string
+  idnoticia: number;
+  titulo: string;
+  descripcion: string;
+  link?: string;
+  autor: string;
+  fecha: string;
 }
 
 const DeleteConfirmationModal = ({
@@ -23,11 +34,11 @@ const DeleteConfirmationModal = ({
   isDeleting,
   noticiaTitle,
 }: {
-  isOpen: boolean
-  onClose: () => void
-  onConfirm: () => void
-  isDeleting: boolean
-  noticiaTitle: string
+  isOpen: boolean;
+  onClose: () => void;
+  onConfirm: () => void;
+  isDeleting: boolean;
+  noticiaTitle: string;
 }) => {
   return (
     <AnimatePresence>
@@ -57,7 +68,9 @@ const DeleteConfirmationModal = ({
                   </div>
                   <div>
                     <h3 className="text-xl font-bold">Confirmar Eliminación</h3>
-                    <p className="text-red-100 text-sm">Esta acción no se puede deshacer</p>
+                    <p className="text-red-100 text-sm">
+                      Esta acción no se puede deshacer
+                    </p>
                   </div>
                 </div>
               </div>
@@ -66,10 +79,14 @@ const DeleteConfirmationModal = ({
               <div className="p-6 space-y-4">
                 <p className="text-gray-700 leading-relaxed">
                   ¿Estás seguro de que quieres eliminar la noticia{" "}
-                  <span className="font-semibold text-gray-900">"{noticiaTitle}"</span>?
+                  <span className="font-semibold text-gray-900">
+                    "{noticiaTitle}"
+                  </span>
+                  ?
                 </p>
                 <p className="text-sm text-gray-500">
-                  Esta acción eliminará permanentemente la noticia y no podrá ser recuperada.
+                  Esta acción eliminará permanentemente la noticia y no podrá
+                  ser recuperada.
                 </p>
               </div>
 
@@ -103,141 +120,170 @@ const DeleteConfirmationModal = ({
         </>
       )}
     </AnimatePresence>
-  )
-}
+  );
+};
 
 export default function NoticiaDetalle() {
-  const { idNoticia } = useParams()
-  const router = useRouter()
-  const isAdmin = useIsAdmin()
+  const { idNoticia } = useParams();
+  const router = useRouter();
+  const isAdmin = useIsAdmin();
 
-  const [noticia, setNoticia] = useState<Noticia | null>(null)
-  const [loading, setLoading] = useState(true)
-  const [isEditing, setIsEditing] = useState(false)
-  const [showDeleteModal, setShowDeleteModal] = useState(false)
+  const [noticia, setNoticia] = useState<Noticia | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [isEditing, setIsEditing] = useState(false);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [editForm, setEditForm] = useState({
     titulo: "",
     descripcion: "",
     link: "",
     autor: "",
-  })
-  const [saving, setSaving] = useState(false)
-  const [deleting, setDeleting] = useState(false)
+  });
+  const [saving, setSaving] = useState(false);
+  const [deleting, setDeleting] = useState(false);
 
   useEffect(() => {
     const fetchNoticia = async () => {
       try {
-        const res = await fetch(`https://www.api.devcorebits.com/noticiasGateway/noticias/getNoticiaId/${idNoticia}`)
+        const res = await fetch(
+          `https://www.api.devcorebits.com/noticiasGateway/noticias/getNoticiaId/${idNoticia}`
+        );
 
         if (!res.ok) {
-          throw new Error(`Error del servidor: ${res.status}`)
+          throw new Error(`Error del servidor: ${res.status}`);
         }
 
-        const text = await res.text()
+        const text = await res.text();
         if (!text) {
-          throw new Error("Respuesta vacía del servidor")
+          throw new Error("Respuesta vacía del servidor");
         }
 
-        const data: Noticia = JSON.parse(text)
-        setNoticia(data)
+        const data: Noticia = JSON.parse(text);
+        setNoticia(data);
         setEditForm({
           titulo: data.titulo,
           descripcion: data.descripcion,
           link: data.link || "",
           autor: data.autor,
-        })
+        });
       } catch (error) {
-        console.error("Error cargando la noticia:", error)
-        toast.error("Error al cargar la noticia")
+        console.error("Error cargando la noticia:", error);
+        toast.error("Error al cargar la noticia");
       } finally {
-        setLoading(false)
+        setLoading(false);
       }
-    }
+    };
 
-    fetchNoticia()
-  }, [idNoticia])
+    fetchNoticia();
+  }, [idNoticia]);
 
   const handleEdit = () => {
-    setIsEditing(true)
-  }
+    setIsEditing(true);
+  };
 
   const handleCancelEdit = () => {
-    setIsEditing(false)
+    setIsEditing(false);
     if (noticia) {
       setEditForm({
         titulo: noticia.titulo,
         descripcion: noticia.descripcion,
         link: noticia.link || "",
         autor: noticia.autor,
-      })
+      });
     }
-  }
+  };
 
   const handleSave = async () => {
-    if (!noticia) return
-    setSaving(true)
+    if (!noticia) return;
+    setSaving(true);
     try {
-      const res = await fetch(`https://www.api.devcorebits.com/noticiasGateway/noticias/editarNoticia/${noticia.idnoticia}`, {
-        method: "PATCH",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(editForm),
-      })
+      const res = await fetch(
+        `https://www.api.devcorebits.com/noticiasGateway/noticias/editarNoticia/${noticia.idnoticia}`,
+        {
+          method: "PATCH",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(editForm),
+        }
+      );
 
       if (res.ok) {
-        const updatedNoticia = await res.json()
-        setNoticia(updatedNoticia)
-        setIsEditing(false)
-        toast.success("¡Noticia actualizada exitosamente! ✨", { position: "top-center" })
+        // Mostrar toast
+        toast.success("¡Noticia actualizada correctamente! ✨", {
+          position: "top-center",
+        });
+
+        // Esperar un poco para que el toast se vea bien (500ms)
+        setTimeout(async () => {
+          // Hacer GET actualizado
+          const getRes = await fetch(
+           `https://www.api.devcorebits.com/noticiasGateway/noticias/getNoticiaId/${noticia.idnoticia}`
+          );
+          if (!getRes.ok) throw new Error("Error al refrescar la noticia");
+
+          const text = await getRes.text();
+          const fullData: Noticia = JSON.parse(text);
+
+          setNoticia(fullData);
+          setIsEditing(false);
+        }, 500); // Aumenté el delay para que el toast se vea
       } else {
-        throw new Error("Error al actualizar la noticia")
+        throw new Error("Error al actualizar la noticia");
       }
     } catch (error) {
-      console.error("Error actualizando la noticia:", error)
-      toast.error("Error al actualizar la noticia", { position: "top-center" })
+      console.error("Error actualizando la noticia:", error);
+      toast.error("Error al actualizar la noticia", { position: "top-center" });
     } finally {
-      setSaving(false)
+      setSaving(false);
     }
-  }
+  };
 
   const handleDeleteClick = () => {
-    setShowDeleteModal(true)
-  }
+    setShowDeleteModal(true);
+  };
 
   const handleDeleteConfirm = async () => {
-    if (!noticia) return
-    setDeleting(true)
+    if (!noticia) return;
+    setDeleting(true);
     try {
-      const res = await fetch(`https://www.api.devcorebits.com/noticiasGateway/noticias/eliminarNoticia/${noticia.idnoticia}`, {
-        method: "DELETE",
-      })
+      const res = await fetch(
+        `https://www.api.devcorebits.com/noticiasGateway/noticias/eliminarNoticia/${noticia.idnoticia}`,
+        {
+          method: "DELETE",
+        }
+      );
 
       if (res.ok) {
-        toast.success("¡Noticia eliminada correctamente! 🗑️", { position: "top-center" })
-        router.push("/noticias")
+        // Mostrar toaster
+        toast.success("¡Noticia eliminada correctamente! 🗑️", {
+          position: "top-center",
+        });
+
+        // Esperar 2 segundos antes de navegar
+        setTimeout(() => {
+          router.push("/noticias");
+        }, 2000);
       } else {
-        throw new Error("Error al eliminar la noticia")
+        throw new Error("Error al eliminar la noticia");
       }
     } catch (error) {
-      console.error("Error eliminando la noticia:", error)
-      toast.error("Error al eliminar la noticia", { position: "top-center" })
+      console.error("Error eliminando la noticia:", error);
+      toast.error("Error al eliminar la noticia", { position: "top-center" });
     } finally {
-      setDeleting(false)
-      setShowDeleteModal(false)
+      setDeleting(false);
+      setShowDeleteModal(false);
     }
-  }
+  };
 
   const handleDeleteCancel = () => {
-    setShowDeleteModal(false)
-  }
-
+    setShowDeleteModal(false);
+  };
   const handleInputChange = (field: keyof typeof editForm, value: string) => {
     setEditForm((prev) => ({
       ...prev,
       [field]: value,
-    }))
-  }
+    }));
+  };
 
   if (loading) {
     return (
@@ -251,7 +297,7 @@ export default function NoticiaDetalle() {
           <p className="text-gray-600 font-medium">Cargando noticia...</p>
         </motion.div>
       </div>
-    )
+    );
   }
 
   if (!noticia) {
@@ -262,7 +308,9 @@ export default function NoticiaDetalle() {
           animate={{ opacity: 1, y: 0 }}
           className="bg-white rounded-2xl shadow-2xl p-8 text-center"
         >
-          <p className="text-red-500 font-medium text-lg">No se encontró la noticia.</p>
+          <p className="text-red-500 font-medium text-lg">
+            No se encontró la noticia.
+          </p>
           <button
             onClick={() => router.push("/noticias")}
             className="mt-4 text-blue-600 hover:text-blue-800 transition-colors flex items-center gap-2 mx-auto"
@@ -272,7 +320,7 @@ export default function NoticiaDetalle() {
           </button>
         </motion.div>
       </div>
-    )
+    );
   }
 
   return (
@@ -310,11 +358,15 @@ export default function NoticiaDetalle() {
                 <div className="space-y-6">
                   {/* Título */}
                   <div className="group">
-                    <label className="block text-sm font-semibold text-gray-700 mb-2">Título</label>
+                    <label className="block text-sm font-semibold text-gray-700 mb-2">
+                      Título
+                    </label>
                     <input
                       type="text"
                       value={editForm.titulo}
-                      onChange={(e) => handleInputChange("titulo", e.target.value)}
+                      onChange={(e) =>
+                        handleInputChange("titulo", e.target.value)
+                      }
                       className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-blue-500 focus:ring-4 focus:ring-blue-500/20 transition-all duration-300 bg-gradient-to-r from-white to-gray-50 hover:from-gray-50 hover:to-white"
                       placeholder="Título de la noticia..."
                     />
@@ -322,10 +374,14 @@ export default function NoticiaDetalle() {
 
                   {/* Descripción */}
                   <div className="group">
-                    <label className="block text-sm font-semibold text-gray-700 mb-2">Descripción</label>
+                    <label className="block text-sm font-semibold text-gray-700 mb-2">
+                      Descripción
+                    </label>
                     <textarea
                       value={editForm.descripcion}
-                      onChange={(e) => handleInputChange("descripcion", e.target.value)}
+                      onChange={(e) =>
+                        handleInputChange("descripcion", e.target.value)
+                      }
                       rows={8}
                       className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-blue-500 focus:ring-4 focus:ring-blue-500/20 transition-all duration-300 bg-gradient-to-r from-white to-gray-50 hover:from-gray-50 hover:to-white resize-none"
                       placeholder="Descripción de la noticia..."
@@ -341,18 +397,24 @@ export default function NoticiaDetalle() {
                       <input
                         type="url"
                         value={editForm.link}
-                        onChange={(e) => handleInputChange("link", e.target.value)}
+                        onChange={(e) =>
+                          handleInputChange("link", e.target.value)
+                        }
                         className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-blue-500 focus:ring-4 focus:ring-blue-500/20 transition-all duration-300 bg-gradient-to-r from-white to-gray-50 hover:from-gray-50 hover:to-white"
                         placeholder="https://ejemplo.com"
                       />
                     </div>
 
                     <div className="group">
-                      <label className="block text-sm font-semibold text-gray-700 mb-2">Autor</label>
+                      <label className="block text-sm font-semibold text-gray-700 mb-2">
+                        Autor
+                      </label>
                       <input
                         type="text"
                         value={editForm.autor}
-                        onChange={(e) => handleInputChange("autor", e.target.value)}
+                        onChange={(e) =>
+                          handleInputChange("autor", e.target.value)
+                        }
                         className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-blue-500 focus:ring-4 focus:ring-blue-500/20 transition-all duration-300 bg-gradient-to-r from-white to-gray-50 hover:from-gray-50 hover:to-white"
                         placeholder="Nombre del autor"
                       />
@@ -373,7 +435,9 @@ export default function NoticiaDetalle() {
                         ) : (
                           <Save className="w-5 h-5 group-hover:scale-110 transition-transform duration-300" />
                         )}
-                        <span>{saving ? "Guardando..." : "Guardar Cambios"}</span>
+                        <span>
+                          {saving ? "Guardando..." : "Guardar Cambios"}
+                        </span>
                       </div>
                     </button>
 
@@ -405,7 +469,9 @@ export default function NoticiaDetalle() {
                       <div className="inline-block bg-white/20 text-white text-sm px-4 py-2 rounded-full font-medium mb-4">
                         Noticia Completa
                       </div>
-                      <h1 className="text-3xl md:text-4xl font-bold leading-tight">{noticia.titulo}</h1>
+                      <h1 className="text-3xl md:text-4xl font-bold leading-tight">
+                        {noticia.titulo}
+                      </h1>
                     </div>
 
                     {isAdmin && (
@@ -431,24 +497,28 @@ export default function NoticiaDetalle() {
                 <div className="p-8 space-y-8">
                   {/* Article Content */}
                   <div className="prose prose-lg max-w-none">
-                    <p className="text-gray-700 leading-relaxed text-lg whitespace-pre-wrap">{noticia.descripcion}</p>
+                    <p className="text-gray-700 leading-relaxed text-lg whitespace-pre-wrap">
+                      {noticia.descripcion}
+                    </p>
                   </div>
 
                   {/* External Link */}
-                  {noticia.link && noticia.link.trim() !== "No existe una dirección a la noticia extendida" && (
-                    <motion.a
-                      href={noticia.link}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      whileHover={{ scale: 1.02 }}
-                      whileTap={{ scale: 0.98 }}
-                      className="inline-flex items-center gap-3 bg-gradient-to-r from-blue-50 to-indigo-50 border-2 border-blue-200 hover:border-blue-300 text-blue-700 hover:text-blue-800 px-6 py-4 rounded-xl transition-all duration-300 font-medium group"
-                    >
-                      <ExternalLink className="w-5 h-5 group-hover:scale-110 transition-transform" />
-                      <span>Ver fuente original</span>
-                      <div className="w-2 h-2 bg-blue-400 rounded-full group-hover:bg-blue-500 transition-colors"></div>
-                    </motion.a>
-                  )}
+                  {noticia.link &&
+                    noticia.link.trim() !==
+                      "No existe una dirección a la noticia extendida" && (
+                      <motion.a
+                        href={noticia.link}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        whileHover={{ scale: 1.02 }}
+                        whileTap={{ scale: 0.98 }}
+                        className="inline-flex items-center gap-3 bg-gradient-to-r from-blue-50 to-indigo-50 border-2 border-blue-200 hover:border-blue-300 text-blue-700 hover:text-blue-800 px-6 py-4 rounded-xl transition-all duration-300 font-medium group"
+                      >
+                        <ExternalLink className="w-5 h-5 group-hover:scale-110 transition-transform" />
+                        <span>Ver fuente original</span>
+                        <div className="w-2 h-2 bg-blue-400 rounded-full group-hover:bg-blue-500 transition-colors"></div>
+                      </motion.a>
+                    )}
 
                   {/* Metadata */}
                   <div className="border-t border-gray-200 pt-8">
@@ -458,8 +528,12 @@ export default function NoticiaDetalle() {
                           <User className="w-6 h-6 text-blue-600" />
                         </div>
                         <div>
-                          <p className="text-sm text-gray-500 font-medium">Autor</p>
-                          <p className="text-lg font-semibold text-gray-800">{noticia.autor}</p>
+                          <p className="text-sm text-gray-500 font-medium">
+                            Autor
+                          </p>
+                          <p className="text-lg font-semibold text-gray-800">
+                            {noticia.autor}
+                          </p>
                         </div>
                       </div>
 
@@ -468,13 +542,18 @@ export default function NoticiaDetalle() {
                           <Calendar className="w-6 h-6 text-green-600" />
                         </div>
                         <div>
-                          <p className="text-sm text-gray-500 font-medium">Fecha de publicación</p>
+                          <p className="text-sm text-gray-500 font-medium">
+                            Fecha de publicación
+                          </p>
                           <p className="text-lg font-semibold text-gray-800">
-                            {new Date(noticia.fecha).toLocaleDateString("es-ES", {
-                              year: "numeric",
-                              month: "long",
-                              day: "numeric",
-                            })}
+                            {new Date(noticia.fecha).toLocaleDateString(
+                              "es-ES",
+                              {
+                                year: "numeric",
+                                month: "long",
+                                day: "numeric",
+                              }
+                            )}
                           </p>
                         </div>
                       </div>
@@ -496,5 +575,5 @@ export default function NoticiaDetalle() {
         noticiaTitle={noticia?.titulo || ""}
       />
     </>
-  )
+  );
 }
