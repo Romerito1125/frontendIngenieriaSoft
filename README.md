@@ -1,5 +1,5 @@
 ```md
-# 🚀 Frontend Ingeniería de Software 2  - Enlaces GIT
+# 🚀 Ingeniería de Software 2  - Enlaces GIT
 - https://github.com/JuD4Mo/ServicioAlertas : Servicio Alertas
 
 - https://github.com/JuD4Mo/ServicioForo : Servicio Foro
@@ -25,6 +25,7 @@
 - Juan David Muñoz
 - Juan José Santacruz
 - Juan Pablo Zuluaga
+---
 ## Link producción  
 
 - www.devcorebits.com
@@ -33,3 +34,5 @@
  - Cuenta de admin = juan_pab.zuluaga@uao.edu.co
  - Contraseña = Ingenieria123
 ---
+## Link a Figma:
+https://www.figma.com/design/PPHXotMSRdrolIviacErL8/IngSoft2?node-id=0-1&t=79yRep7Tz3vlsQxq-1
