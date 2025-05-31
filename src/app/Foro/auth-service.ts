@@ -1,5 +1,10 @@
+//Zuluaga
+
+
+// auth-service.ts - Compatible con tu sistema JWT actual
 import Cookies from "js-cookie"
 
+// Interfaces para tipado
 interface DecodedToken {
   userId: string
   correo: string
@@ -13,8 +18,10 @@ type Usuario = {
   nombre: string
 }
 
+// Función para decodificar el JWT sin dependencias externas
 function decodeToken(token: string): DecodedToken | null {
   try {
+    // Extraer el payload del JWT
     const base64Url = token.split(".")[1]
     const base64 = base64Url.replace(/-/g, "+").replace(/_/g, "/")
     const jsonPayload = decodeURIComponent(
@@ -45,7 +52,7 @@ export function getCurrentUser(): Usuario | null {
   return {
     idcuenta: decoded.userId,
     email: decoded.correo,
-    nombre: decoded.correo.split("@")[0], 
+    nombre: decoded.correo.split("@")[0], // Como fallback usamos parte del correo como nombre
   }
 }
 

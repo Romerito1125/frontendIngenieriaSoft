@@ -74,7 +74,7 @@ const RecargarTarjeta: React.FC<Props> = ({ isOpen, onClose, onSuccess, tarjetaI
   const fetchTarjeta = async () => {
     try {
       console.log("Fetching tarjeta with ID:", tarjetaId)
-      const res = await fetch(`https://serviciotarjetas.onrender.com/tarjetas/${tarjetaId}`)
+      const res = await fetch(`https://www.api.devcorebits.com/tarjetasGateway/tarjetas/${tarjetaId}`)
       console.log("Fetch response status:", res.status)
 
       if (res.ok) {
@@ -196,7 +196,7 @@ const RecargarTarjeta: React.FC<Props> = ({ isOpen, onClose, onSuccess, tarjetaI
       await new Promise((resolve) => setTimeout(resolve, 2000))
 
       // Actualizar saldo
-      const resUpdate = await fetch("https://serviciotarjetas.onrender.com/tarjetas/actualizarSaldo", {
+      const resUpdate = await fetch("https://www.api.devcorebits.com/tarjetasGateway/tarjetas/actualizarSaldo", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({

@@ -4,6 +4,16 @@ import { useState } from "react"
 import toast from "react-hot-toast"
 import { motion } from "framer-motion"
 import { CheckCircle, KeyRound, Mail, Eye, EyeOff, Lock, AlertTriangle } from "lucide-react"
+import {
+  enviarOtp,
+  verificarOtp,
+  cambiarPassword,
+  evaluarFortaleza,
+  obtenerTextoFortaleza,
+  obtenerColorFortaleza,
+  validarPasswords,
+  manejarError,
+} from "./utils"
 
 interface Props {
   correo: string
@@ -21,45 +31,18 @@ export default function SeccionPassword({ correo }: Props) {
   const [otpEnviado, setOtpEnviado] = useState(false)
 
   const handleEnviarOtp = async () => {
-    console.log("🚀 Iniciando envío de OTP para cambio de contraseña...")
-    console.log("Correo:", correo)
-
-    if (!correo || correo.trim() === "") {
-      toast.error("Error: Correo no disponible")
-      return
-    }
-
     setCargando(true)
     try {
-      console.log("📤 Enviando solicitud OTP...")
-      const res = await fetch("https://www.cuentas.devcorebits.com/cuenta/send-otp", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ correo: correo.trim(), tipo: "cambio" }),
-      })
-
-      const data = await res.json()
-      console.log("📥 Respuesta del servidor:", data)
-
-      if (!res.ok) {
-        throw new Error(data.message || "Error al enviar OTP")
-      }
-
+      await enviarOtp({ correo, tipo: "cambio" })
       toast.success("✅ Código OTP enviado a tu correo")
-      // Mostrar automáticamente el campo OTP después de enviar
+
       if (otp.length === 0) {
-        setOtp(" ") // Trigger para mostrar el campo OTP
-        setTimeout(() => setOtp(""), 100) // Reset inmediato pero mantiene la animación
+        setOtp(" ")
+        setTimeout(() => setOtp(""), 100)
       }
       setOtpEnviado(true)
     } catch (error) {
-      console.error("❌ Error enviando OTP:", error)
-
-      let errorMessage = "No se pudo enviar el código OTP"
-      if (error instanceof Error) {
-        errorMessage = error.message
-      }
-
+      const errorMessage = manejarError(error)
       toast.error(errorMessage, {
         duration: 5000,
         position: "top-center",
@@ -70,47 +53,14 @@ export default function SeccionPassword({ correo }: Props) {
   }
 
   const handleVerificarOtp = async () => {
-    console.log("🔐 Verificando OTP para cambio de contraseña...")
-    console.log("OTP ingresado:", otp)
-    console.log("Correo:", correo)
-
-    if (!correo || correo.trim() === "") {
-      toast.error("Error: Correo no disponible")
-      return
-    }
-
-    if (!otp || otp.length !== 6) {
-      toast.error("Ingresa el código OTP completo")
-      return
-    }
-
     setCargando(true)
     try {
-      console.log("📤 Enviando verificación OTP...")
-      const res = await fetch("https://www.cuentas.devcorebits.com/cuenta/verify-otp", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ correo: correo.trim(), otp }),
-      })
-
-      const data = await res.json()
-      console.log("📥 Respuesta verificación OTP:", data)
-
-      if (!res.ok) {
-        throw new Error(data.message || "OTP inválido o expirado")
-      }
-
+      await verificarOtp({ correo, otp })
       toast.success("✅ Identidad verificada correctamente")
       setValidado(true)
       setOtpEnviado(false)
     } catch (error) {
-      console.error("❌ Error verificando OTP:", error)
-
-      let errorMessage = "Error al verificar el código"
-      if (error instanceof Error) {
-        errorMessage = error.message
-      }
-
+      const errorMessage = manejarError(error)
       toast.error(errorMessage, {
         duration: 5000,
         position: "top-center",
@@ -121,36 +71,10 @@ export default function SeccionPassword({ correo }: Props) {
   }
 
   const handleCambiarPassword = async () => {
-    console.log("🔄 Iniciando cambio de contraseña...")
-    console.log("Correo:", correo)
-    console.log("Nueva contraseña length:", nueva.length)
-    console.log("Fortaleza:", fortaleza)
-    console.log("Validado:", validado)
-
-    // Validaciones más estrictas
-    if (!correo || typeof correo !== "string" || correo.trim() === "") {
-      toast.error("Error: Correo no válido")
-      console.error("Correo inválido:", correo)
-      return
-    }
-
-    if (!nueva || typeof nueva !== "string" || nueva.trim() === "") {
-      toast.error("La nueva contraseña es requerida")
-      return
-    }
-
-    if (!confirmar || typeof confirmar !== "string" || confirmar.trim() === "") {
-      toast.error("Confirmar contraseña es requerido")
-      return
-    }
-
-    if (nueva !== confirmar) {
-      toast.error("Las contraseñas no coinciden")
-      return
-    }
-
-    if (fortaleza < 3) {
-      toast.error("La contraseña debe ser más fuerte")
+    // Validaciones usando la función utilitaria
+    const errorValidacion = validarPasswords(nueva, confirmar, fortaleza)
+    if (errorValidacion) {
+      toast.error(errorValidacion)
       return
     }
 
@@ -161,30 +85,8 @@ export default function SeccionPassword({ correo }: Props) {
 
     setCargando(true)
     try {
-      console.log("📤 Enviando cambio de contraseña...")
-      const payload = {
-        correo: correo.trim(),
-        nuevaContrasenia: nueva.trim(),
-      }
-      console.log("Payload:", payload)
+      await cambiarPassword({ correo, nuevaContrasenia: nueva })
 
-      // Usar el endpoint correcto que existe en el backend
-      const res = await fetch("https://www.cuentas.devcorebits.com/cuenta/cambiar-password", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(payload),
-      })
-
-      const data = await res.json()
-      console.log("📥 Respuesta cambio contraseña:", data)
-
-      if (!res.ok) {
-        throw new Error(data.message || "Error al cambiar la contraseña")
-      }
-
-      // Confirmación adicional más visible
       toast("🔐 ¡Contraseña cambiada con éxito!", {
         duration: 5000,
         position: "top-center",
@@ -203,23 +105,9 @@ export default function SeccionPassword({ correo }: Props) {
       console.log("🔐 CONFIRMACIÓN: Contraseña cambiada exitosamente")
 
       // Resetear formulario
-      setOtp("")
-      setNueva("")
-      setConfirmar("")
-      setValidado(false)
-      setOtpEnviado(false)
-      setFortaleza(0)
+      resetearFormulario()
     } catch (error) {
-      console.error("❌ Error cambiando contraseña:", error)
-
-      // Mejorar el manejo de errores para mostrar mensajes específicos
-      let errorMessage = "Error al cambiar la contraseña"
-
-      if (error instanceof Error) {
-        errorMessage = error.message
-      }
-
-      // Mostrar el error de forma prominente
+      const errorMessage = manejarError(error)
       toast.error(errorMessage, {
         duration: 6000,
         position: "top-center",
@@ -233,22 +121,13 @@ export default function SeccionPassword({ correo }: Props) {
           boxShadow: "0 10px 25px rgba(0,0,0,0.1)",
         },
       })
-
-      console.error("❌ ERROR MOSTRADO:", errorMessage)
     } finally {
       setCargando(false)
     }
   }
 
-  const evaluarFortaleza = (password: string) => {
-    let puntaje = 0
-
-    if (password.length >= 8) puntaje++
-    if (/[A-Z]/.test(password)) puntaje++
-    if (/[a-z]/.test(password)) puntaje++
-    if (/[0-9]/.test(password)) puntaje++
-    if (/[^A-Za-z0-9]/.test(password)) puntaje++
-
+  const actualizarFortaleza = (password: string) => {
+    const puntaje = evaluarFortaleza(password)
     setFortaleza(puntaje)
     return puntaje
   }
@@ -297,10 +176,7 @@ export default function SeccionPassword({ correo }: Props) {
           {!otpEnviado ? (
             <div className="flex justify-center pt-2">
               <button
-                onClick={() => {
-                  console.log("🔘 Botón 'Enviar código OTP' clickeado")
-                  handleEnviarOtp()
-                }}
+                onClick={handleEnviarOtp}
                 disabled={cargando || !correo}
                 className="px-6 py-2.5 bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-lg shadow-md hover:shadow-lg transition-all duration-200 flex items-center gap-2 disabled:opacity-70"
               >
@@ -345,7 +221,6 @@ export default function SeccionPassword({ correo }: Props) {
                           newOtp[i] = e.target.value
                           setOtp(newOtp.join(""))
 
-                          // Auto-focus next input
                           if (e.target.value && i < 5) {
                             const nextInput = e.target.parentElement?.nextElementSibling?.querySelector("input")
                             if (nextInput) nextInput.focus()
@@ -358,10 +233,7 @@ export default function SeccionPassword({ correo }: Props) {
 
                   <div className="flex justify-between items-center">
                     <button
-                      onClick={() => {
-                        console.log("🔘 Botón 'Reenviar código' clickeado")
-                        handleEnviarOtp()
-                      }}
+                      onClick={handleEnviarOtp}
                       disabled={cargando}
                       className="text-sm text-blue-600 hover:text-blue-800 disabled:opacity-50"
                     >
@@ -369,10 +241,7 @@ export default function SeccionPassword({ correo }: Props) {
                     </button>
 
                     <button
-                      onClick={() => {
-                        console.log("🔘 Botón 'Verificar' clickeado")
-                        handleVerificarOtp()
-                      }}
+                      onClick={handleVerificarOtp}
                       disabled={cargando || otp.length !== 6}
                       className="px-5 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 flex items-center gap-2"
                     >
@@ -417,7 +286,7 @@ export default function SeccionPassword({ correo }: Props) {
                 value={nueva}
                 onChange={(e) => {
                   setNueva(e.target.value)
-                  evaluarFortaleza(e.target.value)
+                  actualizarFortaleza(e.target.value)
                 }}
                 className="w-full pl-10 pr-12 py-2.5 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-200 focus:border-blue-500"
                 placeholder="Ingresa tu nueva contraseña"
@@ -434,28 +303,11 @@ export default function SeccionPassword({ correo }: Props) {
             <div className="mt-2">
               <div className="flex justify-between mb-1">
                 <span className="text-xs text-gray-500">Fortaleza de la contraseña:</span>
-                <span className="text-xs font-medium">
-                  {fortaleza === 0 && "Muy débil"}
-                  {fortaleza === 1 && "Débil"}
-                  {fortaleza === 2 && "Moderada"}
-                  {fortaleza === 3 && "Buena"}
-                  {fortaleza === 4 && "Fuerte"}
-                  {fortaleza === 5 && "Muy fuerte"}
-                </span>
+                <span className="text-xs font-medium">{obtenerTextoFortaleza(fortaleza)}</span>
               </div>
               <div className="w-full h-1.5 bg-gray-200 rounded-full overflow-hidden">
                 <div
-                  className={`h-full transition-all duration-300 ${
-                    fortaleza <= 1
-                      ? "bg-red-500"
-                      : fortaleza <= 2
-                        ? "bg-orange-500"
-                        : fortaleza <= 3
-                          ? "bg-yellow-500"
-                          : fortaleza <= 4
-                            ? "bg-green-500"
-                            : "bg-emerald-500"
-                  }`}
+                  className={`h-full transition-all duration-300 ${obtenerColorFortaleza(fortaleza)}`}
                   style={{ width: `${(fortaleza / 5) * 100}%` }}
                 ></div>
               </div>
@@ -526,20 +378,14 @@ export default function SeccionPassword({ correo }: Props) {
 
           <div className="flex justify-between items-center pt-4">
             <button
-              onClick={() => {
-                console.log("🔘 Botón 'Cancelar' clickeado")
-                resetearFormulario()
-              }}
+              onClick={resetearFormulario}
               className="px-4 py-2 text-gray-600 hover:text-gray-800 transition-colors"
             >
               Cancelar
             </button>
 
             <button
-              onClick={() => {
-                console.log("🔘 Botón 'Cambiar contraseña' clickeado")
-                handleCambiarPassword()
-              }}
+              onClick={handleCambiarPassword}
               disabled={cargando || !nueva || !confirmar || nueva !== confirmar || fortaleza < 3 || !correo}
               className="px-6 py-2.5 bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-lg shadow-md hover:shadow-lg transition-all duration-200 flex items-center gap-2 disabled:opacity-70"
             >

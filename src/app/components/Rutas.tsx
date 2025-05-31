@@ -1,54 +1,59 @@
-"use client"
+"use client";
 
-import { useEffect, useState } from "react"
-import axios from "axios"
-import Link from "next/link"
-import { motion, AnimatePresence } from "framer-motion"
+import { useEffect, useState } from "react";
+import axios from "axios";
+import Link from "next/link";
+import { motion, AnimatePresence } from "framer-motion";
 
 type Ruta = {
-  idruta: string
-  tipo: string
-  horariolunvier?: string
-  horariofinsem?: string
-  LugarInicio: string
-  LugarFin: string
-  LugaresConcurridos?: string
-}
+  idruta: string;
+  tipo: string;
+  horariolunvier?: string;
+  horariofinsem?: string;
+  LugarInicio: string;
+  LugarFin: string;
+  LugaresConcurridos?: string;
+};
 
 export default function Rutas() {
-  const [rutas, setRutas] = useState<Ruta[]>([])
-  const [search, setSearch] = useState("")
-  const [loading, setLoading] = useState(true)
-  const [filteredTipo, setFilteredTipo] = useState<string | null>(null)
+  const [rutas, setRutas] = useState<Ruta[]>([]);
+  const [search, setSearch] = useState("");
+  const [loading, setLoading] = useState(true);
+  const [filteredTipo, setFilteredTipo] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchRutas = async () => {
       try {
-        setLoading(true)
-        const res = await axios.get("https://www.tiemporeal.devcorebits.com/rutas")
-        const data = Array.isArray(res.data) ? res.data : res.data.data
-        setRutas(data)
+        setLoading(true);
+        const res = await axios.get(
+          "https://www.api.devcorebits.com/tiemporealGateway/rutas"
+        );
+        const data = Array.isArray(res.data) ? res.data : res.data.data;
+        setRutas(data);
       } catch (error) {
-        console.error("Error al obtener las rutas", error)
+        console.error("Error al obtener las rutas", error);
       } finally {
-        setLoading(false)
+        setLoading(false);
       }
-    }
-    fetchRutas()
-  }, [])
+    };
+    fetchRutas();
+  }, []);
 
   const filteredRutas = rutas.filter((ruta) => {
-    const numero = ruta.idruta || ""
-    const nombre = `${ruta.LugarInicio} - ${ruta.LugarFin}`
+    const numero = ruta.idruta || "";
+    const nombre = `${ruta.LugarInicio} - ${ruta.LugarFin}`;
     const matchesSearch =
-      numero.toLowerCase().includes(search.toLowerCase()) || nombre.toLowerCase().includes(search.toLowerCase())
+      numero.toLowerCase().includes(search.toLowerCase()) ||
+      nombre.toLowerCase().includes(search.toLowerCase());
 
     if (filteredTipo) {
-      return matchesSearch && ruta.tipo.toLowerCase() === filteredTipo.toLowerCase()
+      return (
+        matchesSearch && ruta.tipo.toLowerCase() === filteredTipo.toLowerCase()
+      );
     }
 
-    return matchesSearch
-  })
+    return matchesSearch;
+  });
 
   const getColorByType = (tipo: string) => {
     switch (tipo.toLowerCase()) {
@@ -59,7 +64,7 @@ export default function Rutas() {
           border: "border-red-200",
           text: "text-red-800",
           light: "bg-red-50",
-        }
+        };
       case "pretroncal":
         return {
           bg: "bg-blue-600",
@@ -67,7 +72,7 @@ export default function Rutas() {
           border: "border-blue-200",
           text: "text-blue-800",
           light: "bg-blue-50",
-        }
+        };
       case "expreso":
         return {
           bg: "bg-yellow-500",
@@ -75,7 +80,7 @@ export default function Rutas() {
           border: "border-yellow-200",
           text: "text-yellow-800",
           light: "bg-yellow-50",
-        }
+        };
       case "alimentador":
         return {
           bg: "bg-green-600",
@@ -83,7 +88,7 @@ export default function Rutas() {
           border: "border-green-200",
           text: "text-green-800",
           light: "bg-green-50",
-        }
+        };
       default:
         return {
           bg: "bg-gray-500",
@@ -91,17 +96,19 @@ export default function Rutas() {
           border: "border-gray-200",
           text: "text-gray-800",
           light: "bg-gray-50",
-        }
+        };
     }
-  }
+  };
 
   // Obtener tipos únicos para los filtros
-  const tiposUnicos = [...new Set(rutas.map((ruta) => ruta.tipo))]
+  const tiposUnicos = [...new Set(rutas.map((ruta) => ruta.tipo))];
 
   return (
     <div className="w-full bg-white py-8">
       <div className="max-w-4xl mx-auto px-4">
-        <h1 className="text-2xl md:text-3xl font-bold text-center text-blue-800 mb-8">Conoce las rutas del MIO</h1>
+        <h1 className="text-2xl md:text-3xl font-bold text-center text-blue-800 mb-8">
+          Conoce las rutas del MIO
+        </h1>
 
         {/* Barra de búsqueda */}
         <div className="mb-6">
@@ -128,7 +135,10 @@ export default function Rutas() {
               className="w-full outline-none bg-transparent text-blue-900 placeholder-blue-400"
             />
             {search && (
-              <button onClick={() => setSearch("")} className="text-blue-500 hover:text-blue-700">
+              <button
+                onClick={() => setSearch("")}
+                className="text-blue-500 hover:text-blue-700"
+              >
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
                   className="h-5 w-5"
@@ -136,7 +146,12 @@ export default function Rutas() {
                   viewBox="0 0 24 24"
                   stroke="currentColor"
                 >
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M6 18L18 6M6 6l12 12"
+                  />
                 </svg>
               </button>
             )}
@@ -147,25 +162,31 @@ export default function Rutas() {
             <button
               onClick={() => setFilteredTipo(null)}
               className={`px-3 py-1 text-xs font-medium rounded-full transition-colors ${
-                filteredTipo === null ? "bg-blue-600 text-white" : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+                filteredTipo === null
+                  ? "bg-blue-600 text-white"
+                  : "bg-gray-100 text-gray-700 hover:bg-gray-200"
               }`}
             >
               Todos
             </button>
 
             {tiposUnicos.map((tipo) => {
-              const colors = getColorByType(tipo)
+              const colors = getColorByType(tipo);
               return (
                 <button
                   key={tipo}
-                  onClick={() => setFilteredTipo(filteredTipo === tipo ? null : tipo)}
+                  onClick={() =>
+                    setFilteredTipo(filteredTipo === tipo ? null : tipo)
+                  }
                   className={`px-3 py-1 text-xs font-medium rounded-full transition-colors ${
-                    filteredTipo === tipo ? `${colors.bg} text-white` : `${colors.light} ${colors.text} ${colors.hover}`
+                    filteredTipo === tipo
+                      ? `${colors.bg} text-white`
+                      : `${colors.light} ${colors.text} ${colors.hover}`
                   }`}
                 >
                   {tipo}
                 </button>
-              )
+              );
             })}
           </div>
         </div>
@@ -180,7 +201,10 @@ export default function Rutas() {
           <>
             {/* Contador de resultados */}
             <p className="text-sm text-gray-500 mb-4">
-              {filteredRutas.length} {filteredRutas.length === 1 ? "ruta encontrada" : "rutas encontradas"}
+              {filteredRutas.length}{" "}
+              {filteredRutas.length === 1
+                ? "ruta encontrada"
+                : "rutas encontradas"}
               {filteredTipo && ` para el tipo "${filteredTipo}"`}
               {search && ` con "${search}"`}
             </p>
@@ -190,7 +214,7 @@ export default function Rutas() {
               <AnimatePresence>
                 {filteredRutas.length > 0 ? (
                   filteredRutas.map((ruta, index) => {
-                    const colors = getColorByType(ruta.tipo)
+                    const colors = getColorByType(ruta.tipo);
                     return (
                       <motion.div
                         key={ruta.idruta}
@@ -241,7 +265,9 @@ export default function Rutas() {
                                           d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
                                         />
                                       </svg>
-                                      <span>Lun-Vie: {ruta.horariolunvier}</span>
+                                      <span>
+                                        Lun-Vie: {ruta.horariolunvier}
+                                      </span>
                                     </div>
                                   )}
 
@@ -261,14 +287,18 @@ export default function Rutas() {
                                           d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
                                         />
                                       </svg>
-                                      <span>Fin de semana: {ruta.horariofinsem}</span>
+                                      <span>
+                                        Fin de semana: {ruta.horariofinsem}
+                                      </span>
                                     </div>
                                   )}
                                 </div>
                               )}
 
                               {ruta.LugaresConcurridos && (
-                                <p className="mt-1 text-xs text-gray-500">Lugares: {ruta.LugaresConcurridos}</p>
+                                <p className="mt-1 text-xs text-gray-500">
+                                  Lugares: {ruta.LugaresConcurridos}
+                                </p>
                               )}
                             </div>
 
@@ -280,13 +310,18 @@ export default function Rutas() {
                                 viewBox="0 0 24 24"
                                 stroke="currentColor"
                               >
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                                <path
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                  strokeWidth={2}
+                                  d="M9 5l7 7-7 7"
+                                />
                               </svg>
                             </div>
                           </div>
                         </Link>
                       </motion.div>
-                    )
+                    );
                   })
                 ) : (
                   <motion.div
@@ -308,13 +343,17 @@ export default function Rutas() {
                         d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
                       />
                     </svg>
-                    <h3 className="mt-4 text-lg font-medium text-gray-900">No se encontraron rutas</h3>
-                    <p className="mt-1 text-gray-500">Intenta con otra búsqueda o elimina los filtros</p>
+                    <h3 className="mt-4 text-lg font-medium text-gray-900">
+                      No se encontraron rutas
+                    </h3>
+                    <p className="mt-1 text-gray-500">
+                      Intenta con otra búsqueda o elimina los filtros
+                    </p>
                     {(search || filteredTipo) && (
                       <button
                         onClick={() => {
-                          setSearch("")
-                          setFilteredTipo(null)
+                          setSearch("");
+                          setFilteredTipo(null);
                         }}
                         className="mt-4 px-4 py-2 bg-blue-100 text-blue-700 rounded-md hover:bg-blue-200 transition-colors"
                       >
@@ -329,5 +368,5 @@ export default function Rutas() {
         )}
       </div>
     </div>
-  )
+  );
 }

@@ -6,17 +6,16 @@ import { motion, AnimatePresence } from "framer-motion"
 import { useIsAdmin } from "../../../hooks/isAdmin"
 import { Edit, Trash2, Save, X, Calendar, User, ExternalLink, ArrowLeft, Loader2, AlertTriangle } from "lucide-react"
 import { toast } from "react-hot-toast"
+import {
+  obtenerNoticiaEspecifica,
+  actualizarNoticia,
+  eliminarNoticia,
+  formatearFecha,
+  validarDatosNoticia,
+  type Noticia,
+  type FormDataNoticia,
+} from "../../utils"
 
-interface Noticia {
-  idnoticia: number
-  titulo: string
-  descripcion: string
-  link?: string
-  autor: string
-  fecha: string
-}
-
-// Componente Modal de Confirmación
 const DeleteConfirmationModal = ({
   isOpen,
   onClose,
@@ -116,7 +115,7 @@ export default function NoticiaDetalle() {
   const [loading, setLoading] = useState(true)
   const [isEditing, setIsEditing] = useState(false)
   const [showDeleteModal, setShowDeleteModal] = useState(false)
-  const [editForm, setEditForm] = useState({
+  const [editForm, setEditForm] = useState<FormDataNoticia>({
     titulo: "",
     descripcion: "",
     link: "",
@@ -127,19 +126,13 @@ export default function NoticiaDetalle() {
 
   useEffect(() => {
     const fetchNoticia = async () => {
+      if (!idNoticia || typeof idNoticia !== "string") {
+        setLoading(false)
+        return
+      }
+
       try {
-        const res = await fetch(`https://servicionoticias.onrender.com/noticias/getNoticiaId/${idNoticia}`)
-
-        if (!res.ok) {
-          throw new Error(`Error del servidor: ${res.status}`)
-        }
-
-        const text = await res.text()
-        if (!text) {
-          throw new Error("Respuesta vacía del servidor")
-        }
-
-        const data: Noticia = JSON.parse(text)
+        const data = await obtenerNoticiaEspecifica(idNoticia)
         setNoticia(data)
         setEditForm({
           titulo: data.titulo,
@@ -178,25 +171,20 @@ export default function NoticiaDetalle() {
     if (!noticia) return
     setSaving(true)
     try {
-      const res = await fetch(`https://servicionoticias.onrender.com/noticias/editarNoticia/${noticia.idnoticia}`, {
-        method: "PATCH",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(editForm),
-      })
+      // Validar datos antes de enviar
+      validarDatosNoticia(editForm)
 
-      if (res.ok) {
-        const updatedNoticia = await res.json()
-        setNoticia(updatedNoticia)
-        setIsEditing(false)
-        toast.success("¡Noticia actualizada exitosamente! ✨", { position: "top-center" })
-      } else {
-        throw new Error("Error al actualizar la noticia")
-      }
+      const updatedNoticia = await actualizarNoticia(noticia.idnoticia, editForm)
+      setNoticia(updatedNoticia)
+      setIsEditing(false)
+      toast.success("¡Noticia actualizada exitosamente! ✨", { position: "top-center" })
     } catch (error) {
       console.error("Error actualizando la noticia:", error)
-      toast.error("Error al actualizar la noticia", { position: "top-center" })
+      if (error instanceof Error) {
+        toast.error(error.message, { position: "top-center" })
+      } else {
+        toast.error("Error al actualizar la noticia", { position: "top-center" })
+      }
     } finally {
       setSaving(false)
     }
@@ -210,19 +198,16 @@ export default function NoticiaDetalle() {
     if (!noticia) return
     setDeleting(true)
     try {
-      const res = await fetch(`https://servicionoticias.onrender.com/noticias/eliminarNoticia/${noticia.idnoticia}`, {
-        method: "DELETE",
-      })
-
-      if (res.ok) {
-        toast.success("¡Noticia eliminada correctamente! 🗑️", { position: "top-center" })
-        router.push("/noticias")
-      } else {
-        throw new Error("Error al eliminar la noticia")
-      }
+      await eliminarNoticia(noticia.idnoticia)
+      toast.success("¡Noticia eliminada correctamente! 🗑️", { position: "top-center" })
+      router.push("/noticias")
     } catch (error) {
       console.error("Error eliminando la noticia:", error)
-      toast.error("Error al eliminar la noticia", { position: "top-center" })
+      if (error instanceof Error) {
+        toast.error(error.message, { position: "top-center" })
+      } else {
+        toast.error("Error al eliminar la noticia", { position: "top-center" })
+      }
     } finally {
       setDeleting(false)
       setShowDeleteModal(false)
@@ -233,7 +218,7 @@ export default function NoticiaDetalle() {
     setShowDeleteModal(false)
   }
 
-  const handleInputChange = (field: keyof typeof editForm, value: string) => {
+  const handleInputChange = (field: keyof FormDataNoticia, value: string) => {
     setEditForm((prev) => ({
       ...prev,
       [field]: value,
@@ -265,7 +250,7 @@ export default function NoticiaDetalle() {
         >
           <p className="text-red-500 font-medium text-lg">No se encontró la noticia.</p>
           <button
-            onClick={() => router.push("/noticias")}
+            onClick={() => router.push("/noticias-alertas")}
             className="mt-4 text-blue-600 hover:text-blue-800 transition-colors flex items-center gap-2 mx-auto"
           >
             <ArrowLeft className="w-4 h-4" />
@@ -284,7 +269,7 @@ export default function NoticiaDetalle() {
           <motion.button
             initial={{ opacity: 0, x: -20 }}
             animate={{ opacity: 1, x: 0 }}
-            onClick={() => router.push("/noticias")}
+            onClick={() => router.push("/noticias-alertas")}
             className="mb-6 flex items-center gap-2 text-blue-600 hover:text-blue-800 transition-colors font-medium group"
           >
             <ArrowLeft className="w-5 h-5 group-hover:-translate-x-1 transition-transform" />
@@ -470,13 +455,7 @@ export default function NoticiaDetalle() {
                         </div>
                         <div>
                           <p className="text-sm text-gray-500 font-medium">Fecha de publicación</p>
-                          <p className="text-lg font-semibold text-gray-800">
-                            {new Date(noticia.fecha).toLocaleDateString("es-ES", {
-                              year: "numeric",
-                              month: "long",
-                              day: "numeric",
-                            })}
-                          </p>
+                          <p className="text-lg font-semibold text-gray-800">{formatearFecha(noticia.fecha)}</p>
                         </div>
                       </div>
                     </div>

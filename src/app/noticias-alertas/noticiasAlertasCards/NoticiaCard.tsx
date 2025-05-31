@@ -2,6 +2,7 @@
 
 import Link from "next/link"
 import { motion } from "framer-motion"
+import { obtenerIconoNoticia, formatearFechaCorta } from "../utils"
 
 type NoticiaProps = {
   idnoticia: number
@@ -9,9 +10,10 @@ type NoticiaProps = {
   descripcion: string
   fecha: string
   autor: string
+  tipo: string
 }
 
-export default function NoticiaCard({ idnoticia, titulo, descripcion, fecha, autor }: NoticiaProps) {
+export default function NoticiaCard({ idnoticia, titulo, descripcion, fecha, autor, tipo }: NoticiaProps) {
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
@@ -23,7 +25,9 @@ export default function NoticiaCard({ idnoticia, titulo, descripcion, fecha, aut
       <div className="flex flex-col space-y-3">
         <div className="flex items-center gap-3">
           <div className="bg-blue-600 text-white text-xs px-3 py-1 rounded-full font-medium shadow-sm">Noticia</div>
-          <h2 className="font-bold text-blue-900 line-clamp-1">{titulo}</h2>
+          <h2 className="font-bold text-blue-900 line-clamp-1">
+            {obtenerIconoNoticia(tipo)} {titulo}
+          </h2>
         </div>
 
         <p className="text-gray-700 line-clamp-2 text-sm">{descripcion}</p>
@@ -33,17 +37,11 @@ export default function NoticiaCard({ idnoticia, titulo, descripcion, fecha, aut
             <p className="text-xs text-gray-500 flex items-center gap-1">
               <span className="font-medium">Por:</span> {autor}
             </p>
-            <p className="text-xs text-gray-400">
-              {new Date(fecha).toLocaleDateString("es-ES", {
-                year: "numeric",
-                month: "short",
-                day: "numeric",
-              })}
-            </p>
+            <p className="text-xs text-gray-400">{formatearFechaCorta(fecha)}</p>
           </div>
 
           <Link
-            href={`/noticias/noticias/${idnoticia}`}
+            href={`/noticias-alertas/noticias/${idnoticia}`}
             className="text-sm text-blue-600 font-medium hover:text-blue-800 transition-colors flex items-center gap-1 group"
           >
             Ver más

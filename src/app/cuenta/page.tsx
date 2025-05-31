@@ -47,7 +47,7 @@ export default function CuentaPage() {
   useEffect(() => {
     if (!userId) return
 
-    fetch(`https://www.cuentas.devcorebits.com/cuenta/getCuenta/${userId}`)
+    fetch(`https://www.api.devcorebits.com/cuentasGateway/cuenta/getCuenta/${userId}`)
       .then((res) => res.json())
       .then((data: Cuenta) => {
         if (data.nombre) {

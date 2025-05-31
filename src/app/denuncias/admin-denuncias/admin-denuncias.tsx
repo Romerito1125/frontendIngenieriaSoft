@@ -1,8 +1,5 @@
-//Src
-
 "use client"
 import { useEffect, useState } from "react"
-import axios from "axios"
 import toast, { Toaster } from "react-hot-toast"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -28,16 +25,17 @@ import {
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { motion } from "framer-motion"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-
-interface Denuncia {
-  iddenuncia: number
-  idcuenta: number
-  mensaje: string
-  fecha: string
-  estado: string
-  tipo: string
-  respuesta: string | null
-}
+import {
+  obtenerTodasLasDenuncias,
+  responderDenuncia,
+  formatearFechaCompleta,
+  obtenerColorEstado,
+  obtenerEtiquetaTipo,
+  filtrarDenunciasAdmin,
+  calcularEstadisticas,
+  validarRespuesta,
+  type Denuncia,
+} from "./utils"
 
 interface AdminDenunciasProps {
   userId: number
@@ -55,27 +53,20 @@ export function AdminDenuncias({ userId }: AdminDenunciasProps) {
   const [responses, setResponses] = useState<{ [key: number]: string }>({})
   const [submittingResponse, setSubmittingResponse] = useState<number | null>(null)
 
-  const API_BASE_URL = "https://serviciodenuncias.onrender.com/denuncias"
-
   const fetchAllDenuncias = async () => {
     try {
       setIsLoading(true)
       setError(null)
 
-      const apiUrl = `${API_BASE_URL}/listarTodas`
-      console.log("Obteniendo todas las denuncias para administrador")
-
-      const response = await axios.get(apiUrl)
-      setDenuncias(response.data || [])
-    } catch (err: any) {
+      const data = await obtenerTodasLasDenuncias()
+      setDenuncias(data)
+    } catch (err: unknown) {
       console.error("Error al obtener denuncias:", err)
 
-      if (err.response) {
-        setError(`Error del servidor: ${err.response.status}. Por favor, intenta nuevamente más tarde.`)
-      } else if (err.request) {
-        setError("No se pudo conectar con el servidor. Verifica tu conexión a internet.")
+      if (err instanceof Error) {
+        setError(err.message)
       } else {
-        setError(`Error: ${err.message}`)
+        setError("Error desconocido al cargar las denuncias")
       }
 
       toast.error("Error al cargar denuncias")
@@ -97,20 +88,11 @@ export function AdminDenuncias({ userId }: AdminDenunciasProps) {
   const handleResponseSubmit = async (iddenuncia: number, idcuenta: number) => {
     const respuesta = responses[iddenuncia]
 
-    if (!respuesta || !respuesta.trim()) {
-      toast.error("Por favor, escribe una respuesta")
-      return
-    }
-
     try {
+      validarRespuesta(respuesta)
       setSubmittingResponse(iddenuncia)
 
-      const apiUrl = `${API_BASE_URL}/contestar/${iddenuncia}/${idcuenta}`
-      console.log(`Respondiendo denuncia ID: ${iddenuncia} para cuenta: ${idcuenta}`)
-
-      await axios.patch(apiUrl, {
-        respuesta: respuesta.trim(),
-      })
+      await responderDenuncia(iddenuncia, idcuenta, respuesta)
 
       // Actualizar la denuncia en el estado local
       setDenuncias((prev) =>
@@ -126,9 +108,13 @@ export function AdminDenuncias({ userId }: AdminDenunciasProps) {
       setRespondingTo(null)
 
       toast.success("Respuesta enviada correctamente")
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error("Error al enviar respuesta:", err)
-      toast.error("No se pudo enviar la respuesta. Por favor, intenta nuevamente.")
+      if (err instanceof Error) {
+        toast.error(err.message)
+      } else {
+        toast.error("Error desconocido al enviar la respuesta")
+      }
     } finally {
       setSubmittingResponse(null)
     }
@@ -137,43 +123,6 @@ export function AdminDenuncias({ userId }: AdminDenunciasProps) {
   useEffect(() => {
     fetchAllDenuncias()
   }, [])
-
-  const formatDate = (dateString: string) => {
-    const options: Intl.DateTimeFormatOptions = {
-      year: "numeric",
-      month: "long",
-      day: "numeric",
-      hour: "2-digit",
-      minute: "2-digit",
-    }
-    return new Date(dateString).toLocaleDateString("es-ES", options)
-  }
-
-  const getStatusColor = (status: string) => {
-    switch (status.toLowerCase()) {
-      case "pendiente":
-        return "bg-yellow-100 text-yellow-800 border-yellow-300"
-      case "procesada":
-        return "bg-blue-100 text-blue-800 border-blue-300"
-      case "cerrada":
-        return "bg-green-100 text-green-800 border-green-300"
-      default:
-        return "bg-gray-100 text-gray-800 border-gray-300"
-    }
-  }
-
-  const getTypeLabel = (type: string) => {
-    switch (type.toLowerCase()) {
-      case "conductor":
-        return "Conductor"
-      case "estacion":
-        return "Estación"
-      case "servicio":
-        return "Servicio"
-      default:
-        return type
-    }
-  }
 
   const getTypeIcon = (type: string) => {
     switch (type.toLowerCase()) {
@@ -188,19 +137,8 @@ export function AdminDenuncias({ userId }: AdminDenunciasProps) {
     }
   }
 
-  const filteredDenuncias = denuncias.filter((denuncia) => {
-    const matchesSearch =
-      denuncia.mensaje.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      denuncia.tipo.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      denuncia.estado.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      denuncia.iddenuncia.toString().includes(searchTerm) ||
-      denuncia.idcuenta.toString().includes(searchTerm)
-
-    const matchesStatus = filterStatus === "todas" || denuncia.estado.toLowerCase() === filterStatus
-    const matchesType = filterType === "todos" || denuncia.tipo.toLowerCase() === filterType
-
-    return matchesSearch && matchesStatus && matchesType
-  })
+  const filteredDenuncias = filtrarDenunciasAdmin(denuncias, searchTerm, filterStatus, filterType)
+  const estadisticas = calcularEstadisticas(denuncias)
 
   if (isLoading) {
     return (
@@ -304,7 +242,7 @@ export function AdminDenuncias({ userId }: AdminDenunciasProps) {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-blue-600 font-medium">Total</p>
-                <p className="text-2xl font-bold text-blue-700">{denuncias.length}</p>
+                <p className="text-2xl font-bold text-blue-700">{estadisticas.total}</p>
               </div>
               <FileText className="h-8 w-8 text-blue-500" />
             </div>
@@ -313,9 +251,7 @@ export function AdminDenuncias({ userId }: AdminDenunciasProps) {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-yellow-600 font-medium">Pendientes</p>
-                <p className="text-2xl font-bold text-yellow-700">
-                  {denuncias.filter((d) => d.estado.toLowerCase() === "pendiente").length}
-                </p>
+                <p className="text-2xl font-bold text-yellow-700">{estadisticas.pendientes}</p>
               </div>
               <Clock className="h-8 w-8 text-yellow-500" />
             </div>
@@ -324,9 +260,7 @@ export function AdminDenuncias({ userId }: AdminDenunciasProps) {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-blue-600 font-medium">Procesadas</p>
-                <p className="text-2xl font-bold text-blue-700">
-                  {denuncias.filter((d) => d.estado.toLowerCase() === "procesada").length}
-                </p>
+                <p className="text-2xl font-bold text-blue-700">{estadisticas.procesadas}</p>
               </div>
               <MessageSquare className="h-8 w-8 text-blue-500" />
             </div>
@@ -335,9 +269,7 @@ export function AdminDenuncias({ userId }: AdminDenunciasProps) {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-green-600 font-medium">Cerradas</p>
-                <p className="text-2xl font-bold text-green-700">
-                  {denuncias.filter((d) => d.estado.toLowerCase() === "cerrada").length}
-                </p>
+                <p className="text-2xl font-bold text-green-700">{estadisticas.cerradas}</p>
               </div>
               <CheckCircle className="h-8 w-8 text-green-500" />
             </div>
@@ -426,11 +358,11 @@ export function AdminDenuncias({ userId }: AdminDenunciasProps) {
                       </CardTitle>
                       <div className="text-sm text-gray-500 flex items-center mt-1">
                         <Clock className="h-4 w-4 mr-1" />
-                        {formatDate(denuncia.fecha)}
+                        {formatearFechaCompleta(denuncia.fecha)}
                       </div>
                     </div>
                   </div>
-                  <Badge className={`${getStatusColor(denuncia.estado)} shadow-sm px-3 py-1 rounded-full`}>
+                  <Badge className={`${obtenerColorEstado(denuncia.estado)} shadow-sm px-3 py-1 rounded-full`}>
                     {denuncia.estado.charAt(0).toUpperCase() + denuncia.estado.slice(1)}
                   </Badge>
                 </CardHeader>
@@ -438,7 +370,9 @@ export function AdminDenuncias({ userId }: AdminDenunciasProps) {
                 <CardContent className="pt-5">
                   <div className="mb-4 flex items-center p-2 bg-gray-50 rounded-lg group-hover:bg-gray-100 transition-colors duration-300">
                     {getTypeIcon(denuncia.tipo)}
-                    <span className="text-sm font-medium text-gray-700">Tipo: {getTypeLabel(denuncia.tipo)}</span>
+                    <span className="text-sm font-medium text-gray-700">
+                      Tipo: {obtenerEtiquetaTipo(denuncia.tipo)}
+                    </span>
                   </div>
 
                   <div className="mb-4">

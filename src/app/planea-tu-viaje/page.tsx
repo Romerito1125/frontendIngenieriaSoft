@@ -9,73 +9,24 @@ import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Card, CardContent } from "@/components/ui/card"
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
-
-type Estacion = {
-  idestacion: number
-  nombre: string
-  ubicacion: string
-  Zona: string
-}
+import {
+  obtenerEstaciones,
+  planearViaje,
+  obtenerNombreEstacion,
+  obtenerTipoRuta,
+  getColorByType,
+  getNombreZona,
+  getZonaColor,
+  agruparEstacionesPorZona,
+  filtrarEstaciones,
+  calcularTiempoEstimado,
+  type Estacion,
+  type RutaResultado,
+  type RutaConTipo,
+} from "./utils"
 
 type AgrupadasPorZona = {
   [zona: string]: Estacion[]
-}
-
-const getColorByType = (tipo: string) => {
-  switch (tipo.toLowerCase()) {
-    case "troncal":
-      return "bg-gradient-to-r from-red-600 to-red-500 border-red-700"
-    case "pretroncal":
-      return "bg-gradient-to-r from-blue-600 to-blue-500 border-blue-700"
-    case "expreso":
-      return "bg-gradient-to-r from-yellow-500 to-yellow-400 text-black border-yellow-600"
-    case "alimentador":
-      return "bg-gradient-to-r from-green-600 to-green-500 border-green-700"
-    default:
-      return "bg-gradient-to-r from-gray-600 to-gray-500 border-gray-700"
-  }
-}
-
-const getNombreZona = (zona: string) => {
-  switch (zona) {
-    case "0":
-      return "Zona 0 - Centro"
-    case "1":
-      return "Zona 1 - Universidades"
-    case "2":
-      return "Zona 2 - Menga"
-    case "3":
-      return "Zona 3 - Paso del Comercio"
-    case "4":
-      return "Zona 4 - Andrés Sanín"
-    case "5":
-      return "Zona 5 - Aguablanca"
-    case "6":
-      return "Zona 6 - Simón Bolívar"
-    case "7":
-      return "Zona 7 - Cañaveralejo"
-    case "8":
-      return "Zona 8 - Calipso"
-    default:
-      return `Zona ${zona}`
-  }
-}
-
-const getZonaColor = (zona: string) => {
-  const colors = [
-    "from-blue-600 to-blue-400",
-    "from-purple-600 to-purple-400",
-    "from-green-600 to-green-400",
-    "from-yellow-600 to-yellow-400",
-    "from-red-600 to-red-400",
-    "from-pink-600 to-pink-400",
-    "from-indigo-600 to-indigo-400",
-    "from-teal-600 to-teal-400",
-    "from-orange-600 to-orange-400",
-  ]
-
-  const index = Number.parseInt(zona) % colors.length
-  return colors[index] || colors[0]
 }
 
 export default function EstacionesPage() {
@@ -83,8 +34,8 @@ export default function EstacionesPage() {
   const [agrupadas, setAgrupadas] = useState<AgrupadasPorZona>({})
   const [origen, setOrigen] = useState<number | null>(null)
   const [destino, setDestino] = useState<number | null>(null)
-  const [rutaResultado, setRutaResultado] = useState<string[] | null>(null)
-  const [rutasConTipo, setRutasConTipo] = useState<{ id: string; tipo: string }[]>([])
+  const [rutaResultado, setRutaResultado] = useState<RutaResultado | null>(null)
+  const [rutasConTipo, setRutasConTipo] = useState<RutaConTipo[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [isCalculating, setIsCalculating] = useState(false)
   const [searchTerm, setSearchTerm] = useState("")
@@ -92,18 +43,12 @@ export default function EstacionesPage() {
   const resultadoRef = useRef<HTMLDivElement | null>(null)
 
   useEffect(() => {
-    const obtenerEstaciones = async () => {
+    const cargarEstaciones = async () => {
       try {
         setIsLoading(true)
-        const res = await fetch("https://www.tiemporeal.devcorebits.com/estaciones")
-        const data = await res.json()
+        const data = await obtenerEstaciones()
         setEstaciones(data)
-
-        const agrupado: AgrupadasPorZona = {}
-        data.forEach((estacion: Estacion) => {
-          if (!agrupado[estacion.Zona]) agrupado[estacion.Zona] = []
-          agrupado[estacion.Zona].push(estacion)
-        })
+        const agrupado = agruparEstacionesPorZona(data)
         setAgrupadas(agrupado)
       } catch (error) {
         toast.error("Error al cargar las estaciones")
@@ -113,7 +58,7 @@ export default function EstacionesPage() {
       }
     }
 
-    obtenerEstaciones()
+    cargarEstaciones()
   }, [])
 
   const calcularRuta = async () => {
@@ -127,37 +72,52 @@ export default function EstacionesPage() {
       setRutaResultado(null)
       setRutasConTipo([])
 
-      const res = await fetch("https://www.tiemporeal.devcorebits.com/viajes/planear", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ tipo: "viaje_normal", origen, destino }),
+      const data = await planearViaje({
+        tipo: "viaje_normal",
+        origen,
+        destino,
       })
 
-      const data = await res.json()
+      let nombreEstacionTransbordo: string | undefined = undefined
 
-      if (data.rutas && data.rutas.length > 0) {
-        setRutaResultado(data.rutas)
-
-        const tipos = await Promise.all(
-          data.rutas.map(async (idruta: string) => {
-            const resRuta = await fetch(`https://www.tiemporeal.devcorebits.com/rutas/${idruta}`)
-            const dataRuta = await resRuta.json()
-            return { id: idruta, tipo: dataRuta?.tipo || "desconocido" }
-          }),
-        )
-
-        setRutasConTipo(tipos)
-
-        setTimeout(() => {
-          resultadoRef.current?.scrollIntoView({ behavior: "smooth" })
-        }, 100)
-
-        toast.success("Ruta calculada con éxito")
-      } else {
-        toast.error("No se pudo calcular la ruta. Intenta con otras estaciones.")
+      if (data.transbordo && data.estacionTransbordo) {
+        nombreEstacionTransbordo = await obtenerNombreEstacion(data.estacionTransbordo)
       }
+
+      const resultado: RutaResultado = {
+        rutas: data.rutas,
+        transbordo: data.transbordo,
+        estacionTransbordo: data.estacionTransbordo,
+        nombreEstacionTransbordo,
+      }
+
+      setRutaResultado(resultado)
+
+      // Obtiene tipo de cada ruta
+      const tipos = await Promise.all(
+        data.rutas.map(async (idruta: string) => {
+          const tipo = await obtenerTipoRuta(idruta)
+          return {
+            id: idruta,
+            tipo,
+          }
+        }),
+      )
+
+      setRutasConTipo(tipos)
+
+      setTimeout(() => {
+        resultadoRef.current?.scrollIntoView({ behavior: "smooth" })
+      }, 100)
+
+      toast.success("Ruta calculada con éxito")
     } catch (error) {
-      toast.error("Error al conectarse con el servidor.")
+      console.error(error)
+      if (error instanceof Error) {
+        toast.error(error.message)
+      } else {
+        toast.error("Error al conectarse con el servidor.")
+      }
     } finally {
       setIsCalculating(false)
     }
@@ -207,13 +167,7 @@ export default function EstacionesPage() {
     toast.success("Selección reiniciada")
   }
 
-  const filteredEstaciones = searchTerm
-    ? estaciones.filter(
-        (e) =>
-          e.nombre.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          e.ubicacion.toLowerCase().includes(searchTerm.toLowerCase()),
-      )
-    : []
+  const filteredEstaciones = filtrarEstaciones(estaciones, searchTerm)
 
   const getEstacionesForActiveTab = () => {
     if (activeTab === "todas") {
@@ -524,7 +478,9 @@ export default function EstacionesPage() {
                         className="flex items-center"
                       >
                         <div
-                          className={`px-4 py-2 rounded-lg shadow-md text-white font-medium border ${getColorByType(ruta.tipo)}`}
+                          className={`px-4 py-2 rounded-lg shadow-md text-white font-medium border ${getColorByType(
+                            ruta.tipo,
+                          )}`}
                           style={{ minWidth: "60px", textAlign: "center" }}
                         >
                           <div className="flex items-center justify-center gap-1">
@@ -533,7 +489,25 @@ export default function EstacionesPage() {
                           </div>
                         </div>
 
-                        {index < rutasConTipo.length - 1 && (
+                        {/* Mostrar flecha y transbordo si hay más rutas */}
+                        {rutaResultado.transbordo && index === 0 && (
+                          <>
+                            <div className="mx-1">
+                              <ChevronRight className="w-5 h-5 text-gray-500" />
+                            </div>
+                            <div className="flex flex-col items-center text-sm text-gray-600">
+                              <span>Transbordo en</span>
+                              <span className="font-medium text-gray-700">
+                                {rutaResultado.nombreEstacionTransbordo}
+                              </span>
+                            </div>
+                            <div className="mx-1">
+                              <ChevronRight className="w-5 h-5 text-gray-500" />
+                            </div>
+                          </>
+                        )}
+
+                        {!rutaResultado.transbordo && index < rutasConTipo.length - 1 && (
                           <div className="mx-1">
                             <ChevronRight className="w-5 h-5 text-gray-500" />
                           </div>
@@ -544,7 +518,7 @@ export default function EstacionesPage() {
                 </div>
 
                 <div className="mt-4 text-center text-sm text-gray-500">
-                  <p>Tiempo estimado: {rutasConTipo.length * 10 - 5} minutos</p>
+                  <p>Tiempo estimado: {calcularTiempoEstimado(rutasConTipo.length)} minutos</p>
                 </div>
               </div>
             </motion.div>
@@ -567,7 +541,9 @@ export default function EstacionesPage() {
                   <TabsTrigger
                     key={zona}
                     value={zona}
-                    className={`data-[state=active]:bg-gradient-to-r data-[state=active]:${getZonaColor(zona)} data-[state=active]:text-white rounded-md`}
+                    className={`data-[state=active]:bg-gradient-to-r data-[state=active]:${getZonaColor(
+                      zona,
+                    )} data-[state=active]:text-white rounded-md`}
                   >
                     {getNombreZona(zona).split(" - ")[0]}
                   </TabsTrigger>

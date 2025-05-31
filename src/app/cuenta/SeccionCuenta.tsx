@@ -4,6 +4,7 @@ import { useEffect, useState } from "react"
 import toast from "react-hot-toast"
 import { motion } from "framer-motion"
 import { CheckCircle, User, Mail, Shield } from "lucide-react"
+import { enviarOtp, verificarOtp, actualizarCuentaConOtp, cargarCuenta, manejarError } from "./utils"
 
 interface Props {
   correo: string
@@ -37,69 +38,33 @@ export default function SeccionCuenta({ correo, id }: Props) {
     if (!id) return
 
     setCargandoDatos(true)
-    fetch(`https://www.cuentas.devcorebits.com/cuenta/getCuenta/${id}`)
-      .then((res) => {
-        if (!res.ok) {
-          throw new Error("Error al cargar la cuenta")
-        }
-        return res.json()
-      })
+    cargarCuenta(id)
       .then((data) => {
         console.log("📥 Datos de cuenta cargados:", data)
-        if (data.nombre) {
-          const cuentaData = {
-            nombre: data.nombre,
-            apellido: data.apellido,
-            correo: data.correo || correo,
-          }
-          setCuenta(cuentaData)
-          setCuentaOriginal(cuentaData)
-        } else {
-          toast.error("Error cargando información de la cuenta")
+        const cuentaData = {
+          nombre: data.nombre,
+          apellido: data.apellido,
+          correo: data.correo || correo,
         }
+        setCuenta(cuentaData)
+        setCuentaOriginal(cuentaData)
       })
       .catch((error) => {
         console.error("Error cargando cuenta:", error)
-        toast.error("Error cargando información de la cuenta")
+        const errorMessage = manejarError(error)
+        toast.error(errorMessage)
       })
       .finally(() => setCargandoDatos(false))
   }, [id, correo])
 
   const handleEnviarOtp = async () => {
-    console.log("🚀 Iniciando envío de OTP para actualización...")
-    console.log("Correo:", correo)
-
-    if (!correo) {
-      toast.error("Correo no disponible")
-      return
-    }
-
     setCargando(true)
     try {
-      console.log("📤 Enviando solicitud OTP...")
-      const res = await fetch("https://www.cuentas.devcorebits.com/cuenta/send-otp", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ correo, tipo: "actualizacion" }),
-      })
-
-      const data = await res.json()
-      console.log("📥 Respuesta del servidor:", data)
-
-      if (!res.ok) {
-        throw new Error(data.message || "Error al enviar OTP")
-      }
-
+      await enviarOtp({ correo, tipo: "actualizacion" })
       toast.success("✅ OTP enviado correctamente al correo")
       setMostrarOtp(true)
     } catch (error) {
-      console.error("❌ Error enviando OTP:", error)
-
-      let errorMessage = "Error al enviar OTP"
-      if (error instanceof Error) {
-        errorMessage = error.message
-      }
-
+      const errorMessage = manejarError(error)
       toast.error(errorMessage, {
         duration: 5000,
         position: "top-center",
@@ -110,43 +75,14 @@ export default function SeccionCuenta({ correo, id }: Props) {
   }
 
   const handleConfirmarOtp = async () => {
-    console.log("🔐 Verificando OTP...")
-    console.log("OTP ingresado:", otp)
-    console.log("Correo:", correo)
-
-    if (!otp || otp.length !== 6) {
-      toast.error("Ingresa el código OTP completo")
-      return
-    }
-
     setCargando(true)
     try {
-      console.log("📤 Enviando verificación OTP...")
-      const res = await fetch("https://www.cuentas.devcorebits.com/cuenta/verify-otp", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ correo, otp }),
-      })
-
-      const data = await res.json()
-      console.log("📥 Respuesta verificación OTP:", data)
-
-      if (!res.ok) {
-        throw new Error(data.message || "OTP inválido o expirado")
-      }
-
+      await verificarOtp({ correo, otp })
       toast.success("✅ Identidad verificada correctamente")
       setVerificado(true)
       setMostrarOtp(false)
-      // Mantener el OTP para la actualización posterior
-    } catch (error: unknown) {
-      console.error("❌ Error verificando OTP:", error)
-
-      let errorMessage = "OTP inválido"
-      if (error instanceof Error) {
-        errorMessage = error.message || "OTP inválido"
-      }
-
+    } catch (error) {
+      const errorMessage = manejarError(error)
       toast.error(errorMessage, {
         duration: 5000,
         position: "top-center",
@@ -157,21 +93,6 @@ export default function SeccionCuenta({ correo, id }: Props) {
   }
 
   const handleActualizar = async () => {
-    console.log("🔄 Iniciando actualización de cuenta...")
-    console.log("Datos actuales:", cuenta)
-    console.log("Datos originales:", cuentaOriginal)
-    console.log("Verificado:", verificado)
-
-    if (!cuenta.nombre || !cuenta.apellido || !cuenta.correo) {
-      toast.error("Todos los campos son obligatorios")
-      return
-    }
-
-    if (!verificado) {
-      toast.error("Debes verificar tu identidad primero")
-      return
-    }
-
     // Verificar si hay cambios
     const hayCambios = cuenta.nombre !== cuentaOriginal.nombre || cuenta.apellido !== cuentaOriginal.apellido
     console.log("¿Hay cambios?", hayCambios)
@@ -181,38 +102,20 @@ export default function SeccionCuenta({ correo, id }: Props) {
       return
     }
 
+    if (!verificado) {
+      toast.error("Debes verificar tu identidad primero")
+      return
+    }
+
     setCargando(true)
     try {
-      console.log("📤 Enviando actualización...")
-      const payload = {
+      await actualizarCuentaConOtp({
         correo,
-        otp, // Usar el OTP que ya fue verificado
+        otp,
         nombre: cuenta.nombre,
         apellido: cuenta.apellido,
-      }
-      console.log("Payload:", payload)
-
-      const res = await fetch("https://www.cuentas.devcorebits.com/cuenta/actualizar-con-otp", {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
       })
 
-      const data = await res.json()
-      console.log("📥 Respuesta actualización:", data)
-
-      if (!res.ok) {
-        // Si el OTP expiró, pedir nueva verificación
-        if (data.message && data.message.includes("OTP")) {
-          toast.error("El código OTP ha expirado. Solicita uno nuevo.")
-          setVerificado(false)
-          setOtp("")
-          return
-        }
-        throw new Error(data.message || "Error al actualizar la información")
-      }
-
-      // Mostrar confirmación visual prominente
       toast("🎉 ¡Datos guardados exitosamente!", {
         duration: 5000,
         position: "top-center",
@@ -230,33 +133,30 @@ export default function SeccionCuenta({ correo, id }: Props) {
 
       console.log("🎉 CONFIRMACIÓN: Datos actualizados exitosamente")
 
-      // Recargar los datos desde el servidor para confirmar la actualización
+      // Recargar los datos desde el servidor
       console.log("🔄 Recargando datos desde el servidor...")
-      const reloadRes = await fetch(`https://www.cuentas.devcorebits.com/cuenta/getCuenta/${id}`)
-      if (reloadRes.ok) {
-        const reloadData = await reloadRes.json()
-        console.log("📥 Datos recargados:", reloadData)
-        const nuevaCuentaData = {
-          nombre: reloadData.nombre,
-          apellido: reloadData.apellido,
-          correo: reloadData.correo || correo,
-        }
-        setCuenta(nuevaCuentaData)
-        setCuentaOriginal(nuevaCuentaData)
+      const reloadData = await cargarCuenta(id)
+      console.log("📥 Datos recargados:", reloadData)
+      const nuevaCuentaData = {
+        nombre: reloadData.nombre,
+        apellido: reloadData.apellido,
+        correo: reloadData.correo || correo,
       }
+      setCuenta(nuevaCuentaData)
+      setCuentaOriginal(nuevaCuentaData)
 
       // Resetear verificación para futuras actualizaciones
       setVerificado(false)
       setOtp("")
-    } catch (error: unknown) {
-      console.error("❌ Error actualizando:", error)
+    } catch (error) {
+      const errorMessage = manejarError(error)
 
-      let errorMessage = "Error al actualizar"
-      if (error instanceof Error) {
-        errorMessage = error.message
+      // Si el OTP expiró, pedir nueva verificación
+      if (errorMessage.includes("OTP")) {
+        setVerificado(false)
+        setOtp("")
       }
 
-      // Mostrar error de forma prominente
       toast.error(errorMessage, {
         duration: 6000,
         position: "top-center",
@@ -270,8 +170,6 @@ export default function SeccionCuenta({ correo, id }: Props) {
           boxShadow: "0 10px 25px rgba(0,0,0,0.1)",
         },
       })
-
-      console.error("❌ ERROR MOSTRADO:", errorMessage)
     } finally {
       setCargando(false)
     }
@@ -378,10 +276,7 @@ export default function SeccionCuenta({ correo, id }: Props) {
       {!verificado && !mostrarOtp && (
         <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex justify-center mt-6">
           <button
-            onClick={() => {
-              console.log("🔘 Botón 'Verificar identidad' clickeado")
-              handleEnviarOtp()
-            }}
+            onClick={handleEnviarOtp}
             disabled={cargando}
             className="px-6 py-2.5 bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-lg shadow-md hover:shadow-lg transition-all duration-200 flex items-center gap-2 disabled:opacity-70"
           >
@@ -428,7 +323,6 @@ export default function SeccionCuenta({ correo, id }: Props) {
                     newOtp[i] = e.target.value
                     setOtp(newOtp.join(""))
 
-                    // Auto-focus next input
                     if (e.target.value && i < 5) {
                       const nextInput = e.target.parentElement?.nextElementSibling?.querySelector("input")
                       if (nextInput) nextInput.focus()
@@ -441,10 +335,7 @@ export default function SeccionCuenta({ correo, id }: Props) {
 
             <div className="flex justify-between items-center">
               <button
-                onClick={() => {
-                  console.log("🔘 Botón 'Reenviar código' clickeado")
-                  handleEnviarOtp()
-                }}
+                onClick={handleEnviarOtp}
                 disabled={cargando}
                 className="text-sm text-blue-600 hover:text-blue-800 disabled:opacity-50"
               >
@@ -452,10 +343,7 @@ export default function SeccionCuenta({ correo, id }: Props) {
               </button>
 
               <button
-                onClick={() => {
-                  console.log("🔘 Botón 'Verificar' clickeado")
-                  handleConfirmarOtp()
-                }}
+                onClick={handleConfirmarOtp}
                 disabled={cargando || otp.length !== 6}
                 className="px-5 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 flex items-center gap-2"
               >
@@ -482,21 +370,12 @@ export default function SeccionCuenta({ correo, id }: Props) {
           animate={{ opacity: 1 }}
           className="flex justify-between items-center mt-6"
         >
-          <button
-            onClick={() => {
-              console.log("🔘 Botón 'Cancelar cambios' clickeado")
-              resetearCambios()
-            }}
-            className="px-4 py-2 text-gray-600 hover:text-gray-800 transition-colors"
-          >
+          <button onClick={resetearCambios} className="px-4 py-2 text-gray-600 hover:text-gray-800 transition-colors">
             Cancelar cambios
           </button>
 
           <button
-            onClick={() => {
-              console.log("🔘 Botón 'Guardar cambios' clickeado")
-              handleActualizar()
-            }}
+            onClick={handleActualizar}
             disabled={cargando}
             className="px-6 py-2.5 bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-lg shadow-md hover:shadow-lg transition-all duration-200 flex items-center gap-2 disabled:opacity-70"
           >

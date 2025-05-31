@@ -1,12 +1,13 @@
 "use client"
 
-import React, { useState } from "react"
-import { PlusCircle, Send, Loader2 } from "lucide-react"
-import { toast } from "react-hot-toast"
-
+import type React from "react"
+import { useState } from "react"
+import { PlusCircle, Send, Loader2, CheckCircle2 } from "lucide-react"
+import { toast, Toaster } from "react-hot-toast"
+import { crearNoticia, validarDatosNoticia, type FormDataNoticia } from "../utils"
 
 export default function CrearNoticiaForm() {
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<FormDataNoticia>({
     titulo: "",
     descripcion: "",
     link: "",
@@ -26,19 +27,22 @@ export default function CrearNoticiaForm() {
     setIsSubmitting(true)
 
     try {
-      const response = await fetch("https://servicionoticias.onrender.com/noticias/crearNoticia", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
+      // Validar datos antes de enviar
+      validarDatosNoticia(formData)
+
+      await crearNoticia(formData)
+
+      toast.custom(
+        <div className="bg-blue-100 border border-blue-300 text-blue-800 px-6 py-3 rounded-xl shadow-md flex items-center gap-3">
+          <CheckCircle2 className="w-5 h-5 text-blue-700" />
+          <span className="font-medium">¡Noticia creada correctamente!</span>
+        </div>,
+        {
+          position: "top-center",
+          duration: 4000,
         },
-        body: JSON.stringify(formData),
-      })
+      )
 
-      if (!response.ok) {
-        throw new Error("Error en la solicitud")
-      }
-
-      toast.success("¡Noticia creada exitosamente! 📰", { position: "top-center" })
       setFormData({
         titulo: "",
         descripcion: "",
@@ -46,14 +50,35 @@ export default function CrearNoticiaForm() {
         autor: "",
       })
     } catch (error) {
-      toast.error("Error al crear la noticia. Intenta de nuevo.", { position: "top-center" })
+      console.error("Error al crear la noticia:", error)
+      if (error instanceof Error) {
+        toast.error(error.message, { position: "top-center" })
+      } else {
+        toast.error("Error al crear la noticia. Intenta de nuevo.", { position: "top-center" })
+      }
     } finally {
       setIsSubmitting(false)
     }
   }
 
   return (
-    <div className="max-w-2xl mx-auto p-8 bg-gradient-to-br from-blue-50 to-indigo-50 min-h-screen">
+    <div className="max-w-2xl mx-auto p-8 bg-gradient-to-br from-blue-50 to-indigo-50 min-h-screen relative">
+      {/* Toaster */}
+      <Toaster
+        position="top-center"
+        toastOptions={{
+          duration: 4000,
+          style: {
+            background: "#DBEAFE",
+            color: "#1E40AF",
+            border: "1px solid #93C5FD",
+            padding: "12px 16px",
+            borderRadius: "12px",
+            fontWeight: "500",
+          },
+        }}
+      />
+
       <div className="bg-white rounded-2xl shadow-2xl p-8 transform hover:scale-[1.01] transition-transform duration-300">
         {/* Header */}
         <div className="text-center mb-8">
@@ -66,9 +91,7 @@ export default function CrearNoticiaForm() {
         <form onSubmit={handleSubmit} className="space-y-6">
           {/* Título */}
           <div className="group">
-            <label className="block text-sm font-semibold text-gray-700 mb-2">
-              Título
-            </label>
+            <label className="block text-sm font-semibold text-gray-700 mb-2">Título</label>
             <input
               type="text"
               name="titulo"
@@ -82,9 +105,7 @@ export default function CrearNoticiaForm() {
 
           {/* Descripción */}
           <div className="group">
-            <label className="block text-sm font-semibold text-gray-700 mb-2">
-              Descripción
-            </label>
+            <label className="block text-sm font-semibold text-gray-700 mb-2">Descripción</label>
             <textarea
               name="descripcion"
               value={formData.descripcion}
@@ -113,9 +134,7 @@ export default function CrearNoticiaForm() {
             </div>
 
             <div className="group">
-              <label className="block text-sm font-semibold text-gray-700 mb-2">
-                Autor
-              </label>
+              <label className="block text-sm font-semibold text-gray-700 mb-2">Autor</label>
               <input
                 type="text"
                 name="autor"

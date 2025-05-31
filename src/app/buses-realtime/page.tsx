@@ -1,6 +1,3 @@
-// Rroz
-
-
 "use client";
 import {
   GoogleMap,
@@ -9,35 +6,18 @@ import {
   InfoWindow,
 } from "@react-google-maps/api";
 import { useEffect, useState, useCallback } from "react";
-import axios from "axios";
 import Image from "next/image";
-
-interface Estacion {
-  idestacion: number;
-  nombre: string;
-  lat: number;
-  lon: number;
-}
-
-interface Bus {
-  idbus: number;
-  idruta: string;
-  lat: number;
-  lon: number;
-  enVuelta: boolean;
-  destino: string;
-}
-
-interface TiempoEstacionBus {
-  idbus: number;
-  idruta: string;
-  tiempo: string;
-  destino: string;
-}
-
-interface Ruta {
-  idruta: string;
-}
+import {
+  iniciarSimulacion,
+  obtenerEstaciones,
+  obtenerBuses,
+  obtenerTiempoEstacion,
+  obtenerRutasDisponibles,
+  Estacion,
+  Bus,
+  TiempoEstacionBus,
+  Ruta,
+} from "./utils";
 
 const containerStyle = {
   width: "100%",
@@ -65,63 +45,49 @@ export default function MapaMIO() {
     setIconSize(new window.google.maps.Size(50, 50));
   };
 
-  const iniciarSimulacion = async () => {
+  const iniciarSimulacionHandler = async () => {
     try {
-      await axios.post("https://www.tiemporeal.devcorebits.com/sim/inicio", { idruta });
+      await iniciarSimulacion(idruta);
       setRutaActiva(idruta);
-      obtenerEstaciones(idruta);
+      const estacionesData = await obtenerEstaciones(idruta);
+      setEstaciones(estacionesData);
     } catch (err) {
       console.error("Error al iniciar simulación:", err);
     }
   };
 
-  const obtenerEstaciones = async (ruta: string) => {
-    try {
-      const { data } = await axios.get(
-        `https://www.tiemporeal.devcorebits.com/sim/recorrido/${ruta}`
-      );
-      setEstaciones(data);
-    } catch (err) {
-      console.error("Error al obtener estaciones:", err);
-    }
-  };
-
-  const obtenerBuses = useCallback(async () => {
+  const obtenerBusesHandler = useCallback(async () => {
     if (!rutaActiva) return;
     try {
-      const { data } = await axios.get(
-        `https://www.tiemporeal.devcorebits.com/sim/buses/${rutaActiva}`
-      );
-      setBuses(data);
+      const busesData = await obtenerBuses(rutaActiva);
+      setBuses(busesData);
     } catch (err) {
       console.error("Error al obtener buses:", err);
     }
   }, [rutaActiva]);
 
-  const obtenerTiempoEstacion = async (idestacion: number) => {
+  const obtenerTiempoEstacionHandler = async (idestacion: number) => {
     try {
-      const { data } = await axios.get(
-        `https://www.tiemporeal.devcorebits.com/sim/tiempo-llegada/${idestacion}`
-      );
-      setTiempoEstacion(data);
-    } catch (error) {
-      console.error("Error al obtener tiempo de llegada:", error);
+      const tiempos = await obtenerTiempoEstacion(idestacion);
+      setTiempoEstacion(tiempos);
+    } catch (err) {
+      console.error("Error al obtener tiempo de llegada:", err);
     }
   };
 
   useEffect(() => {
     const interval = setInterval(() => {
-      if (rutaActiva) obtenerBuses();
-    }, 100);
+      if (rutaActiva) obtenerBusesHandler();
+    }, 30000);
     return () => clearInterval(interval);
-  }, [rutaActiva, obtenerBuses]);
+  }, [rutaActiva, obtenerBusesHandler]);
 
   useEffect(() => {
     if (!selectedEstacion) return;
 
     const intervaloTiempo = setInterval(() => {
-      obtenerTiempoEstacion(selectedEstacion.idestacion);
-    }, 1000);
+      obtenerTiempoEstacionHandler(selectedEstacion.idestacion);
+    }, 31000);
 
     return () => clearInterval(intervaloTiempo);
   }, [selectedEstacion]);
@@ -129,8 +95,8 @@ export default function MapaMIO() {
   useEffect(() => {
     const fetchRutas = async () => {
       try {
-        const { data }: { data: Ruta[] } = await axios.get("https://www.tiemporeal.devcorebits.com/rutas");
-        setRutasDisponibles(data.map((ruta) => ruta.idruta));
+        const rutas = await obtenerRutasDisponibles();
+        setRutasDisponibles(rutas.map((ruta) => ruta.idruta));
       } catch (error) {
         console.error("Error al cargar rutas:", error);
       }
@@ -155,7 +121,7 @@ export default function MapaMIO() {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (idruta.trim()) iniciarSimulacion();
+    if (idruta.trim()) iniciarSimulacionHandler();
   };
 
   return (
@@ -218,20 +184,6 @@ export default function MapaMIO() {
           }}
         >
           {iconSize &&
-            estaciones.map((estacion) => (
-              <Marker
-                key={estacion.idestacion}
-                position={{ lat: estacion.lat, lng: estacion.lon }}
-                title={estacion.nombre}
-                icon={{ url: "/icono-parada.png", scaledSize: iconSize }}
-                onClick={() => {
-                  setSelectedEstacion(estacion);
-                  obtenerTiempoEstacion(estacion.idestacion);
-                }}
-              />
-            ))}
-
-          {iconSize &&
             buses.map((bus) => (
               <Marker
                 key={bus.idbus}
@@ -240,6 +192,20 @@ export default function MapaMIO() {
                 animation={google.maps.Animation.DROP}
                 icon={{ url: "/icono-bus.png", scaledSize: iconSize }}
                 onClick={() => setSelectedBus(bus)}
+              />
+            ))}
+
+          {iconSize &&
+            estaciones.map((estacion) => (
+              <Marker
+                key={estacion.idestacion}
+                position={{ lat: estacion.lat, lng: estacion.lon }}
+                title={estacion.nombre}
+                icon={{ url: "/icono-parada.png", scaledSize: iconSize }}
+                onClick={() => {
+                  setSelectedEstacion(estacion);
+                  obtenerTiempoEstacionHandler(estacion.idestacion);
+                }}
               />
             ))}
 

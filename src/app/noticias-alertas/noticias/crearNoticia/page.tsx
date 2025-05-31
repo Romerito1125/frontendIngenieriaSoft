@@ -1,7 +1,7 @@
 "use client"
-import { useIsAdmin } from "../hooks/isAdmin"
+import { useIsAdmin } from "@/app/hooks/isAdmin"
 import { useEffect, useState } from "react"
-import CrearNoticiaForm from "../components/Formularios/CrearNoticiaForm"
+import CrearNoticiaForm from "../../Formularios/CrearNoticiaForm"
 import { AlertCircle } from "lucide-react"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { Button } from "@/components/ui/button"
@@ -9,7 +9,7 @@ import { useRouter } from "next/navigation"
 
 export default function CrearNoticiaPage() {
   const [isLoading, setIsLoading] = useState(true)
-  const isAdmin = useIsAdmin() 
+  const isAdmin = useIsAdmin()
   const router = useRouter()
 
   useEffect(() => {
@@ -34,10 +34,7 @@ export default function CrearNoticiaPage() {
           <AlertTitle>Acceso restringido</AlertTitle>
           <AlertDescription>Solo los administradores pueden crear noticias.</AlertDescription>
         </Alert>
-        <Button
-          className="mt-4 bg-gradient-to-r from-blue-600 to-blue-500 text-white"
-          onClick={() => router.push("/")}
-        >
+        <Button className="mt-4 bg-gradient-to-r from-blue-600 to-blue-500 text-white" onClick={() => router.push("/")}>
           Volver al inicio
         </Button>
       </div>

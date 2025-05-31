@@ -18,7 +18,22 @@ export default function Header() {
     return () => window.removeEventListener("scroll", handleScroll)
   }, [])
 
-  // Aplicar estilos para el header, siempre con fondo blanco
+  useEffect(() => {
+    const urls = [
+      "https://tiemporeal.devcorebits.com",
+      "https://www.cuentas.devcorebits.com",
+      "https://serviciotarjetas.onrender.com",
+      "https://servicioforo.onrender.com",
+      "https://servicionoticias.onrender.com",
+      "https://www.alertas.devcorebits.com",
+      "https://serviciodenuncias.onrender.com"
+    ]
+
+    urls.forEach(url => {
+      fetch(url).catch(() => {})
+    })
+  }, [])
+
   const headerBgClass = scrolled ? "bg-white shadow-sm" : "bg-white"
 
   return (

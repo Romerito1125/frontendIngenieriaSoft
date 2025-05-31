@@ -1,54 +1,49 @@
-"use client"
+"use client";
 
-import { useEffect, useState } from "react"
-import axios from "axios"
-
-interface Bus {
-  idbus: number
-  ruta: string
-  tiempo_estimado_min: number
-}
-
-interface EstacionConBuses {
-  idestacion: number
-  nombre: string
-  buses: Bus[]
-}
+import { useEffect, useState } from "react";
+import {
+  obtenerLlegadasGenerales,
+  EstacionConBuses,
+} from "./utils";
 
 export default function BusesPorEstacion() {
-  const [estaciones, setEstaciones] = useState<EstacionConBuses[]>([])
-  const [busqueda, setBusqueda] = useState("")
-  const [isLoading, setIsLoading] = useState(true)
+  const [estaciones, setEstaciones] = useState<EstacionConBuses[]>([]);
+  const [busqueda, setBusqueda] = useState("");
+  const [isLoading, setIsLoading] = useState(true);
 
   const fetchLlegadas = async () => {
     try {
-      const res = await axios.get("https://tiemporeal.onrender.com/info/llegadas")
-      setEstaciones(res.data)
-      setIsLoading(false)
+      const data = await obtenerLlegadasGenerales();
+      setEstaciones(data);
+      setIsLoading(false);
     } catch (err) {
-      console.error("Error al obtener llegadas generales", err)
+      console.error("Error al obtener llegadas generales", err);
     }
-  }
+  };
 
   useEffect(() => {
-    fetchLlegadas()
-    const interval = setInterval(fetchLlegadas, 10000)
-    return () => clearInterval(interval)
-  }, [])
+    fetchLlegadas();
+    const interval = setInterval(fetchLlegadas, 10000);
+    return () => clearInterval(interval);
+  }, []);
 
-  const estacionesFiltradas = estaciones.filter((e) => e.nombre.toLowerCase().includes(busqueda.toLowerCase()))
+  const estacionesFiltradas = estaciones.filter((e) =>
+    e.nombre.toLowerCase().includes(busqueda.toLowerCase())
+  );
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-blue-50 p-6">
       <div className="max-w-7xl mx-auto">
-        {/* Header con efecto de glassmorphism */}
+        {/* Header */}
         <div className="relative mb-8">
           <div className="absolute inset-0 bg-blue-600 opacity-10 rounded-2xl blur-3xl"></div>
           <div className="relative bg-white bg-opacity-80 backdrop-blur-sm rounded-2xl shadow-lg p-6 border border-blue-100">
             <h1 className="text-4xl font-bold mb-2 text-center bg-gradient-to-r from-blue-700 to-blue-500 bg-clip-text text-transparent">
               🚏 Buses por Estación
             </h1>
-            <p className="text-blue-600 text-center opacity-80 mb-6">Información del tiempo de llegada de los buses</p>
+            <p className="text-blue-600 text-center opacity-80 mb-6">
+              Información del tiempo de llegada de los buses
+            </p>
 
             <div className="relative max-w-md mx-auto group">
               <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
@@ -78,7 +73,12 @@ export default function BusesPorEstacion() {
                     onClick={() => setBusqueda("")}
                     className="text-blue-400 hover:text-blue-600 transition-colors duration-200"
                   >
-                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      className="h-5 w-5"
+                      viewBox="0 0 20 20"
+                      fill="currentColor"
+                    >
                       <path
                         fillRule="evenodd"
                         d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z"
@@ -92,6 +92,7 @@ export default function BusesPorEstacion() {
           </div>
         </div>
 
+        {/* Tarjetas de estaciones */}
         {isLoading ? (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
             {[1, 2, 3, 4, 5, 6].map((i) => (
@@ -120,7 +121,6 @@ export default function BusesPorEstacion() {
                 className="bg-white rounded-xl shadow-lg overflow-hidden border border-blue-100 transform transition-all duration-300 hover:scale-[1.02] hover:shadow-xl"
               >
                 <div className="bg-gradient-to-r from-blue-600 to-blue-500 p-3 text-white font-semibold text-center flex items-center justify-center relative overflow-hidden">
-                  {/* Efecto de partículas en el header */}
                   <div className="absolute inset-0 overflow-hidden">
                     {[...Array(5)].map((_, i) => (
                       <div
@@ -162,15 +162,17 @@ export default function BusesPorEstacion() {
                             <span className="bg-gradient-to-r from-blue-600 to-blue-500 text-white text-sm font-medium px-3 py-1 rounded-full mr-2 shadow-sm">
                               {bus.idbus}
                             </span>
-                            <span className="font-medium text-blue-800">Ruta {bus.ruta}</span>
+                            <span className="font-medium text-blue-800">
+                              Ruta {bus.ruta}
+                            </span>
                           </div>
                           <div
                             className={`flex items-center ${
                               bus.tiempo_estimado_min === 0
                                 ? "text-green-600"
                                 : bus.tiempo_estimado_min <= 5
-                                  ? "text-orange-500"
-                                  : "text-blue-600"
+                                ? "text-orange-500"
+                                : "text-blue-600"
                             }`}
                           >
                             <svg
@@ -186,7 +188,9 @@ export default function BusesPorEstacion() {
                               />
                             </svg>
                             <span className="font-semibold">
-                              {bus.tiempo_estimado_min === 0 ? "Llegó" : `${bus.tiempo_estimado_min} min`}
+                              {bus.tiempo_estimado_min === 0
+                                ? "Llegó"
+                                : `${bus.tiempo_estimado_min} min`}
                             </span>
                           </div>
                         </div>
@@ -209,7 +213,9 @@ export default function BusesPorEstacion() {
                           />
                         </svg>
                       </div>
-                      <p className="mt-3 font-medium text-blue-400">Sin buses próximos</p>
+                      <p className="mt-3 font-medium text-blue-400">
+                        Sin buses próximos
+                      </p>
                     </div>
                   )}
                 </div>
@@ -235,7 +241,9 @@ export default function BusesPorEstacion() {
                 />
               </svg>
             </div>
-            <p className="text-xl text-gray-600 mb-3">No se encontraron coincidencias para "{busqueda}"</p>
+            <p className="text-xl text-gray-600 mb-3">
+              No se encontraron coincidencias para "{busqueda}"
+            </p>
             <button
               onClick={() => setBusqueda("")}
               className="mt-4 bg-gradient-to-r from-blue-600 to-blue-500 text-white px-6 py-2 rounded-full hover:shadow-lg transition-all duration-300 transform hover:scale-105"
@@ -244,13 +252,8 @@ export default function BusesPorEstacion() {
             </button>
           </div>
         )}
-
-        {/* Decoración de fondo */}
-        <div className="fixed top-0 right-0 -z-10 w-1/2 h-1/2 bg-blue-100 opacity-30 rounded-full blur-3xl transform translate-x-1/3 -translate-y-1/3"></div>
-        <div className="fixed bottom-0 left-0 -z-10 w-1/2 h-1/2 bg-blue-200 opacity-20 rounded-full blur-3xl transform -translate-x-1/3 translate-y-1/3"></div>
       </div>
 
-      {/* Estilos para la animación de partículas */}
       <style jsx>{`
         @keyframes float {
           0% {
@@ -265,5 +268,5 @@ export default function BusesPorEstacion() {
         }
       `}</style>
     </div>
-  )
+  );
 }

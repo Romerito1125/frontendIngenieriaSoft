@@ -24,7 +24,7 @@ export default function ConsultaSaldo() {
     setTarjetaData(null);
     try {
       const res = await fetch(
-        `https://serviciotarjetas.onrender.com/tarjetas/${encodeURIComponent(
+        `https://www.api.devcorebits.com/tarjetasGateway/tarjetas/${encodeURIComponent(
           id
         )}`
       );

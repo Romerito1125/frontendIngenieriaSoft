@@ -36,7 +36,7 @@ export default function Home() {
     },
     {
       name: "Noticias y alertas",
-      path: "/noticias",
+      path: "/noticias-alertas",
       icon: "/svg/Noticias1.svg",
       description: "Mantente informado sobre novedades y alertas",
     },

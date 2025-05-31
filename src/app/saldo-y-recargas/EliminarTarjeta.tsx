@@ -52,7 +52,7 @@ const EliminarTarjeta: React.FC<Props> = ({ isOpen, onClose, onSuccess, tarjetaI
 
     setLoading(true)
     try {
-      const res = await fetch("https://www.cuentas.devcorebits.com/cuenta/send-otp", {
+      const res = await fetch("https://www.api.devcorebits.com/cuentasGateway/cuenta/send-otp", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ correo, tipo: "eliminacion_tarjeta" }),
@@ -71,7 +71,7 @@ const EliminarTarjeta: React.FC<Props> = ({ isOpen, onClose, onSuccess, tarjetaI
     setLoading(true)
     try {
       // Verificar OTP
-      const resOtp = await fetch("https://www.cuentas.devcorebits.com/cuenta/verify-otp", {
+      const resOtp = await fetch("https://www.api.devcorebits.com/cuentasGateway/cuenta/verify-otp", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ correo, otp }),
@@ -88,7 +88,7 @@ const EliminarTarjeta: React.FC<Props> = ({ isOpen, onClose, onSuccess, tarjetaI
       console.log("OTP verification successful:", otpResult)
 
       // Eliminar tarjeta usando el endpoint correcto
-      const resTarjeta = await fetch(`https://serviciotarjetas.onrender.com/tarjetas/eliminar/${tarjetaId}`, {
+      const resTarjeta = await fetch(`https://www.api.devcorebits.com/tarjetasGateway/tarjetas/eliminar/${tarjetaId}`, {
         method: "DELETE",
       })
 

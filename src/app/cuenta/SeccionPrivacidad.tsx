@@ -4,6 +4,7 @@ import { useState } from "react"
 import toast from "react-hot-toast"
 import { motion } from "framer-motion"
 import { AlertTriangle, CheckCircle, Mail, Trash2, Shield } from "lucide-react"
+import { enviarOtp, verificarOtp, eliminarCuenta, manejarError, cerrarSesionYRedirigir } from "./utils"
 
 interface Props {
   correo: string
@@ -17,45 +18,18 @@ export default function SeccionPrivacidad({ correo }: Props) {
   const [otpEnviado, setOtpEnviado] = useState(false)
 
   const handleEnviarOtp = async () => {
-    console.log("🚀 Iniciando envío de OTP para eliminación...")
-    console.log("Correo:", correo)
-
-    if (!correo) {
-      toast.error("Correo no disponible")
-      return
-    }
-
     setCargando(true)
     try {
-      console.log("📤 Enviando solicitud OTP...")
-      const res = await fetch("https://www.cuentas.devcorebits.com/cuenta/send-otp", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ correo: correo.trim(), tipo: "eliminacion" }),
-      })
-
-      const data = await res.json()
-      console.log("📥 Respuesta del servidor:", data)
-
-      if (!res.ok) {
-        throw new Error(data.message || "Error al enviar OTP")
-      }
-
+      await enviarOtp({ correo, tipo: "eliminacion" })
       toast.success("✅ Código OTP enviado a tu correo")
-      // Mostrar automáticamente el campo OTP después de enviar
+
       if (otp.length === 0) {
-        setOtp(" ") // Trigger para mostrar el campo OTP
-        setTimeout(() => setOtp(""), 100) // Reset inmediato pero mantiene la animación
+        setOtp(" ")
+        setTimeout(() => setOtp(""), 100)
       }
       setOtpEnviado(true)
     } catch (error) {
-      console.error("❌ Error enviando OTP:", error)
-
-      let errorMessage = "No se pudo enviar el código OTP"
-      if (error instanceof Error) {
-        errorMessage = error.message
-      }
-
+      const errorMessage = manejarError(error)
       toast.error(errorMessage, {
         duration: 5000,
         position: "top-center",
@@ -66,42 +40,14 @@ export default function SeccionPrivacidad({ correo }: Props) {
   }
 
   const handleVerificarOtp = async () => {
-    console.log("🔐 Verificando OTP para eliminación...")
-    console.log("OTP ingresado:", otp)
-    console.log("Correo:", correo)
-
-    if (!otp || otp.length !== 6) {
-      toast.error("Ingresa el código OTP completo")
-      return
-    }
-
     setCargando(true)
     try {
-      console.log("📤 Enviando verificación OTP...")
-      const res = await fetch("https://www.cuentas.devcorebits.com/cuenta/verify-otp", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ correo: correo.trim(), otp }),
-      })
-
-      const data = await res.json()
-      console.log("📥 Respuesta verificación OTP:", data)
-
-      if (!res.ok) {
-        throw new Error(data.message || "OTP inválido o expirado")
-      }
-
+      await verificarOtp({ correo, otp })
       toast.success("✅ Identidad verificada correctamente")
       setValidado(true)
       setOtpEnviado(false)
     } catch (error) {
-      console.error("❌ Error verificando OTP:", error)
-
-      let errorMessage = "Error al verificar el código"
-      if (error instanceof Error) {
-        errorMessage = error.message
-      }
-
+      const errorMessage = manejarError(error)
       toast.error(errorMessage, {
         duration: 5000,
         position: "top-center",
@@ -112,11 +58,6 @@ export default function SeccionPrivacidad({ correo }: Props) {
   }
 
   const handleEliminarCuenta = async () => {
-    console.log("🗑️ Iniciando eliminación de cuenta...")
-    console.log("Correo:", correo)
-    console.log("Validado:", validado)
-    console.log("Confirmación:", confirmacion)
-
     if (!validado) {
       toast.error("Debes verificar tu identidad primero")
       return
@@ -129,61 +70,8 @@ export default function SeccionPrivacidad({ correo }: Props) {
 
     setCargando(true)
     try {
-      console.log("📤 Buscando cuenta por correo...")
-      // Primero buscar la cuenta por correo para obtener el ID
-      const buscarRes = await fetch(`https://www.cuentas.devcorebits.com/cuenta/buscar-por-correo`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ correo: correo.trim() }),
-      })
+      await eliminarCuenta({ correo })
 
-      let cuentaId = null
-
-      if (!buscarRes.ok) {
-        // Si no existe el endpoint de búsqueda, intentar con el endpoint directo
-        console.log("📤 Endpoint de búsqueda no disponible, intentando método alternativo...")
-
-        // Intentar obtener el ID desde el localStorage o desde el JWT
-        const token = document.cookie
-          .split("; ")
-          .find((row) => row.startsWith("token="))
-          ?.split("=")[1]
-        if (token) {
-          try {
-            const payload = JSON.parse(atob(token.split(".")[1]))
-            cuentaId = payload.userId
-            console.log("📥 ID obtenido del token:", cuentaId)
-          } catch (e) {
-            console.error("Error decodificando token:", e)
-          }
-        }
-
-        if (!cuentaId) {
-          throw new Error("No se pudo identificar la cuenta para eliminar")
-        }
-      } else {
-        const buscarData = await buscarRes.json()
-        console.log("📥 Datos de búsqueda:", buscarData)
-        cuentaId = buscarData.idcuenta || buscarData.id
-      }
-
-      if (!cuentaId) {
-        throw new Error("No se pudo identificar la cuenta")
-      }
-
-      console.log("📤 Eliminando cuenta con ID:", cuentaId)
-      // Ahora eliminar usando el ID
-      const res = await fetch(`https://www.cuentas.devcorebits.com/cuenta/eliminar/${cuentaId}`, {
-        method: "DELETE",
-        headers: { "Content-Type": "application/json" },
-      })
-
-      const data = await res.json()
-      console.log("📥 Respuesta eliminación:", data)
-
-      if (!res.ok) throw new Error(data?.message || "Ocurrió un error inesperado")
-
-      // Confirmación adicional más visible
       toast("🗑️ ¡Cuenta eliminada! Redirigiendo...", {
         duration: 4000,
         position: "top-center",
@@ -200,19 +88,9 @@ export default function SeccionPrivacidad({ correo }: Props) {
       })
 
       console.log("🗑️ CONFIRMACIÓN: Cuenta eliminada exitosamente")
-
-      // Limpiar cookies y redirigir
-      document.cookie = "token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;"
-      setTimeout(() => (window.location.href = "/auth/login"), 4000)
-    } catch (e: unknown) {
-      console.error("❌ Error eliminando cuenta:", e)
-
-      let errorMessage = "Error desconocido"
-      if (e instanceof Error) {
-        errorMessage = e.message
-      }
-
-      // Mostrar error de forma prominente
+      cerrarSesionYRedirigir()
+    } catch (error) {
+      const errorMessage = manejarError(error)
       toast.error(errorMessage, {
         duration: 6000,
         position: "top-center",
@@ -226,8 +104,6 @@ export default function SeccionPrivacidad({ correo }: Props) {
           boxShadow: "0 10px 25px rgba(0,0,0,0.1)",
         },
       })
-
-      console.error("❌ ERROR MOSTRADO:", errorMessage)
     } finally {
       setCargando(false)
     }
@@ -283,10 +159,7 @@ export default function SeccionPrivacidad({ correo }: Props) {
               {!otpEnviado ? (
                 <div className="flex justify-center pt-2">
                   <button
-                    onClick={() => {
-                      console.log("🔘 Botón 'Verificar identidad' clickeado")
-                      handleEnviarOtp()
-                    }}
+                    onClick={handleEnviarOtp}
                     disabled={cargando}
                     className="px-6 py-2.5 bg-gradient-to-r from-red-500 to-red-600 text-white rounded-lg shadow-md hover:shadow-lg transition-all duration-200 flex items-center gap-2 disabled:opacity-70"
                   >
@@ -331,7 +204,6 @@ export default function SeccionPrivacidad({ correo }: Props) {
                               newOtp[i] = e.target.value
                               setOtp(newOtp.join(""))
 
-                              // Auto-focus next input
                               if (e.target.value && i < 5) {
                                 const nextInput = e.target.parentElement?.nextElementSibling?.querySelector("input")
                                 if (nextInput) nextInput.focus()
@@ -344,10 +216,7 @@ export default function SeccionPrivacidad({ correo }: Props) {
 
                       <div className="flex justify-between items-center">
                         <button
-                          onClick={() => {
-                            console.log("🔘 Botón 'Reenviar código' clickeado")
-                            handleEnviarOtp()
-                          }}
+                          onClick={handleEnviarOtp}
                           disabled={cargando}
                           className="text-sm text-blue-600 hover:text-blue-800 disabled:opacity-50"
                         >
@@ -355,10 +224,7 @@ export default function SeccionPrivacidad({ correo }: Props) {
                         </button>
 
                         <button
-                          onClick={() => {
-                            console.log("🔘 Botón 'Verificar' clickeado")
-                            handleVerificarOtp()
-                          }}
+                          onClick={handleVerificarOtp}
                           disabled={cargando || otp.length !== 6}
                           className="px-5 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 flex items-center gap-2"
                         >
@@ -400,17 +266,13 @@ export default function SeccionPrivacidad({ correo }: Props) {
                 <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
                   <div className="flex gap-4 justify-center">
                     <button
-                      onClick={() => {
-                        console.log("🔘 Botón 'Cancelar' clickeado")
-                        resetearFormulario()
-                      }}
+                      onClick={resetearFormulario}
                       className="px-5 py-2 bg-white border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
                     >
                       Cancelar
                     </button>
                     <button
                       onClick={() => {
-                        console.log("🔘 Botón 'Quiero eliminar mi cuenta' clickeado")
                         setConfirmacion(true)
                         toast.success("Confirmación activada. Ahora puedes proceder con la eliminación.")
                       }}
@@ -433,7 +295,6 @@ export default function SeccionPrivacidad({ correo }: Props) {
                   <div className="flex gap-4 justify-center">
                     <button
                       onClick={() => {
-                        console.log("🔘 Botón 'Cancelar' (segunda confirmación) clickeado")
                         setConfirmacion(false)
                         toast.success("Eliminación cancelada")
                       }}
@@ -443,10 +304,7 @@ export default function SeccionPrivacidad({ correo }: Props) {
                     </button>
 
                     <button
-                      onClick={() => {
-                        console.log("🔘 Botón 'Eliminar permanentemente' clickeado")
-                        handleEliminarCuenta()
-                      }}
+                      onClick={handleEliminarCuenta}
                       disabled={cargando}
                       className="px-5 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors flex items-center gap-2 disabled:opacity-70"
                     >

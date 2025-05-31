@@ -1,83 +1,106 @@
-"use client"
+"use client";
 
-import { useEffect, useState, useRef } from "react"
-import { useRouter, usePathname } from "next/navigation"
-import Cookies from "js-cookie"
-import { jwtDecode } from "jwt-decode"
-import Link from "next/link"
-import { motion, AnimatePresence } from "framer-motion"
-import { User, LogOut, ChevronDown } from "lucide-react"
+import { useEffect, useState, useRef } from "react";
+import { useRouter, usePathname } from "next/navigation";
+import Cookies from "js-cookie";
+import { jwtDecode } from "jwt-decode";
+import Link from "next/link";
+import { motion, AnimatePresence } from "framer-motion";
+import { User, LogOut, ChevronDown } from "lucide-react";
 
 type TokenPayload = {
-  userId: number
-  correo: string
-}
+  userId: number;
+  correo: string;
+};
+
+type TokenPayloadGoogle = {
+  sub: string;
+  email: string;
+};
 
 type CuentaData = {
-  nombre: string
-  apellido: string
-  correo: string
-}
+  nombre?: string;
+  apellido?: string;
+  correo: string;
+};
 
 export default function UserMenu() {
-  const [user, setUser] = useState<CuentaData | null>(null)
-  const [isOpen, setIsOpen] = useState(false)
-  const [loading, setLoading] = useState(true)
-  const menuRef = useRef<HTMLDivElement>(null)
-  const router = useRouter()
-  const pathname = usePathname()
+  const [user, setUser] = useState<CuentaData | null>(null);
+  const [isOpen, setIsOpen] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const menuRef = useRef<HTMLDivElement>(null);
+  const router = useRouter();
+  const pathname = usePathname();
 
-  // Verificar si estamos en la página de login o registro
-  const isAuthPage = pathname?.includes("/auth/login") || pathname?.includes("/auth/register")
+  const isAuthPage =
+    pathname?.includes("/auth/login") || pathname?.includes("/auth/register");
 
   useEffect(() => {
-    const token = Cookies.get("token")
+    const token = Cookies.get("token");
     if (!token) {
-      setLoading(false)
-      return
+      setLoading(false);
+      return;
     }
 
     try {
-      const decoded = jwtDecode<TokenPayload>(token)
-      fetch(`https://www.cuentas.devcorebits.com/cuenta/getCuenta/${decoded.userId}`)
-        .then((res) => res.json())
-        .then((data) => {
-          setUser(data)
-          setLoading(false)
-        })
-        .catch(() => {
-          setLoading(false)
-        })
+      const decodedNormal = jwtDecode<TokenPayload>(token);
+      if (typeof decodedNormal.userId === "number") {
+        // Token normal → consulta backend
+        fetch(
+          `https://www.api.devcorebits.com/cuentasGateway/cuenta/getCuenta/${decodedNormal.userId}`
+        )
+          .then((res) => res.json())
+          .then((data) => {
+            setUser(data);
+            setLoading(false);
+          })
+          .catch(() => {
+            setLoading(false);
+          });
+        return;
+      }
     } catch {
-      setUser(null)
-      setLoading(false)
+      // No pasa nada, probamos token de Google
     }
-  }, [])
 
-  // Cerrar el menú al hacer clic fuera
+    try {
+      const decodedGoogle = jwtDecode<TokenPayloadGoogle>(token);
+      if (decodedGoogle.sub) {
+        // Token de Google → usamos directamente el email
+        setUser({
+          correo: decodedGoogle.email
+        });
+      }
+    } catch (error) {
+      console.error("Error al decodificar token:", error);
+      setUser(null);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
       if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
-        setIsOpen(false)
+        setIsOpen(false);
       }
     }
 
-    document.addEventListener("mousedown", handleClickOutside)
+    document.addEventListener("mousedown", handleClickOutside);
     return () => {
-      document.removeEventListener("mousedown", handleClickOutside)
-    }
-  }, [menuRef])
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, [menuRef]);
 
   const handleLogout = () => {
-    Cookies.remove("token")
-    setUser(null)
-    setIsOpen(false)
-    router.push("/")
-  }
+    Cookies.remove("token");
+    setUser(null);
+    setIsOpen(false);
+    router.push("/");
+  };
 
-  // No mostrar los botones de login/registro si ya estamos en una página de autenticación
   if (isAuthPage) {
-    return null
+    return null;
   }
 
   if (loading) {
@@ -85,7 +108,7 @@ export default function UserMenu() {
       <div className="w-10 h-10 rounded-full bg-gray-200 animate-pulse flex items-center justify-center">
         <span className="sr-only">Cargando</span>
       </div>
-    )
+    );
   }
 
   if (!user) {
@@ -106,11 +129,15 @@ export default function UserMenu() {
           Registrarse
         </Link>
       </div>
-    )
+    );
   }
 
-  const letra = user.nombre?.charAt(0)?.toUpperCase() || "U"
-  const apellidoLetra = user.apellido?.charAt(0)?.toUpperCase() || ""
+  // Si es Google → usamos primera letra del correo
+  const letraGoogle = user.correo?.charAt(0)?.toUpperCase() || "";
+
+  // Si es cuenta normal → usamos nombre/apellido
+  const letra = user.nombre?.charAt(0)?.toUpperCase() || letraGoogle;
+  const apellidoLetra = user.apellido?.charAt(0)?.toUpperCase() || "";
 
   return (
     <div className="relative" ref={menuRef}>
@@ -127,7 +154,9 @@ export default function UserMenu() {
           {apellidoLetra}
         </div>
         <ChevronDown
-          className={`w-4 h-4 text-gray-500 transition-transform duration-200 ${isOpen ? "rotate-180" : ""}`}
+          className={`w-4 h-4 text-gray-500 transition-transform duration-200 ${
+            isOpen ? "rotate-180" : ""
+          }`}
         />
       </motion.button>
 
@@ -148,7 +177,9 @@ export default function UserMenu() {
                 </div>
                 <div className="overflow-hidden">
                   <p className="font-medium truncate">
-                    {user.nombre} {user.apellido}
+                    {user.nombre
+                      ? `${user.nombre} ${user.apellido}`
+                      : user.correo}
                   </p>
                   <p className="text-xs text-blue-100 truncate">{user.correo}</p>
                 </div>
@@ -159,8 +190,8 @@ export default function UserMenu() {
               <motion.button
                 whileHover={{ x: 4 }}
                 onClick={() => {
-                  router.push("/cuenta")
-                  setIsOpen(false)
+                  router.push("/cuenta");
+                  setIsOpen(false);
                 }}
                 className="w-full flex items-center gap-3 px-3 py-2.5 text-sm text-gray-700 hover:bg-blue-50 hover:text-blue-700 rounded-lg transition-colors mx-1"
               >
@@ -183,5 +214,5 @@ export default function UserMenu() {
         )}
       </AnimatePresence>
     </div>
-  )
+  );
 }

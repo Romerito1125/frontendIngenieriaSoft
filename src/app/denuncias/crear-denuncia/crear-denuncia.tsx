@@ -1,12 +1,8 @@
-//Zuluaga
-
-
 "use client"
 
 import type React from "react"
 
 import { useState } from "react"
-import axios from "axios"
 import toast, { Toaster } from "react-hot-toast"
 import { Button } from "@/components/ui/button"
 import { Label } from "@/components/ui/label"
@@ -14,6 +10,7 @@ import { Textarea } from "@/components/ui/textarea"
 import { AlertCircle, CheckCircle, Loader2, User, MessageSquare, Building, Send, Check } from "lucide-react"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { motion } from "framer-motion"
+import { crearDenuncia, validarFormulario } from "./utils"
 
 interface CrearDenunciaProps {
   userId: number
@@ -24,9 +21,6 @@ export function CrearDenuncia({ userId }: CrearDenunciaProps) {
   const [error, setError] = useState<string | null>(null)
   const [success, setSuccess] = useState(false)
   const [charCount, setCharCount] = useState(0)
-
-  // URL base del API correcta
-  const API_BASE_URL = "https://serviciodenuncias.onrender.com/denuncias"
 
   const [formData, setFormData] = useState({
     idcuenta: userId,
@@ -50,25 +44,19 @@ export function CrearDenuncia({ userId }: CrearDenunciaProps) {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
 
+    // Validación manual del mensaje vacío
     if (!formData.mensaje.trim()) {
       setError("Por favor, describe el problema o incidente")
-      return
-    }
-
-    if (!userId) {
-      setError("No se pudo identificar al usuario. Por favor, inicia sesión nuevamente.")
+      toast.error("Por favor, describe el problema o incidente")
       return
     }
 
     try {
+      validarFormulario(formData.mensaje, userId)
       setIsSubmitting(true)
       setError(null)
 
-      // Usar la ruta exacta según el router proporcionado
-      const apiUrl = `${API_BASE_URL}/crearDenuncia`
-      console.log(`Creando denuncia para el usuario ID: ${userId}`)
-
-      const response = await axios.post(apiUrl, {
+      await crearDenuncia({
         ...formData,
         idcuenta: userId,
       })
@@ -87,15 +75,13 @@ export function CrearDenuncia({ userId }: CrearDenunciaProps) {
       setTimeout(() => {
         setSuccess(false)
       }, 3000)
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error("Error al crear denuncia:", err)
 
-      if (err.response) {
-        setError(`Error del servidor: ${err.response.status}. Por favor, intenta nuevamente más tarde.`)
-      } else if (err.request) {
-        setError("No se pudo conectar con el servidor. Verifica tu conexión a internet.")
+      if (err instanceof Error) {
+        setError(err.message)
       } else {
-        setError(`Error: ${err.message}`)
+        setError("Error desconocido al enviar la denuncia")
       }
 
       toast.error("Error al enviar la denuncia")
@@ -110,6 +96,7 @@ export function CrearDenuncia({ userId }: CrearDenunciaProps) {
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5 }}
       className="max-w-2xl mx-auto"
+      data-testid="crear-denuncia-container"
     >
       <Toaster
         position="top-center"
@@ -148,6 +135,7 @@ export function CrearDenuncia({ userId }: CrearDenunciaProps) {
           initial={{ opacity: 0, height: 0 }}
           animate={{ opacity: 1, height: "auto" }}
           exit={{ opacity: 0, height: 0 }}
+          data-testid="error-alert"
         >
           <Alert variant="destructive" className="mb-6 border-l-4 border-l-red-600 shadow-md">
             <AlertCircle className="h-5 w-5" />
@@ -162,6 +150,7 @@ export function CrearDenuncia({ userId }: CrearDenunciaProps) {
           initial={{ opacity: 0, height: 0 }}
           animate={{ opacity: 1, height: "auto" }}
           exit={{ opacity: 0, height: 0 }}
+          data-testid="success-alert"
         >
           <Alert className="mb-6 bg-green-50 border border-green-200 border-l-4 border-l-green-500 shadow-md">
             <CheckCircle className="h-5 w-5 text-green-500" />
@@ -173,7 +162,7 @@ export function CrearDenuncia({ userId }: CrearDenunciaProps) {
         </motion.div>
       )}
 
-      <form onSubmit={handleSubmit}>
+      <form onSubmit={handleSubmit} data-testid="denuncia-form">
         <div className="bg-white border border-gray-200 shadow-md hover:shadow-lg transition-all duration-300 rounded-xl overflow-hidden">
           {/* Encabezado con fondo azul completo */}
           <div className="bg-blue-50 p-6">
@@ -200,6 +189,7 @@ export function CrearDenuncia({ userId }: CrearDenunciaProps) {
                           ? "border-green-300 bg-green-50 shadow-md"
                           : "border-gray-200 hover:border-gray-300"
                       }`}
+                    data-testid="tipo-servicio"
                   >
                     <div className="p-4 flex flex-col items-center text-center h-full">
                       <div
@@ -236,6 +226,7 @@ export function CrearDenuncia({ userId }: CrearDenunciaProps) {
                           ? "border-blue-300 bg-blue-50 shadow-md"
                           : "border-gray-200 hover:border-gray-300"
                       }`}
+                    data-testid="tipo-conductor"
                   >
                     <div className="p-4 flex flex-col items-center text-center h-full">
                       <div
@@ -270,6 +261,7 @@ export function CrearDenuncia({ userId }: CrearDenunciaProps) {
                           ? "border-purple-300 bg-purple-50 shadow-md"
                           : "border-gray-200 hover:border-gray-300"
                       }`}
+                    data-testid="tipo-estacion"
                   >
                     <div className="p-4 flex flex-col items-center text-center h-full">
                       <div
@@ -304,7 +296,10 @@ export function CrearDenuncia({ userId }: CrearDenunciaProps) {
                   <Label htmlFor="mensaje" className="text-blue-600 font-medium text-base">
                     Descripción del problema
                   </Label>
-                  <span className={`text-xs ${charCount > 500 ? "text-red-500" : "text-gray-500"}`}>
+                  <span
+                    className={`text-xs ${charCount > 500 ? "text-red-500" : "text-gray-500"}`}
+                    data-testid="char-counter"
+                  >
                     {charCount}/500 caracteres
                   </span>
                 </div>
@@ -316,7 +311,7 @@ export function CrearDenuncia({ userId }: CrearDenunciaProps) {
                   placeholder="Describe el problema o incidente con el mayor detalle posible..."
                   className="min-h-[180px] border-gray-200 focus-visible:border-blue-400 focus-visible:ring-blue-400 transition-all duration-300 resize-y rounded-xl"
                   maxLength={500}
-                  required
+                  data-testid="mensaje-textarea"
                 />
                 <p className="text-xs text-gray-500 italic">
                   Por favor, incluye detalles como fecha, hora, ubicación y cualquier otra información relevante.
@@ -327,6 +322,7 @@ export function CrearDenuncia({ userId }: CrearDenunciaProps) {
                 type="submit"
                 disabled={isSubmitting || charCount > 500}
                 className="w-full bg-blue-600 hover:bg-blue-700 text-white shadow-md transition-all duration-300 transform hover:translate-y-[-2px] rounded-xl py-6"
+                data-testid="submit-button"
               >
                 {isSubmitting ? (
                   <>
