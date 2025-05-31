@@ -5,7 +5,7 @@ export const supabase = createClient(
   "https://vrhudhgvjtcbebdnpftb.supabase.co",
   "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZyaHVkaGd2anRjYmViZG5wZnRiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDAyMDE5NjMsImV4cCI6MjA1NTc3Nzk2M30.aOBYppQ4VC1w9_uM0wRc1LAuWw8n4qM-e2vLidALmJM",
 )
-const BASE_URL = process.env.NEXT_PUBLIC_API_URL || "https://www.api.devcorebits.com/forosGateway"
+const BASE_URL = process.env.NEXT_PUBLIC_API_URL || "https://www.api.devcorebits.com/foroGateway"
 
 // Función para obtener el ID del usuario actual desde el token
 function getCurrentUserId() {
