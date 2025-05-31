@@ -36,5 +36,15 @@
 ---
 ## Link a Figma:
 https://www.figma.com/design/PPHXotMSRdrolIviacErL8/IngSoft2?node-id=0-1&t=79yRep7Tz3vlsQxq-1
+---
 ## Link a recursos usados:
 https://uao-my.sharepoint.com/:f:/g/personal/juan_d_munoz_o_uao_edu_co/EsHHODV0c89EuyjTM0Xn4ZMBNa6qCHDnyRh_w4d9osQbvQ?e=hiWeyY
+---
+## ID Tarjetas disponibles para probar:
+21.03.23456789-2
+18.12.34567890-3
+22.05.45678901-4
+23.01.56789012-5
+17.09.67890123-6
+19.08.78901234-7
+20.10.89012345-8
