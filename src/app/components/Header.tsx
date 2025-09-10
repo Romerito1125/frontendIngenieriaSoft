@@ -20,17 +20,18 @@ export default function Header() {
 
   useEffect(() => {
     const urls = [
-      "https://tiemporeal.devcorebits.com",
-      "https://www.cuentas.devcorebits.com",
-      "https://serviciotarjetas.onrender.com",
-      "https://servicioforo.onrender.com",
-      "https://servicionoticias.onrender.com",
-      "https://www.alertas.devcorebits.com",
-      "https://serviciodenuncias.onrender.com"
+      "https://tiemporeal.devcorebits.com/health",
+      "https://www.cuentas.devcorebits.com/health",
+      "https://serviciotarjetas.onrender.com/health",
+      "https://servicioforo.onrender.com/health",
+      "https://servicionoticias.onrender.com/health",
+      "https://www.alertas.devcorebits.com/health",
+      "https://serviciodenuncias.onrender.com/health",
+      "https://www.api.devcorebits.com/health"
     ]
 
     urls.forEach(url => {
-      fetch(url).catch(() => {})
+      fetch(url).catch(() => { })
     })
   }, [])
 

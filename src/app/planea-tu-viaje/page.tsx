@@ -152,7 +152,7 @@ export default function EstacionesPage() {
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ tipo: "viaje_normal", origen, destino }),
+          body: JSON.stringify({ origen, destino }),
         }
       );
 
@@ -200,6 +200,7 @@ export default function EstacionesPage() {
 
         toast.success("Ruta calculada con éxito");
       } else {
+        console.log( data.rutas );
         toast.error(
           "No se pudo calcular la ruta. Intenta con otras estaciones."
         );
