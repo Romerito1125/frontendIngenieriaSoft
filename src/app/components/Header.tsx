@@ -22,12 +22,12 @@ export default function Header() {
     const urls = [
       "https://tiemporeal.devcorebits.com/health",
       "https://www.cuentas.devcorebits.com/health",
-      "https://serviciotarjetas.onrender.com/health",
-      "https://servicioforo.onrender.com/health",
-      "https://servicionoticias.onrender.com/health",
+      "https://www.serviciotarjetas.onrender.com/health",
+      "https://www.servicioforo.onrender.com/health",
+      "https://www.servicionoticias.onrender.com/health",
       "https://www.alertas.devcorebits.com/health",
-      "https://serviciodenuncias.onrender.com/health",
-      "https://www.api.devcorebits.com/health"
+      "https://www.serviciodenuncias.onrender.com/health",
+      "https://www.api.devcorebits.com"
     ]
 
     urls.forEach(url => {
